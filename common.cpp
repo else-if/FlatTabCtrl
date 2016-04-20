@@ -84,3 +84,46 @@ void GetRoundRectPath(GraphicsPath *pPath, Rect rBounds, int dia, int borderSize
 	// end path
 	pPath->CloseFigure();
 }
+
+void Draw4ColorsGradientRect(CRect &rc, CMemDC &dc,
+	COLORREF colorStart1, COLORREF colorFinish1,
+	COLORREF colorStart2, COLORREF colorFinish2,
+	int cornerRadius)
+{
+	CDrawingManager drawingManager(dc.GetDC());
+
+	CRgn rgn;
+	rgn.CreateRoundRectRgn(rc.left, rc.top, rc.right, rc.bottom, cornerRadius, cornerRadius);
+	dc.GetDC().SelectClipRgn(&rgn);
+
+	drawingManager.Fill4ColorsGradient(rc, colorStart1, colorFinish1,
+		colorStart2, colorFinish2);
+}
+
+void DrawRectArea(Gdiplus::Rect &rc, Gdiplus::Graphics &graphics, COLORREF color, int cornerRadius, float penWidth)
+{
+	Gdiplus::Color penColor(0, 0, 0);
+	penColor.SetFromCOLORREF(color);
+
+	GraphicsPath path;
+	GetRoundRectPath(&path, rc, cornerRadius);
+
+	Gdiplus::Pen pen(penColor, penWidth);
+	pen.SetLineJoin(LineJoinRound);
+	graphics.DrawPath(&pen, &path);
+}
+
+void DrawText(CRect &rc, CMemDC &dc, CFont &font, COLORREF textColor, CString text, UINT nFormat)
+{
+	int oldBkMode = dc.GetDC().GetBkMode();
+	COLORREF oldColor = dc.GetDC().GetTextColor();
+
+	dc.GetDC().SetBkMode(TRANSPARENT);
+	dc.GetDC().SetTextColor(textColor);
+	dc.GetDC().SelectObject(font);	
+
+	dc.GetDC().DrawText(text, rc, nFormat);
+
+	dc.GetDC().SetBkMode(oldBkMode);
+	dc.GetDC().SetTextColor(oldColor);
+}

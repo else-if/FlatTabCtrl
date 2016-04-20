@@ -67,7 +67,9 @@ void CFlatTabCtrlDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_COMBO1, m_ComboBox);
 	DDX_Control(pDX, IDC_MYGROUPBOX, m_groupBox);
 	DDX_Control(pDX, IDC_FRAME_STATIC, m_frameStatic);
-	DDX_Control(pDX, IDC_EDIT2, m_EditCtrl1);
+	DDX_Control(pDX, IDC_EDIT2, m_EditCtrl1);	
+	DDX_Control(pDX, IDC_BUTTON2, m_TTButton1);
+	DDX_Control(pDX, IDC_BUTTON3, m_TTButton2);
 }
 
 BEGIN_MESSAGE_MAP(CFlatTabCtrlDlg, CDialogEx)
@@ -78,6 +80,9 @@ BEGIN_MESSAGE_MAP(CFlatTabCtrlDlg, CDialogEx)
 	ON_NOTIFY(TCN_SELCHANGE, IDC_TAB1, &CFlatTabCtrlDlg::OnTcnSelchangeTab1)
 	ON_BN_CLICKED(IDC_BUTTON1, &CFlatTabCtrlDlg::OnBnClickedButton1)
 	ON_EN_CHANGE(IDC_EDIT2, &CFlatTabCtrlDlg::OnEnChangeEdit2)
+	ON_BN_CLICKED(IDOK, &CFlatTabCtrlDlg::OnBnClickedOk)
+	ON_BN_CLICKED(IDC_BUTTON2, &CFlatTabCtrlDlg::OnBnClickedButton2)
+	ON_BN_CLICKED(IDC_BUTTON3, &CFlatTabCtrlDlg::OnBnClickedButton3)
 END_MESSAGE_MAP()
 
 
@@ -249,4 +254,47 @@ void CFlatTabCtrlDlg::OnEnChangeEdit2()
 	// with the ENM_CHANGE flag ORed into the mask.
 
 	// TODO:  Add your control notification handler code here
+}
+
+
+void CFlatTabCtrlDlg::OnBnClickedOk()
+{
+	// TODO: Add your control notification handler code here
+	//CDialogEx::OnOK();
+}
+
+
+void CFlatTabCtrlDlg::OnBnClickedButton2()
+{
+	// TODO: Add your control notification handler code here
+	CWnd* pWnd = GetDlgItem(IDC_BUTTON3);
+
+	if (pWnd->IsWindowEnabled())
+	{
+		pWnd->EnableWindow(FALSE);
+		GetDlgItem(IDC_BUTTON2)->SetWindowText(_T(" Enable ---> "));
+	}
+	else
+	{
+		pWnd->EnableWindow(TRUE);
+		GetDlgItem(IDC_BUTTON2)->SetWindowText(_T(" Disable ---> "));
+	}
+}
+
+
+void CFlatTabCtrlDlg::OnBnClickedButton3()
+{
+	// TODO: Add your control notification handler code here
+	CWnd* pWnd = GetDlgItem(IDC_BUTTON2);
+
+	if (pWnd->IsWindowEnabled())
+	{
+		pWnd->EnableWindow(FALSE);
+		GetDlgItem(IDC_BUTTON3)->SetWindowText(_T(" <--- Enable "));
+	}
+	else
+	{
+		pWnd->EnableWindow(TRUE);
+		GetDlgItem(IDC_BUTTON3)->SetWindowText(_T(" <--- Disable "));
+	}
 }

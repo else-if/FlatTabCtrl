@@ -14,6 +14,7 @@
 #include "BoringEditCtrl2.h"
 #include "BoringEditCtrl.h"
 #include "BoringButtonCtrl.h"
+#include "ttbutton2.h"
 #include <msclr\event.h>
 
 using namespace System;
@@ -55,6 +56,9 @@ public:
 	CTTButton m_OkButton;
 	CWBButton m_CancelButton;
 
+	CTTButton m_TTButton1;
+	CTTButton2 m_TTButton2;
+
 	BoringEditCtrl2 m_EditCtrl;
 	BoringStaticCtrl m_boringStatic;
 	BoringStaticCtrl m_frameStatic;
@@ -65,4 +69,7 @@ public:
 	CBoringComboBox m_ComboBox;
 	afx_msg void OnBnClickedButton1();
 	afx_msg void OnEnChangeEdit2();
+	afx_msg void OnBnClickedOk();
+	afx_msg void OnBnClickedButton2();
+	afx_msg void OnBnClickedButton3();
 };
