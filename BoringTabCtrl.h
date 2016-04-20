@@ -1,5 +1,5 @@
 #pragma once
-
+#include "ControlsColorMap.h"
 
 // CBoringTabCtrl
 
@@ -20,6 +20,9 @@ protected:
 	COLORREF m_backgroundColor;
 	int m_borderWidth;
 	int m_cornerRadius;
+
+	ControlsColorMap m_ColorMap;
+
 	DECLARE_MESSAGE_MAP()
 public:
 	afx_msg void OnDrawItem(int nIDCtl, LPDRAWITEMSTRUCT lpDrawItemStruct);	

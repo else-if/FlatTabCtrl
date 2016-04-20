@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include "BoringTabCtrl.h"
+#include "common.h"
 
 using namespace Gdiplus;
 
@@ -20,6 +21,8 @@ CBoringTabCtrl::CBoringTabCtrl()
 	m_cornerRadius = 5;
 	m_bTracking = false;
 	m_iMouseOverTab = -1;
+
+	m_ColorMap.SetDefaultColors();
 }
 
 CBoringTabCtrl::~CBoringTabCtrl()
@@ -131,28 +134,19 @@ void CBoringTabCtrl::OnPaint()
 	Graphics graphics(memDC.GetDC().GetSafeHdc());
 	graphics.SetSmoothingMode(SmoothingModeAntiAlias);
 	graphics.SetInterpolationMode(InterpolationModeHighQualityBicubic);
-
-	//DrawThemeParentBackground(GetSafeHwnd(), memDC.GetDC().GetSafeHdc(), cRect);
+		
 	memDC.GetDC().FillSolidRect(&cRect, m_backgroundColor);
-
-	CRect r = cRect;
-
-	memDC.GetDC().SelectObject(GetFont());
-
-	DRAWITEMSTRUCT dis;
-
+	
 	CRect rPage;
 	GetClientRect(&rPage);
 	AdjustRect(FALSE, rPage);
-
-	//dc.FillRect(rPage, &CBrush(RGB(255, 255, 255)));
 
 	int nTab = GetItemCount();
 	int nSel = GetCurSel();
 
 	if (!nTab)
 		return;
-
+	
 	CRect r1;
 	VERIFY(GetItemRect(nSel, &r1));
 	CRect r2;
@@ -171,8 +165,7 @@ void CBoringTabCtrl::OnPaint()
 
 	LOGFONT logFont;
 	GetFont()->GetLogFont(&logFont);
-	CFont font;
-	
+	CFont font;	
 
 	if (GetFocus() == this)
 	{
@@ -180,65 +173,66 @@ void CBoringTabCtrl::OnPaint()
 		font.CreateFontIndirect(&logFont);
 		memDC.GetDC().SelectObject(&font);
 	}
-
+	
 	TCHAR buffer[256] = { 0 };
 	memDC.GetDC().SetBkMode(TRANSPARENT);
+	COLORREF textColor = GetSysColor(COLOR_CAPTIONTEXT);
+	
 	while (nTab--)
 	{
+		
 		if (nTab != nSel)
 		{
-			dis.itemID = nTab;
-			dis.itemState = 0;
-
-			VERIFY(GetItemRect(nTab, &dis.rcItem));
-			dis.rcItem.bottom = rPage.top;
-			CBrush b(RGB(128, 128, 128));
+			RECT TabRect;			
+			GetItemRect(nTab, &TabRect);
 			
+			if (m_iMouseOverTab == nTab)
+			{
+				RECT HighlightedRect;
+				GetItemRect(m_iMouseOverTab, &HighlightedRect);
+
+				CRect rc = (CRect)HighlightedRect;
+				rc.DeflateRect(1, 1);
+
+				Draw4ColorsGradientRect(rc, memDC,
+					m_ColorMap.GetColor(Mouseover, BackgroundTopGradientStart),
+					m_ColorMap.GetColor(Mouseover, BackgroundTopGradientFinish),
+					m_ColorMap.GetColor(Mouseover, BackgroundBottomGradientStart),
+					m_ColorMap.GetColor(Mouseover, BackgroundBottomGradientFinish),
+					m_cornerRadius);
+			}
 
 			TCITEM tcItem;
 			tcItem.pszText = buffer;
 			tcItem.cchTextMax = 256;
 			tcItem.mask = TCIF_TEXT;
-			GetItem(nTab, &tcItem);
+			GetItem(nTab, &tcItem);			
+
+			DrawText((CRect)TabRect, memDC, *GetFont(), textColor, CString(tcItem.pszText), DT_CENTER | DT_VCENTER | DT_SINGLELINE);
 			
-			CRect cTextRect(dis.rcItem);
-			memDC.GetDC().DrawText(CString(tcItem.pszText), &cTextRect, DT_CENTER | DT_VCENTER | DT_SINGLELINE | DT_CALCRECT);
-
-			int xDiff = CRect(dis.rcItem).Width() - cTextRect.Width();
-			cTextRect.OffsetRect(xDiff / 2, 0);
-			COLORREF bkColor = memDC.GetDC().GetBkColor();
-			if (nTab == m_iMouseOverTab)
-			{
-				memDC.GetDC().SetBkMode(OPAQUE);
-				memDC.GetDC().SetBkColor(RGB(128,128,128));
-				//memDC.GetDC().FillRect(&cTextRect, &b);
-			}
-			memDC.GetDC().DrawText(CString(tcItem.pszText), &dis.rcItem, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
-			memDC.GetDC().SetBkColor(bkColor);
-			memDC.GetDC().SetBkMode(TRANSPARENT);
-		}
+		}		
 	}
-
+	
+	
 	// now selected tab
-	dis.itemID = nSel;
-	dis.itemState = ODS_SELECTED;
-	VERIFY(GetItemRect(nSel, &dis.rcItem));
-
+	RECT TabRect;
+	GetItemRect(nSel, &TabRect);
+	
 	Gdiplus::SolidBrush b(Gdiplus::Color::White);
-	dis.rcItem.bottom = rPage.top;
+	TabRect.bottom = rPage.top;
 	graphics.FillRegion(&b, &region);
 
 	Pen pen(Color(192, 192, 192), m_borderWidth);
 	pen.SetLineJoin(LineJoinRound);
 	pen.SetAlignment(PenAlignmentCenter);
-	CRect rc(dis.rcItem);
-
+	
 	TCITEM tcItem;
 	tcItem.pszText = buffer;
 	tcItem.cchTextMax = 256;
 	tcItem.mask = TCIF_TEXT;
 	GetItem(nSel, &tcItem);
-	memDC.GetDC().DrawText(CString(tcItem.pszText), &dis.rcItem, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+	
+	DrawText((CRect)TabRect, memDC, *GetFont(), textColor, CString(tcItem.pszText), DT_CENTER | DT_VCENTER | DT_SINGLELINE);
 
 	graphics.ResetClip();
 	graphics.DrawPath(&pen, &path);

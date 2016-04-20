@@ -90,6 +90,11 @@ void Draw4ColorsGradientRect(CRect &rc, CMemDC &dc,
 	COLORREF colorStart2, COLORREF colorFinish2,
 	int cornerRadius)
 {
+	CRect oldRect;
+	dc.GetDC().GetClipBox(&oldRect);
+	CRgn oldRgn;
+	oldRgn.CreateRectRgn(oldRect.left, oldRect.top, oldRect.right, oldRect.bottom);
+
 	CDrawingManager drawingManager(dc.GetDC());
 
 	CRgn rgn;
@@ -98,6 +103,21 @@ void Draw4ColorsGradientRect(CRect &rc, CMemDC &dc,
 
 	drawingManager.Fill4ColorsGradient(rc, colorStart1, colorFinish1,
 		colorStart2, colorFinish2);
+
+	dc.GetDC().SelectClipRgn(&oldRgn);
+}
+
+void Draw2ColorsGradientRect(CRect &rc, CMemDC &dc,
+	COLORREF colorStart, COLORREF colorFinish,
+	int cornerRadius)
+{
+	CDrawingManager drawingManager(dc.GetDC());
+
+	CRgn rgn;
+	rgn.CreateRoundRectRgn(rc.left, rc.top, rc.right, rc.bottom, cornerRadius, cornerRadius);
+	dc.GetDC().SelectClipRgn(&rgn);
+
+	drawingManager.FillGradient(rc, colorStart, colorFinish);		
 }
 
 void DrawRectArea(Gdiplus::Rect &rc, Gdiplus::Graphics &graphics, COLORREF color, int cornerRadius, float penWidth)
