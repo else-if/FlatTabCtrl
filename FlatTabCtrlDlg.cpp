@@ -140,15 +140,13 @@ BOOL CFlatTabCtrlDlg::OnInitDialog()
 	SetIcon(m_hIcon, TRUE);			// Set big icon
 	SetIcon(m_hIcon, FALSE);		// Set small icon
 
-	// TODO: Add extra initialization here
-
-	
+	// TODO: Add extra initialization here	
 
 	m_FlatTabCtrl.InsertItem(0, _T("Test"));
 	m_FlatTabCtrl.InsertItem(1, _T("Test1"));
 	m_FlatTabCtrl.InsertItem(2, _T("Test2"));
 	m_FlatTabCtrl.InsertItem(4, _T("Here is a very very long tab item header"));
-	//m_FlatTabCtrl.InsertItem(4, _T("Second very very long tab item header"));
+	m_FlatTabCtrl.InsertItem(4, _T("Second very very long tab item header"));
 	
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }

@@ -137,13 +137,14 @@ void DrawText(CRect &rc, CMemDC &dc, CFont &font, COLORREF textColor, CString te
 {
 	int oldBkMode = dc.GetDC().GetBkMode();
 	COLORREF oldColor = dc.GetDC().GetTextColor();
+	CFont* pOldFont = dc.GetDC().SelectObject(&font);
 
 	dc.GetDC().SetBkMode(TRANSPARENT);
-	dc.GetDC().SetTextColor(textColor);
-	dc.GetDC().SelectObject(font);	
+	dc.GetDC().SetTextColor(textColor);		
 
 	dc.GetDC().DrawText(text, rc, nFormat);
 
 	dc.GetDC().SetBkMode(oldBkMode);
 	dc.GetDC().SetTextColor(oldColor);
+	dc.GetDC().SelectObject(&pOldFont);
 }

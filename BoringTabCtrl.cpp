@@ -168,11 +168,10 @@ void CBoringTabCtrl::OnPaint()
 	CFont font;	
 
 	if (GetFocus() == this)
-	{
-		logFont.lfUnderline = 1;
-		font.CreateFontIndirect(&logFont);
-		memDC.GetDC().SelectObject(&font);
-	}
+		logFont.lfUnderline = 1;		
+	
+	font.CreateFontIndirect(&logFont);
+	memDC.GetDC().SelectObject(&font);
 	
 	TCHAR buffer[256] = { 0 };
 	memDC.GetDC().SetBkMode(TRANSPARENT);
@@ -194,11 +193,11 @@ void CBoringTabCtrl::OnPaint()
 				CRect rc = (CRect)HighlightedRect;
 				rc.DeflateRect(1, 1);
 
-				Draw4ColorsGradientRect(rc, memDC,
-					m_ColorMap.GetColor(Mouseover, BackgroundTopGradientStart),
-					m_ColorMap.GetColor(Mouseover, BackgroundTopGradientFinish),
+				Draw4ColorsGradientRect(rc, memDC,					
+					m_ColorMap.GetColor(Mouseover, BackgroundBottomGradientFinish), 
 					m_ColorMap.GetColor(Mouseover, BackgroundBottomGradientStart),
-					m_ColorMap.GetColor(Mouseover, BackgroundBottomGradientFinish),
+					m_ColorMap.GetColor(Mouseover, BackgroundTopGradientFinish),
+					m_ColorMap.GetColor(Mouseover, BackgroundTopGradientStart),					
 					m_cornerRadius);
 			}
 
@@ -208,7 +207,7 @@ void CBoringTabCtrl::OnPaint()
 			tcItem.mask = TCIF_TEXT;
 			GetItem(nTab, &tcItem);			
 
-			DrawText((CRect)TabRect, memDC, *GetFont(), textColor, CString(tcItem.pszText), DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+			DrawText((CRect)TabRect, memDC, font, textColor, CString(tcItem.pszText), DT_CENTER | DT_VCENTER | DT_SINGLELINE);
 			
 		}		
 	}
@@ -232,7 +231,7 @@ void CBoringTabCtrl::OnPaint()
 	tcItem.mask = TCIF_TEXT;
 	GetItem(nSel, &tcItem);
 	
-	DrawText((CRect)TabRect, memDC, *GetFont(), textColor, CString(tcItem.pszText), DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+	DrawText((CRect)TabRect, memDC, font, textColor, CString(tcItem.pszText), DT_CENTER | DT_VCENTER | DT_SINGLELINE);
 
 	graphics.ResetClip();
 	graphics.DrawPath(&pen, &path);
