@@ -15,6 +15,7 @@
 #include "BoringEditCtrl.h"
 #include "BoringButtonCtrl.h"
 #include "ttbutton2.h"
+#include "TTComboBox.h"
 #include <msclr\event.h>
 
 using namespace System;
@@ -58,6 +59,14 @@ public:
 
 	CTTButton m_TTButton1;
 	CTTButton2 m_TTButton2;
+
+	CTTComboBox m_SimpleComboBox;
+	CTTComboBox m_DropDownComboBox;
+	CTTComboBox m_DropDownListComboBox;
+
+	CComboBox m_CommonCombo;
+
+	void FillCombo(CComboBox &Combo);
 
 	BoringEditCtrl2 m_EditCtrl;
 	BoringStaticCtrl m_boringStatic;

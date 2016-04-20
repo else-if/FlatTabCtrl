@@ -1,9 +1,6 @@
 #pragma once
 #include "ControlsColorMap.h"
 
-
-using namespace std;
-
 class CTTButton : public CButton
 {
 

@@ -70,6 +70,10 @@ void CFlatTabCtrlDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_EDIT2, m_EditCtrl1);	
 	DDX_Control(pDX, IDC_BUTTON2, m_TTButton1);
 	DDX_Control(pDX, IDC_BUTTON3, m_TTButton2);
+	DDX_Control(pDX, IDC_COMBO2, m_CommonCombo);
+	DDX_Control(pDX, IDC_COMBO3, m_SimpleComboBox);
+	DDX_Control(pDX, IDC_COMBO4, m_DropDownComboBox);
+	DDX_Control(pDX, IDC_COMBO5, m_DropDownListComboBox);
 }
 
 BEGIN_MESSAGE_MAP(CFlatTabCtrlDlg, CDialogEx)
@@ -148,7 +152,20 @@ BOOL CFlatTabCtrlDlg::OnInitDialog()
 	m_FlatTabCtrl.InsertItem(4, _T("Here is a very very long tab item header"));
 	m_FlatTabCtrl.InsertItem(4, _T("Second very very long tab item header"));
 	
+	FillCombo(m_SimpleComboBox);
+	FillCombo(m_DropDownComboBox);
+	FillCombo(m_DropDownListComboBox);
+	FillCombo(m_CommonCombo);
+
 	return TRUE;  // return TRUE  unless you set the focus to a control
+}
+
+void CFlatTabCtrlDlg::FillCombo(CComboBox &Combo)
+{
+	Combo.AddString(CString("Item1"));
+	Combo.AddString(CString("Item2"));
+	Combo.AddString(CString("Item3"));
+	Combo.AddString(CString("Item4"));
 }
 
 void CFlatTabCtrlDlg::OnSysCommand(UINT nID, LPARAM lParam)

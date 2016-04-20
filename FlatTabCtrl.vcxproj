@@ -122,6 +122,7 @@
     <ClInclude Include="targetver.h" />
     <ClInclude Include="TTButton.h" />
     <ClInclude Include="TTButton2.h" />
+    <ClInclude Include="TTComboBox.h" />
     <ClInclude Include="TTEdit.h" />
     <ClInclude Include="wbbutton.h" />
   </ItemGroup>
@@ -145,6 +146,7 @@
     <ClCompile Include="TabSheet2.cpp" />
     <ClCompile Include="TTButton.cpp" />
     <ClCompile Include="TTButton2.cpp" />
+    <ClCompile Include="TTComboBox.cpp" />
     <ClCompile Include="TTEdit.cpp" />
     <ClCompile Include="wbbutton.cpp" />
   </ItemGroup>
