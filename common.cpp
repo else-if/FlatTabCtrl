@@ -120,6 +120,22 @@ void Draw2ColorsGradientRect(CRect &rc, CMemDC &dc,
 	drawingManager.FillGradient(rc, colorStart, colorFinish);		
 }
 
+void FillRectRegion(CRect &rc, CMemDC &dc, COLORREF backgroundColor, int cornerRadius)
+{
+	CRect oldRect;
+	dc.GetDC().GetClipBox(&oldRect);
+	CRgn oldRgn;
+	oldRgn.CreateRectRgn(oldRect.left, oldRect.top, oldRect.right, oldRect.bottom);
+
+	CRgn rgn;
+	rgn.CreateRoundRectRgn(rc.left, rc.top, rc.right, rc.bottom, cornerRadius, cornerRadius);
+	dc.GetDC().SelectClipRgn(&rgn);
+
+	dc.GetDC().FillSolidRect(rc, backgroundColor);
+
+	dc.GetDC().SelectClipRgn(&oldRgn);
+}
+
 void DrawRectArea(Gdiplus::Rect &rc, Gdiplus::Graphics &graphics, COLORREF color, int cornerRadius, float penWidth)
 {
 	Gdiplus::Color penColor(0, 0, 0);

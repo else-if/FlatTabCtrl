@@ -81,6 +81,12 @@
     <ClInclude Include="TTComboBox.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="TTComboEdit.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TTComboListBox.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FlatTabCtrl.cpp">
@@ -138,6 +144,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="TTComboBox.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TTComboEdit.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TTComboListBox.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -7,8 +7,6 @@
 
 using namespace Gdiplus;
 
-void GetRoundRectPath(GraphicsPath *pPath, Rect r, int dia);
-
 CTTButton::CTTButton()
 {
 	m_bTracking = false;

@@ -123,6 +123,8 @@
     <ClInclude Include="TTButton.h" />
     <ClInclude Include="TTButton2.h" />
     <ClInclude Include="TTComboBox.h" />
+    <ClInclude Include="TTComboEdit.h" />
+    <ClInclude Include="TTComboListBox.h" />
     <ClInclude Include="TTEdit.h" />
     <ClInclude Include="wbbutton.h" />
   </ItemGroup>
@@ -147,6 +149,8 @@
     <ClCompile Include="TTButton.cpp" />
     <ClCompile Include="TTButton2.cpp" />
     <ClCompile Include="TTComboBox.cpp" />
+    <ClCompile Include="TTComboEdit.cpp" />
+    <ClCompile Include="TTComboListBox.cpp" />
     <ClCompile Include="TTEdit.cpp" />
     <ClCompile Include="wbbutton.cpp" />
   </ItemGroup>

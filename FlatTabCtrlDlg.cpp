@@ -151,7 +151,7 @@ BOOL CFlatTabCtrlDlg::OnInitDialog()
 	m_FlatTabCtrl.InsertItem(2, _T("Test2"));
 	m_FlatTabCtrl.InsertItem(4, _T("Here is a very very long tab item header"));
 	m_FlatTabCtrl.InsertItem(4, _T("Second very very long tab item header"));
-	
+
 	FillCombo(m_SimpleComboBox);
 	FillCombo(m_DropDownComboBox);
 	FillCombo(m_DropDownListComboBox);
@@ -162,10 +162,13 @@ BOOL CFlatTabCtrlDlg::OnInitDialog()
 
 void CFlatTabCtrlDlg::FillCombo(CComboBox &Combo)
 {
-	Combo.AddString(CString("Item1"));
-	Combo.AddString(CString("Item2"));
-	Combo.AddString(CString("Item3"));
-	Combo.AddString(CString("Item4"));
+	for (int i = 0; i < 10; i++)
+	{
+		CString string;
+		string.Format(_T("Item %d"), i);
+
+		Combo.AddString(string);
+	}
 }
 
 void CFlatTabCtrlDlg::OnSysCommand(UINT nID, LPARAM lParam)
