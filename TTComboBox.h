@@ -32,9 +32,9 @@ protected:
 
 protected:	
 
-	void DrawSimple(CRect &cRect, CMemDC &memDC, Gdiplus::Graphics &graphics);
-	void DrawDropDown(CRect &cRect, CMemDC &memDC, Gdiplus::Graphics &graphics);
-	void DrawDropDownList(CRect &cRect, CMemDC &memDC, Gdiplus::Graphics &graphics);
+	void DrawSimple();
+	void DrawDropDown();
+	void DrawDropDownList();
 	void DrawArrowButton(CRect &cRect, CMemDC &memDC, Gdiplus::Graphics &graphics);
 	CRect GetArrowButtonRect();
 

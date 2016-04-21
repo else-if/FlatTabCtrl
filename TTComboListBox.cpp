@@ -3,16 +3,10 @@
 #include "stdafx.h"
 #include "TTComboListBox.h"
 
-CTTComboListBox::CTTComboListBox() : CTTComboListBox(false)
+CTTComboListBox::CTTComboListBox()
 {
+	m_bTracking = false;
 }
-
-CTTComboListBox::CTTComboListBox(bool sendMouseLeaveMessage) :
-m_bSendMouseEvents(sendMouseLeaveMessage),
-m_bTracking(false)
-{
-}
-
 
 CTTComboListBox::~CTTComboListBox()
 {
@@ -34,9 +28,8 @@ void CTTComboListBox::OnMouseMove(UINT nFlags, CPoint point)
 		m_bTracking = ::_TrackMouseEvent(&tme) ? true : false;
 	}
 
-	/*if (m_bSendMouseEvents)
-		GetParent()->SendMessage(WM_MOUSEMOVE, nFlags, MAKELPARAM(point.x, point.y));
-*/
+	GetParent()->Invalidate();
+
 	CListBox::OnMouseMove(nFlags, point);
 }
 
@@ -44,8 +37,7 @@ void CTTComboListBox::OnMouseMove(UINT nFlags, CPoint point)
 void CTTComboListBox::OnMouseLeave()
 {
 	m_bTracking = false;
-	/*if (m_bSendMouseEvents)
-		GetParent()->SendMessage(WM_MOUSELEAVE, 0, 0);
-*/
+	GetParent()->Invalidate();
+
 	CListBox::OnMouseLeave();
 }

@@ -88,7 +88,7 @@ void GetRoundRectPath(GraphicsPath *pPath, Rect rBounds, int dia, int borderSize
 void Draw4ColorsGradientRect(CRect &rc, CMemDC &dc,
 	COLORREF colorStart1, COLORREF colorFinish1,
 	COLORREF colorStart2, COLORREF colorFinish2,
-	int cornerRadius)
+	int cornerRadius, BOOL drawOnCurrentRgn)
 {
 	CRect oldRect;
 	dc.GetDC().GetClipBox(&oldRect);
@@ -97,43 +97,62 @@ void Draw4ColorsGradientRect(CRect &rc, CMemDC &dc,
 
 	CDrawingManager drawingManager(dc.GetDC());
 
-	CRgn rgn;
-	rgn.CreateRoundRectRgn(rc.left, rc.top, rc.right, rc.bottom, cornerRadius, cornerRadius);
-	dc.GetDC().SelectClipRgn(&rgn);
+	if (!drawOnCurrentRgn)
+	{
+		CRgn rgn;
+		rgn.CreateRoundRectRgn(rc.left, rc.top, rc.right, rc.bottom, cornerRadius, cornerRadius);
+		dc.GetDC().SelectClipRgn(&rgn);
+	}
 
 	drawingManager.Fill4ColorsGradient(rc, colorStart1, colorFinish1,
 		colorStart2, colorFinish2);
 
-	dc.GetDC().SelectClipRgn(&oldRgn);
+	if (!drawOnCurrentRgn)
+		dc.GetDC().SelectClipRgn(&oldRgn);
 }
 
 void Draw2ColorsGradientRect(CRect &rc, CMemDC &dc,
 	COLORREF colorStart, COLORREF colorFinish,
-	int cornerRadius)
-{
-	CDrawingManager drawingManager(dc.GetDC());
-
-	CRgn rgn;
-	rgn.CreateRoundRectRgn(rc.left, rc.top, rc.right, rc.bottom, cornerRadius, cornerRadius);
-	dc.GetDC().SelectClipRgn(&rgn);
-
-	drawingManager.FillGradient(rc, colorStart, colorFinish);		
-}
-
-void FillRectRegion(CRect &rc, CMemDC &dc, COLORREF backgroundColor, int cornerRadius)
+	int cornerRadius, BOOL drawOnCurrentRgn)
 {
 	CRect oldRect;
 	dc.GetDC().GetClipBox(&oldRect);
 	CRgn oldRgn;
 	oldRgn.CreateRectRgn(oldRect.left, oldRect.top, oldRect.right, oldRect.bottom);
 
-	CRgn rgn;
-	rgn.CreateRoundRectRgn(rc.left, rc.top, rc.right, rc.bottom, cornerRadius, cornerRadius);
-	dc.GetDC().SelectClipRgn(&rgn);
+	CDrawingManager drawingManager(dc.GetDC());
+
+	if (!drawOnCurrentRgn)
+	{
+		CRgn rgn;
+		rgn.CreateRoundRectRgn(rc.left, rc.top, rc.right, rc.bottom, cornerRadius, cornerRadius);
+		dc.GetDC().SelectClipRgn(&rgn);
+	}
+
+	drawingManager.FillGradient(rc, colorStart, colorFinish);
+
+	if (!drawOnCurrentRgn)
+		dc.GetDC().SelectClipRgn(&oldRgn);
+}
+
+void FillRectRegion(CRect &rc, CMemDC &dc, COLORREF backgroundColor, int cornerRadius, BOOL drawOnCurrentRgn)
+{
+	CRect oldRect;
+	dc.GetDC().GetClipBox(&oldRect);
+	CRgn oldRgn;
+	oldRgn.CreateRectRgn(oldRect.left, oldRect.top, oldRect.right, oldRect.bottom);
+
+	if (!drawOnCurrentRgn)
+	{
+		CRgn rgn;
+		rgn.CreateRoundRectRgn(rc.left, rc.top, rc.right, rc.bottom, cornerRadius, cornerRadius);
+		dc.GetDC().SelectClipRgn(&rgn);
+	}
 
 	dc.GetDC().FillSolidRect(rc, backgroundColor);
 
-	dc.GetDC().SelectClipRgn(&oldRgn);
+	if (!drawOnCurrentRgn)
+		dc.GetDC().SelectClipRgn(&oldRgn);
 }
 
 void DrawRectArea(Gdiplus::Rect &rc, Gdiplus::Graphics &graphics, COLORREF color, int cornerRadius, float penWidth)

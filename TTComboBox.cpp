@@ -21,7 +21,10 @@ CTTComboBox::CTTComboBox()
 
 	m_ColorMap.SetDefaultColors();
 
-	//m_ColorMap.SetColor(Focus, Border, RGB(153, 152, 158));
+	m_ColorMap.SetColor(Press, BackgroundTopGradientStart, RGB(250, 213, 103));
+	m_ColorMap.SetColor(Press, BackgroundTopGradientFinish, RGB(244, 181, 51));
+	m_ColorMap.SetColor(Press, BackgroundBottomGradientStart, RGB(255, 241, 148));
+	m_ColorMap.SetColor(Press, BackgroundBottomGradientFinish, RGB(250, 213, 103));
 }
 
 CTTComboBox::~CTTComboBox()
@@ -41,23 +44,17 @@ END_MESSAGE_MAP()
 
 void CTTComboBox::UpdateControlState()
 {
-	if (m_bTracking || 
-		m_edit.IsMouseover() ||
-		GetDroppedState())
+	if (m_bTracking || m_edit.IsMouseover() || m_bHasFocus)
 		m_ControlState = Mouseover;
-	else if (m_bHasFocus)
-		m_ControlState = Focus;
+	else if (GetDroppedState() && !(m_iComboBoxStyle & CBS_SIMPLE))
+		m_ControlState = Mouseover;
 	else
-		m_ControlState = Normal;
-	
+		m_ControlState = Normal;	
 
-	if (m_bOnButton || GetDroppedState())
-	{
+	if (m_bButtonPress)
+		m_ArrowButtonState = Press; 
+	else if (m_bOnButton)
 		m_ArrowButtonState = Mouseover;
-
-		if (m_bButtonPress)
-			m_ArrowButtonState = Press;
-	}
 	else
 		m_ArrowButtonState = Normal;
 }
@@ -89,128 +86,186 @@ void CTTComboBox::OnMouseMove(UINT nFlags, CPoint point)
 		Invalidate(false);
 	}
 
-	CComboBoxEx::OnMouseMove(nFlags, point);	
+	CComboBoxEx::OnMouseMove(nFlags, point);
 }
 
 void CTTComboBox::OnMouseLeave()
 {
-	m_bTracking = m_edit.IsMouseover();
+	m_bTracking = false;
 	m_bOnButton = false;
 	
 	Invalidate(false);
 
-	CComboBoxEx::OnMouseLeave();	
+	CComboBoxEx::OnMouseLeave();
 }
 
 void CTTComboBox::OnPaint()
 {
+	if (!m_iComboBoxStyle)
+		m_iComboBoxStyle = GetStyle() & CBS_DROPDOWNLIST;
+
+	UpdateControlState();
+
+	switch (m_iComboBoxStyle)
+	{
+	case CBS_DROPDOWN:
+		DrawDropDown();
+		break;
+	case CBS_DROPDOWNLIST:
+		DrawDropDownList();
+		break;
+	case CBS_SIMPLE:
+		DrawSimple();
+		break;
+	}	
+}
+
+void CTTComboBox::DrawSimple()
+{
+	// For now just draw CComboBoxEx
+	CComboBoxEx::OnPaint();
+}
+
+void CTTComboBox::DrawDropDown()
+{
 	CRect cRect;
 	GetClientRect(&cRect);
-	CPaintDC dc(this); 
+	CPaintDC dc(this);
 	CMemDC memDC(dc, cRect);
 
 	Graphics graphics(memDC.GetDC().GetSafeHdc());
 	graphics.SetSmoothingMode(SmoothingModeAntiAlias);
 	graphics.SetInterpolationMode(InterpolationModeHighQualityBicubic);
-	
+
 	DrawThemeParentBackground(GetSafeHwnd(), memDC.GetDC().GetSafeHdc(), cRect);
 
-	UpdateControlState();
-
-	if (!m_iComboBoxStyle)
-		m_iComboBoxStyle = GetStyle() & CBS_DROPDOWNLIST;
-
-	switch (m_iComboBoxStyle)
-	{
-	case CBS_DROPDOWN:
-		DrawDropDown(cRect, memDC, graphics);
-		break;
-	case CBS_DROPDOWNLIST:
-		DrawDropDownList(cRect, memDC, graphics);
-		break;
-	case CBS_SIMPLE:
-		DrawSimple(cRect, memDC, graphics);
-		break;
-	}	
-}
-
-void CTTComboBox::DrawSimple(CRect &cRect, CMemDC &memDC, Gdiplus::Graphics &graphics)
-{
+	// Clear background
+	FillRectRegion(cRect, memDC, RGB(255, 255, 255), m_CornerRadius);
 	
-}
-
-void CTTComboBox::DrawDropDown(CRect &cRect, CMemDC &memDC, Gdiplus::Graphics &graphics)
-{
-	FillRectRegion(cRect, memDC, RGB(255, 255, 255, 0), m_CornerRadius);
-	
+	// Borders
 	Gdiplus::Rect BorderRect(cRect.left, cRect.top, cRect.right, cRect.bottom);
 
-	Gdiplus::Rect LightRect(cRect.left, cRect.top, cRect.right, cRect.bottom);
-	LightRect.Inflate(-1, -1);
-
-	float lightPenWidth = 2.0f;//(m_ControlState == Press || m_ControlState == Focus) ? 2.0f : 1.0f;
-
-	// Background
-	/*Draw4ColorsGradientRect(cRect, memDC,
-		m_ColorMap.GetColor(m_ControlState, BackgroundTopGradientStart),
-		m_ColorMap.GetColor(m_ControlState, BackgroundTopGradientFinish),
-		m_ColorMap.GetColor(m_ControlState, BackgroundBottomGradientStart),
-		m_ColorMap.GetColor(m_ControlState, BackgroundBottomGradientFinish),
-		m_CornerRadius);*/
-
-	// Border
 	DrawRectArea(BorderRect, graphics, m_ColorMap.GetColor(m_ControlState, Border),
 		m_CornerRadius, m_fBorderPenWidth);
 
-	/*
-	// Arrow button
-	CRect arrowRect = GetArrowButtonRect();
-	DrawArrowButton(arrowRect, memDC, graphics);
-
-
-	// Highlight area
-	DrawRectArea(LightRect, graphics, m_ColorMap.GetColor(m_ControlState, BorderLight),
-		m_CornerRadius, lightPenWidth);
-
-	//vertical line
-	Gdiplus::Color borderColor;
-	borderColor.SetFromCOLORREF(m_ColorMap.GetColor(m_ControlState, Border));
-	Gdiplus::Pen borderPen(borderColor, 1);
-	
-	graphics.DrawLine(&borderPen, arrowRect.left, arrowRect.top, arrowRect.left, arrowRect.bottom);
-	*/
-
+	// Arrow button region
+	DrawArrowButton(cRect, memDC, graphics);
 }
 
-void CTTComboBox::DrawDropDownList(CRect &cRect, CMemDC &memDC, Gdiplus::Graphics &graphics)
+void CTTComboBox::DrawDropDownList()
 {
+	CRect cRect;
+	GetClientRect(&cRect);
+	CPaintDC dc(this);
+	CMemDC memDC(dc, cRect);
 
+	Graphics graphics(memDC.GetDC().GetSafeHdc());
+	graphics.SetSmoothingMode(SmoothingModeAntiAlias);
+	graphics.SetInterpolationMode(InterpolationModeHighQualityBicubic);
+
+	DrawThemeParentBackground(GetSafeHwnd(), memDC.GetDC().GetSafeHdc(), cRect);
+
+	ControlState backgrougControlState = m_ControlState;
+	if (!m_bTracking || m_bOnButton)
+		backgrougControlState = Normal;			
+
+	// Draw background
+	Draw4ColorsGradientRect(cRect, memDC,
+		m_ColorMap.GetColor(backgrougControlState, BackgroundTopGradientStart),
+		m_ColorMap.GetColor(backgrougControlState, BackgroundTopGradientFinish),
+		m_ColorMap.GetColor(backgrougControlState, BackgroundBottomGradientStart),
+		m_ColorMap.GetColor(backgrougControlState, BackgroundBottomGradientFinish),
+		m_CornerRadius);
+
+	// Borders
+	Gdiplus::Rect BorderRect(cRect.left, cRect.top, cRect.right, cRect.bottom);
+
+	DrawRectArea(BorderRect, graphics, m_ColorMap.GetColor(m_ControlState, Border),
+		m_CornerRadius, m_fBorderPenWidth);
+
+	// Arrow button region
+	DrawArrowButton(cRect, memDC, graphics);
 }
 
 void CTTComboBox::DrawArrowButton(CRect &cRect, CMemDC &memDC, Gdiplus::Graphics &graphics)
 {
-	Draw4ColorsGradientRect(cRect, memDC,
+	CRect oldRect;
+	memDC.GetDC().GetClipBox(&oldRect);
+	CRgn oldRgn;
+	oldRgn.CreateRectRgn(oldRect.left, oldRect.top, oldRect.right, oldRect.bottom);
+
+	// Select button region
+	CRect btnRect = GetArrowButtonRect();
+	CRgn btnRgn, RoundRectRgn;
+	btnRgn.CreateRectRgn(btnRect.left, btnRect.top, btnRect.right + 1, btnRect.bottom + 1);
+	RoundRectRgn.CreateRoundRectRgn(cRect.left, cRect.top, cRect.right + 1, cRect.bottom + 1,
+		m_CornerRadius, m_CornerRadius);
+	
+	// CRgn btnRgn;
+	btnRgn.CombineRgn(&btnRgn, &RoundRectRgn, RGN_AND);
+
+	memDC.GetDC().SelectClipRgn(&btnRgn);
+	
+	// Draw button background
+	Draw4ColorsGradientRect(btnRect, memDC,
 		m_ColorMap.GetColor(m_ArrowButtonState, BackgroundTopGradientStart),
 		m_ColorMap.GetColor(m_ArrowButtonState, BackgroundTopGradientFinish),
 		m_ColorMap.GetColor(m_ArrowButtonState, BackgroundBottomGradientStart),
 		m_ColorMap.GetColor(m_ArrowButtonState, BackgroundBottomGradientFinish),
-		0);
+		0, TRUE);	
+
+	// Draw borders
+	CRgn RectRgn;
+	RectRgn.CreateRectRgn(btnRect.left, btnRect.top, btnRect.right, btnRect.bottom);
+	memDC.GetDC().SelectClipRgn(&RectRgn);
+
+	// Overwrite combo border
+	Gdiplus::Rect BorderRect(cRect.left, cRect.top, cRect.right, cRect.bottom);
+	DrawRectArea(BorderRect, graphics, m_ColorMap.GetColor(m_ControlState, Border),
+		m_CornerRadius, m_fBorderPenWidth);
+
+	// Draw left vertical border
+	Color penColor;
+	penColor.SetFromCOLORREF(m_ColorMap.GetColor(m_ControlState, Border));
+	Pen pen(penColor, 1);
+
+	graphics.DrawLine(&pen, btnRect.left, btnRect.top, btnRect.left, btnRect.bottom);
+
+	// Draw arrow
+	int iLeft = btnRect.left + (0.25 * (double)btnRect.Width()) + 1;
+	int iRight = btnRect.left + (0.75 * (double)btnRect.Width()) + 1;
+	int iHeight = (iRight - iLeft) / 2;
+	int iTop = ((btnRect.top + btnRect.Height()) / 2 - iHeight / 2) + 1;
+	int iBottom = iTop + iHeight;
+	int iMiddle = iLeft + ((iRight - iLeft) / 2);
+
+	CRect ArrowRect(iLeft, iTop, iRight, iBottom);	
+
+	CPoint points[3];
+	points[0] = CPoint(iLeft, iTop);
+	points[1] = CPoint(iRight, iTop);
+	points[2] = CPoint(iMiddle, iBottom);
 	
-	// Border
-	//DrawRectArea(BorderRect, graphics, Gdiplus::Color::Green, 1, 1);//m_ColorMap.GetColor(buttonState, Border)
+	CRgn ArrowWhiteRgn;
+	ArrowWhiteRgn.CreatePolygonRgn(points, 3, ALTERNATE);
 
-	Color cl;
-	cl.SetFromCOLORREF(GetSysColor(COLOR_BTNTEXT));
+	memDC.GetDC().SelectClipRgn(&ArrowWhiteRgn);
+	FillRectRegion(btnRect, memDC, RGB(255, 255, 255), 1, TRUE);
 
-	Pen pen(cl, 1);
-	
-	PointF points[3];
-	points[0] = PointF(cRect.left + ((double)cRect.Width() * .25) - 1, (int)((double)cRect.Height() * .45));
-	points[2] = PointF(cRect.left + ((double)cRect.Width() * .85) - 1, (int)((double)cRect.Height() * .45));
-	points[1] = PointF(cRect.left + ((double)cRect.Width() * .55) - 1, (int)((double)cRect.Height() * .68));
+	CRgn ArrowRgn;
+	ArrowRgn.CreatePolygonRgn(points, 3, ALTERNATE);
+	ArrowRgn.OffsetRgn(-1, 0);
 
-	graphics.DrawLine(&pen, points[0], points[1]);
-	graphics.DrawLine(&pen, points[1], points[2]);
+	ArrowRgn.CombineRgn(&ArrowRgn, &ArrowWhiteRgn, RGN_AND);
+
+	memDC.GetDC().SelectClipRgn(&ArrowRgn);
+
+	Draw2ColorsGradientRect(ArrowRect, memDC,
+		RGB(193, 192, 200),
+		RGB(83, 84, 95),
+		0, TRUE);
+
+	memDC.GetDC().SelectClipRgn(&oldRgn);
 	
 }
 
@@ -221,7 +276,8 @@ CRect CTTComboBox::GetArrowButtonRect()
 	CRect btnRect;
 	GetClientRect(&btnRect);
 	btnRect.left = btnRect.right - buttonWidth;
-	btnRect.DeflateRect(-3, 2, 2, 2);
+	
+	//btnRect.DeflateRect(0, 0, -1, -1);
 
 	return btnRect;
 }
@@ -233,8 +289,7 @@ HBRUSH CTTComboBox::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 		// Edit control
 		if (m_edit.GetSafeHwnd() == NULL)
 		{
-			m_edit.SubclassWindow(pWnd->GetSafeHwnd());
-			m_edit.SetMouseEventsNotification(m_iComboBoxStyle == CBS_SIMPLE);
+			m_edit.SubclassWindow(pWnd->GetSafeHwnd());			
 		}
 	}
 	else if (nCtlColor == CTLCOLOR_LISTBOX)
@@ -242,8 +297,7 @@ HBRUSH CTTComboBox::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 		// ListBox control
 		if (m_listbox.GetSafeHwnd() == NULL)
 		{
-			m_listbox.SubclassWindow(pWnd->GetSafeHwnd());
-			m_listbox.SetMouseEventsNotification(TRUE);
+			m_listbox.SubclassWindow(pWnd->GetSafeHwnd());			
 		}
 	}
 	HBRUSH hbr = CComboBox::OnCtlColor(pDC, pWnd, nCtlColor);

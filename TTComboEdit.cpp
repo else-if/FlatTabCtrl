@@ -3,14 +3,9 @@
 #include "stdafx.h"
 #include "TTComboEdit.h"
 
-CTTComboEdit::CTTComboEdit() : CTTComboEdit(false)
+CTTComboEdit::CTTComboEdit()
 {	
-}
-
-CTTComboEdit::CTTComboEdit(bool sendMouseLeaveMessage) :
-m_bSendMouseEvents(sendMouseLeaveMessage),
-m_bTracking(false)
-{	
+	m_bTracking = false;
 }
 
 CTTComboEdit::~CTTComboEdit()
@@ -35,9 +30,7 @@ void CTTComboEdit::OnMouseMove(UINT nFlags, CPoint point)
 		m_bTracking = ::_TrackMouseEvent(&tme) ? true : false;
 	}
 
-	//if (m_bSendMouseEvents)
-		//GetParent()->SendMessage(WM_MOUSEMOVE, nFlags, MAKELPARAM(point.x, point.y));
-	GetParent()->SendMessage(WM_PAINT, 0, 0);
+	GetParent()->Invalidate();
 
 	CEdit::OnMouseMove(nFlags, point);
 }
@@ -45,8 +38,7 @@ void CTTComboEdit::OnMouseMove(UINT nFlags, CPoint point)
 void CTTComboEdit::OnMouseLeave()
 {
 	m_bTracking = false;	
-	/*if (m_bSendMouseEvents)
-	*///	GetParent()->SendMessage(WM_MOUSELEAVE, 0, 0);
-	GetParent()->SendMessage(WM_PAINT, 0, 0);
+	GetParent()->Invalidate();
+
 	CEdit::OnMouseLeave();	
 }
