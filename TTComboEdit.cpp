@@ -3,9 +3,10 @@
 #include "stdafx.h"
 #include "TTComboEdit.h"
 
-CTTComboEdit::CTTComboEdit()
-{	
+CTTComboEdit::CTTComboEdit()	
+{		
 	m_bTracking = false;
+	m_bSendInvalidate = false;
 }
 
 CTTComboEdit::~CTTComboEdit()
@@ -30,15 +31,19 @@ void CTTComboEdit::OnMouseMove(UINT nFlags, CPoint point)
 		m_bTracking = ::_TrackMouseEvent(&tme) ? true : false;
 	}
 
-	GetParent()->Invalidate();
-
 	CEdit::OnMouseMove(nFlags, point);
 }
 
 void CTTComboEdit::OnMouseLeave()
 {
 	m_bTracking = false;	
-	GetParent()->Invalidate();
+	if (m_bSendInvalidate)
+		GetParent()->Invalidate();
 
 	CEdit::OnMouseLeave();	
+}
+
+void CTTComboEdit::InvalidateParentOnMouseLeave(BOOL bInvalidate)
+{
+	m_bSendInvalidate = bInvalidate;
 }

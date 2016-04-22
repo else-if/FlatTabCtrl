@@ -6,9 +6,11 @@ public:
 	CTTComboEdit();
 	virtual ~CTTComboEdit();
 	bool IsMouseover() { return m_bTracking; }
-	
+	void InvalidateParentOnMouseLeave(BOOL bInvalidate);
+
 protected:
 	bool m_bTracking;
+	bool m_bSendInvalidate;
 	
 protected:
 	DECLARE_MESSAGE_MAP()

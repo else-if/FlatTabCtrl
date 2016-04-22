@@ -11,10 +11,8 @@ CTTComboBox::CTTComboBox()
 {
 	m_bTracking = false;
 	m_bButtonPress = false;
-
-	m_fBorderPenWidth = 2;
-
-	m_CornerRadius = 10;
+	
+	SetDrawingProperties(2, 10);
 
 	m_ControlState = Normal;
 	m_ArrowButtonState = Normal;
@@ -42,16 +40,26 @@ BEGIN_MESSAGE_MAP(CTTComboBox, CComboBoxEx)
 	ON_CONTROL_REFLECT(CBN_SETFOCUS, &CTTComboBox::OnCbnSetfocus)
 END_MESSAGE_MAP()
 
+void CTTComboBox::SetDrawingProperties(float borderPenWidth, int cornerRadius)
+{
+	m_fBorderPenWidth = borderPenWidth;
+	m_CornerRadius = cornerRadius;
+}
+
 void CTTComboBox::UpdateControlState()
 {
-	if (m_bTracking || m_edit.IsMouseover() || m_bHasFocus)
+	if (!IsWindowEnabled())
+		m_ControlState = Disable;
+	else if (m_bTracking || m_edit.IsMouseover() || m_bHasFocus)
 		m_ControlState = Mouseover;
 	else if (GetDroppedState() && !(m_iComboBoxStyle & CBS_SIMPLE))
 		m_ControlState = Mouseover;
 	else
 		m_ControlState = Normal;	
-
-	if (m_bButtonPress)
+	
+	if (!IsWindowEnabled())
+		m_ArrowButtonState = Disable;
+	else if (m_bButtonPress)
 		m_ArrowButtonState = Press; 
 	else if (m_bOnButton)
 		m_ArrowButtonState = Mouseover;
@@ -78,12 +86,12 @@ void CTTComboBox::OnMouseMove(UINT nFlags, CPoint point)
 	if (GetArrowButtonRect().PtInRect(point))
 	{
 		m_bOnButton = true;
-		Invalidate(false);
+		//Invalidate(false);
 	}
 	else
 	{
 		m_bOnButton = false;
-		Invalidate(false);
+		//Invalidate(false);
 	}
 
 	CComboBoxEx::OnMouseMove(nFlags, point);
@@ -93,8 +101,7 @@ void CTTComboBox::OnMouseLeave()
 {
 	m_bTracking = false;
 	m_bOnButton = false;
-	
-	Invalidate(false);
+	Invalidate();
 
 	CComboBoxEx::OnMouseLeave();
 }
@@ -122,8 +129,39 @@ void CTTComboBox::OnPaint()
 
 void CTTComboBox::DrawSimple()
 {
+	CRect cRect;
+	GetClientRect(&cRect);
+	CPaintDC dc(this);
+	
+	// Calculate borders rect
+	if (!m_edit)
+		return;
+
+	CRect cEditRect;
+	m_edit.GetWindowRect(&cEditRect);
+	ScreenToClient(&cEditRect);
+
+	cRect.bottom = cEditRect.bottom + cEditRect.top;
+
+	CMemDC memDC(dc, cRect);
+
+	Graphics graphics(memDC.GetDC().GetSafeHdc());
+	graphics.SetSmoothingMode(SmoothingModeAntiAlias);
+	graphics.SetInterpolationMode(InterpolationModeHighQualityBicubic);
+
+	DrawThemeParentBackground(GetSafeHwnd(), memDC.GetDC().GetSafeHdc(), cRect);
+
+	// Clear background
+	FillRectRegion(cRect, memDC, RGB(255, 255, 255), m_CornerRadius);
+
+	// Borders
+	Gdiplus::Rect BorderRect(cRect.left, cRect.top, cRect.right, cRect.bottom);
+
+	DrawRectArea(BorderRect, graphics, m_ColorMap.GetColor(m_ControlState, Border),
+		m_CornerRadius, m_fBorderPenWidth);
+
 	// For now just draw CComboBoxEx
-	CComboBoxEx::OnPaint();
+	//CComboBoxEx::OnPaint();
 }
 
 void CTTComboBox::DrawDropDown()
@@ -166,7 +204,7 @@ void CTTComboBox::DrawDropDownList()
 	DrawThemeParentBackground(GetSafeHwnd(), memDC.GetDC().GetSafeHdc(), cRect);
 
 	ControlState backgrougControlState = m_ControlState;
-	if (!m_bTracking || m_bOnButton)
+	if (m_ControlState != Disable && (!m_bTracking || m_bOnButton))
 		backgrougControlState = Normal;			
 
 	// Draw background
@@ -183,8 +221,12 @@ void CTTComboBox::DrawDropDownList()
 	DrawRectArea(BorderRect, graphics, m_ColorMap.GetColor(m_ControlState, Border),
 		m_CornerRadius, m_fBorderPenWidth);
 
+	// Selected item text
+	DrawSelectedItemText(cRect, memDC, graphics);
+
 	// Arrow button region
 	DrawArrowButton(cRect, memDC, graphics);
+	
 }
 
 void CTTComboBox::DrawArrowButton(CRect &cRect, CMemDC &memDC, Gdiplus::Graphics &graphics)
@@ -269,6 +311,27 @@ void CTTComboBox::DrawArrowButton(CRect &cRect, CMemDC &memDC, Gdiplus::Graphics
 	
 }
 
+void CTTComboBox::DrawSelectedItemText(CRect &cRect, CMemDC &memDC, Gdiplus::Graphics &graphics)
+{
+	int	nSel = GetCurSel();
+	if (nSel == -1)
+		return;
+
+	CString cSelText;
+	int iLen = GetLBTextLen(nSel);
+	GetLBText(nSel, cSelText.GetBuffer(iLen));
+	cSelText.ReleaseBuffer();
+	
+	LOGFONT logFont;
+	GetFont()->GetLogFont(&logFont);
+	CFont font;
+	font.CreateFontIndirect(&logFont);	
+
+	COLORREF textColor = m_ControlState == Disable ? GetSysColor(COLOR_GRAYTEXT) : GetSysColor(COLOR_CAPTIONTEXT);
+
+	DrawText(cRect, memDC, font, textColor, cSelText, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+}
+
 CRect CTTComboBox::GetArrowButtonRect()
 {
 	int buttonWidth = GetSystemMetrics(SM_CXVSCROLL);
@@ -289,7 +352,12 @@ HBRUSH CTTComboBox::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 		// Edit control
 		if (m_edit.GetSafeHwnd() == NULL)
 		{
-			m_edit.SubclassWindow(pWnd->GetSafeHwnd());			
+			m_edit.SubclassWindow(pWnd->GetSafeHwnd());
+
+			// for Simple type combo box we need Invalidate on Edit's mouse leave
+			m_edit.InvalidateParentOnMouseLeave((GetStyle() & CBS_DROPDOWNLIST) == CBS_SIMPLE);
+
+			Invalidate();
 		}
 	}
 	else if (nCtlColor == CTLCOLOR_LISTBOX)
@@ -297,7 +365,8 @@ HBRUSH CTTComboBox::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 		// ListBox control
 		if (m_listbox.GetSafeHwnd() == NULL)
 		{
-			m_listbox.SubclassWindow(pWnd->GetSafeHwnd());			
+			m_listbox.SubclassWindow(pWnd->GetSafeHwnd());
+			Invalidate();
 		}
 	}
 	HBRUSH hbr = CComboBox::OnCtlColor(pDC, pWnd, nCtlColor);
@@ -321,13 +390,13 @@ BOOL CTTComboBox::PreTranslateMessage(MSG* pMsg)
 	case WM_RBUTTONDOWN:
 	case WM_MBUTTONDOWN:
 		m_bButtonPress = m_bOnButton;
-		Invalidate(false);
+		//Invalidate(false);
 		break;
 	case WM_LBUTTONUP:
 	case WM_RBUTTONUP:
 	case WM_MBUTTONUP:
 		m_bButtonPress = false;
-		Invalidate(false);
+		//Invalidate(false);
 		break;
 	}
 	

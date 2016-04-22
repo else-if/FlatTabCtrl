@@ -64,6 +64,10 @@ public:
 	CTTComboBox m_DropDownComboBox;
 	CTTComboBox m_DropDownListComboBox;
 
+	CTTComboBox m_SimpleComboBox2;
+	CTTComboBox m_DropDownComboBox2;
+	CTTComboBox m_DropDownListComboBox2;
+
 	CComboBox m_CommonCombo;
 
 	void FillCombo(CComboBox &Combo);

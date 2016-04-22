@@ -29,17 +29,20 @@ protected:
 	bool m_bButtonPress;
 	
 	void UpdateControlState();
-
+	
 protected:	
 
 	void DrawSimple();
 	void DrawDropDown();
 	void DrawDropDownList();
 	void DrawArrowButton(CRect &cRect, CMemDC &memDC, Gdiplus::Graphics &graphics);
+	void DrawSelectedItemText(CRect &cRect, CMemDC &memDC, Gdiplus::Graphics &graphics);
 	CRect GetArrowButtonRect();
 
 	DECLARE_MESSAGE_MAP()
 public:
+
+	void SetDrawingProperties(float borderPenWidth, int cornerRadius);
 
 	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);

@@ -74,6 +74,9 @@ void CFlatTabCtrlDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_COMBO3, m_SimpleComboBox);
 	DDX_Control(pDX, IDC_COMBO4, m_DropDownComboBox);
 	DDX_Control(pDX, IDC_COMBO5, m_DropDownListComboBox);
+	DDX_Control(pDX, IDC_COMBO6, m_SimpleComboBox2);
+	DDX_Control(pDX, IDC_COMBO7, m_DropDownComboBox2);
+	DDX_Control(pDX, IDC_COMBO8, m_DropDownListComboBox2);
 }
 
 BEGIN_MESSAGE_MAP(CFlatTabCtrlDlg, CDialogEx)
@@ -152,11 +155,20 @@ BOOL CFlatTabCtrlDlg::OnInitDialog()
 	m_FlatTabCtrl.InsertItem(4, _T("Here is a very very long tab item header"));
 	m_FlatTabCtrl.InsertItem(4, _T("Second very very long tab item header"));
 
-	FillCombo(m_SimpleComboBox);
-	FillCombo(m_DropDownComboBox);
-	FillCombo(m_DropDownListComboBox);
 	FillCombo(m_CommonCombo);
 
+	FillCombo(m_SimpleComboBox);
+	FillCombo(m_DropDownComboBox);
+	FillCombo(m_DropDownListComboBox);	
+
+	m_SimpleComboBox2.SetDrawingProperties(1, 5);
+	m_DropDownComboBox2.SetDrawingProperties(1, 5);
+	m_DropDownListComboBox2.SetDrawingProperties(1, 5);
+
+	FillCombo(m_SimpleComboBox2);
+	FillCombo(m_DropDownComboBox2);
+	FillCombo(m_DropDownListComboBox2);
+	
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
@@ -211,7 +223,7 @@ void CFlatTabCtrlDlg::OnPaint()
 	{
 		CPaintDC dc(this); // device context for painting
 
-		using namespace Gdiplus;
+		/*using namespace Gdiplus;
 		Graphics graphics(dc.GetSafeHdc());
 		graphics.SetSmoothingMode(SmoothingModeAntiAlias);
 		graphics.SetInterpolationMode(InterpolationModeHighQualityBicubic);
@@ -224,7 +236,7 @@ void CFlatTabCtrlDlg::OnPaint()
 		shadow.left = shadow.right - 200;
 		shadow.right = shadow.left + 150;
 		
-		DrawBlurredRectangle(graphics, Gdiplus::Rect(shadow.left, shadow.top, shadow.Width(), shadow.Height()));
+		DrawBlurredRectangle(graphics, Gdiplus::Rect(shadow.left, shadow.top, shadow.Width(), shadow.Height()));*/
 		CDialogEx::OnPaint();
 	}
 
@@ -286,17 +298,25 @@ void CFlatTabCtrlDlg::OnBnClickedOk()
 void CFlatTabCtrlDlg::OnBnClickedButton2()
 {
 	// TODO: Add your control notification handler code here
-	CWnd* pWnd = GetDlgItem(IDC_BUTTON3);
+	CWnd* pBtnWnd = GetDlgItem(IDC_BUTTON3);
 
-	if (pWnd->IsWindowEnabled())
+	if (pBtnWnd->IsWindowEnabled())
 	{
-		pWnd->EnableWindow(FALSE);
+		pBtnWnd->EnableWindow(FALSE);
 		GetDlgItem(IDC_BUTTON2)->SetWindowText(_T(" Enable ---> "));
+
+		GetDlgItem(IDC_COMBO3)->EnableWindow(FALSE);
+		GetDlgItem(IDC_COMBO4)->EnableWindow(FALSE);
+		GetDlgItem(IDC_COMBO5)->EnableWindow(FALSE);
 	}
 	else
 	{
-		pWnd->EnableWindow(TRUE);
+		pBtnWnd->EnableWindow(TRUE);
 		GetDlgItem(IDC_BUTTON2)->SetWindowText(_T(" Disable ---> "));
+
+		GetDlgItem(IDC_COMBO3)->EnableWindow(TRUE);
+		GetDlgItem(IDC_COMBO4)->EnableWindow(TRUE);
+		GetDlgItem(IDC_COMBO5)->EnableWindow(TRUE);
 	}
 }
 
@@ -304,16 +324,24 @@ void CFlatTabCtrlDlg::OnBnClickedButton2()
 void CFlatTabCtrlDlg::OnBnClickedButton3()
 {
 	// TODO: Add your control notification handler code here
-	CWnd* pWnd = GetDlgItem(IDC_BUTTON2);
+	CWnd* pBtnWnd = GetDlgItem(IDC_BUTTON2);
 
-	if (pWnd->IsWindowEnabled())
+	if (pBtnWnd->IsWindowEnabled())
 	{
-		pWnd->EnableWindow(FALSE);
+		pBtnWnd->EnableWindow(FALSE);
 		GetDlgItem(IDC_BUTTON3)->SetWindowText(_T(" <--- Enable "));
+
+		GetDlgItem(IDC_COMBO6)->EnableWindow(FALSE);
+		GetDlgItem(IDC_COMBO7)->EnableWindow(FALSE);
+		GetDlgItem(IDC_COMBO8)->EnableWindow(FALSE);
 	}
 	else
 	{
-		pWnd->EnableWindow(TRUE);
+		pBtnWnd->EnableWindow(TRUE);
 		GetDlgItem(IDC_BUTTON3)->SetWindowText(_T(" <--- Disable "));
+
+		GetDlgItem(IDC_COMBO6)->EnableWindow(TRUE);
+		GetDlgItem(IDC_COMBO7)->EnableWindow(TRUE);
+		GetDlgItem(IDC_COMBO8)->EnableWindow(TRUE);
 	}
 }

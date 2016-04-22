@@ -2,6 +2,9 @@
 
 #include "stdafx.h"
 #include "TTComboListBox.h"
+#include "common.h"
+
+using namespace Gdiplus;
 
 CTTComboListBox::CTTComboListBox()
 {
@@ -28,8 +31,6 @@ void CTTComboListBox::OnMouseMove(UINT nFlags, CPoint point)
 		m_bTracking = ::_TrackMouseEvent(&tme) ? true : false;
 	}
 
-	GetParent()->Invalidate();
-
 	CListBox::OnMouseMove(nFlags, point);
 }
 
@@ -37,7 +38,6 @@ void CTTComboListBox::OnMouseMove(UINT nFlags, CPoint point)
 void CTTComboListBox::OnMouseLeave()
 {
 	m_bTracking = false;
-	GetParent()->Invalidate();
-
+	
 	CListBox::OnMouseLeave();
 }
