@@ -85,6 +85,8 @@ void CFlatTabCtrlDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_TT_STATIC6, m_TTStatic6);
 	DDX_Control(pDX, IDC_TT_STATIC7, m_TTStatic7);
 	DDX_Control(pDX, IDC_TT_STATIC8, m_TTStatic8);
+	DDX_Control(pDX, IDC_EDIT4, m_Edit1);
+	DDX_Control(pDX, IDC_EDIT5, m_Edit2);
 }
 
 BEGIN_MESSAGE_MAP(CFlatTabCtrlDlg, CDialogEx)
@@ -194,6 +196,8 @@ BOOL CFlatTabCtrlDlg::OnInitDialog()
 
 	m_TTStatic8.SetDrawingProperties(2, 10, true);
 	m_TTStatic8.SetColorProperies(RGB(221, 232, 101), RGB(23, 55, 125), RGB(202, 81, 0));
+
+	m_Edit1.SetDrawingProperties(1, 5);
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }

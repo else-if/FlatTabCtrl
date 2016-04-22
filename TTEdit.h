@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ControlsColorMap.h"
 
 // CTTEdit
 
@@ -11,23 +12,30 @@ public:
 	CTTEdit();
 	virtual ~CTTEdit();
 
+	void SetDrawingProperties(float borderPenWidth, int cornerRadius);
+
 protected:
-	CBrush m_HollowBrush;
-	COLORREF m_TextColor;
 	CRect m_rectNCBottom;
 	CRect m_rectNCTop;
-	CRect m_EditRect;
-	bool m_bHover;
+
+	ControlState m_ControlState;
+	ControlsColorMap m_ColorMap;
+	
+	float m_fBorderPenWidth;
+	int m_CornerRadius;
+	bool m_bTracking;	
+
+	void UpdateControlState();
 
 	DECLARE_MESSAGE_MAP()
 public:	
 	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
-	afx_msg HBRUSH CtlColor(CDC* /*pDC*/, UINT /*nCtlColor*/);
+	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
+	afx_msg void OnMouseLeave();
 	afx_msg void OnNcPaint();
 	afx_msg void OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS* lpncsp);
-	afx_msg void OnPaint();
-	afx_msg BOOL OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message);
 	afx_msg UINT OnGetDlgCode();
+	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
 };
 
 

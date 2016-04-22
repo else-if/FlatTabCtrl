@@ -1,90 +1,74 @@
-// TTEdit.cpp : implementation file
-//
+#pragma once
 
 #include "stdafx.h"
-#include "FlatTabCtrl.h"
 #include "TTEdit.h"
+#include "common.h"
 
-
-// CTTEdit
+using namespace Gdiplus;
 
 IMPLEMENT_DYNAMIC(CTTEdit, CEdit)
 
 CTTEdit::CTTEdit()
-:m_EditRect(0, 0, 0, 0)
-, m_rectNCBottom(0, 0, 0, 0)
-, m_rectNCTop(0, 0, 0, 0)
+	: m_rectNCBottom(0, 0, 0, 0)
+	, m_rectNCTop(0, 0, 0, 0)
 {
-	m_HollowBrush.CreateStockObject(HOLLOW_BRUSH);
-	m_TextColor = RGB(0, 0, 0);	
-	m_bHover = false;
+	m_bTracking = false;
+	m_ControlState = Normal;
+
+	SetDrawingProperties(2, 10);
+
+	m_ColorMap.SetDefaultColors();
 }
 
 CTTEdit::~CTTEdit()
 {
 }
 
-
 BEGIN_MESSAGE_MAP(CTTEdit, CEdit)
-	//ON_WM_ERASEBKGND()
-	ON_WM_CTLCOLOR_REFLECT()
+	ON_WM_MOUSEMOVE()
+	ON_WM_MOUSELEAVE()
 	ON_WM_NCPAINT()
 	ON_WM_NCCALCSIZE()
-	ON_WM_PAINT()
-	ON_WM_SETCURSOR()
 	ON_WM_GETDLGCODE()
+	ON_WM_CTLCOLOR()
 END_MESSAGE_MAP()
 
+void CTTEdit::SetDrawingProperties(float borderPenWidth, int cornerRadius)
+{
+	m_fBorderPenWidth = borderPenWidth;
+	m_CornerRadius = cornerRadius;
+}
 
-
-// CTTEdit message handlers
-
+void CTTEdit::UpdateControlState()
+{	
+}
 
 BOOL CTTEdit::OnEraseBkgnd(CDC* pDC)
 {
-//  	CRect rc;
-//  	GetClientRect(rc);
-//  	
-//  	CMemDC dc(*pDC, rc);
-// 
-// 	dc.GetDC().FillSolidRect(&rc, RGB(255, 255, 255));
- 
-// 	using namespace Gdiplus;
-// 	dc.GetDC().ExcludeClipRect(rc);
-// 	Graphics graphics(dc.GetDC().GetSafeHdc());
-// 	graphics.SetSmoothingMode(SmoothingModeAntiAlias);
-// 	graphics.SetInterpolationMode(InterpolationModeHighQualityBicubic);
-// 
-// 	//DrawThemeParentBackground(GetSafeHwnd(), dc.GetDC().GetSafeHdc(), rc);
-// 
-// 	//rc.DeflateRect(5, 5);
-// 	Gdiplus::Rect r2(rc.left, rc.top, rc.Width(), rc.Height());
-// 	Gdiplus::Rect r3(r2);
-// 	Gdiplus::Color c1(Gdiplus::Color::Red);
-// 
-// 	//r2.InflateRect(10, 10);
-// 	//DrawThemeParentBackground(GetSafeHwnd(), dc.GetDC().GetSafeHdc(), rc);
-// 	r3.Inflate(-5, -5);
-// 
-// 	graphics.ExcludeClip(r3);
-// 	RectangleDropShadow(graphics, Gdiplus::Rect(r3.GetLeft(), r3.GetTop(), r3.Width, r3.Height), c1, 5, 128);
-// 
-// 	//pDC->SetBkMode(TRANSPARENT);
-
-	// TODO: Add your message handler code here and/or call default
 	return FALSE;
-	//return CEdit::OnEraseBkgnd(pDC);
 }
 
-
-HBRUSH CTTEdit::CtlColor(CDC* pDC, UINT nCtlColor)
+void CTTEdit::OnMouseMove(UINT nFlags, CPoint point)
 {
-	return NULL;
-	pDC->SetBkMode(TRANSPARENT);
-	pDC->SetTextColor(m_TextColor);
-	return (HBRUSH)m_HollowBrush;
+	if (!m_bTracking)
+	{
+		TRACKMOUSEEVENT tme;
+		tme.cbSize = sizeof(TRACKMOUSEEVENT);
+		tme.dwFlags = TME_LEAVE;
+		tme.hwndTrack = GetSafeHwnd();
+		m_bTracking = ::_TrackMouseEvent(&tme) ? true : false;
+	}
+
+	CEdit::OnMouseMove(nFlags, point);
 }
 
+void CTTEdit::OnMouseLeave()
+{
+	m_bTracking = false;
+	Invalidate();
+
+	CEdit::OnMouseLeave();
+}
 
 void CTTEdit::OnNcPaint()
 {
@@ -95,38 +79,7 @@ void CTTEdit::OnNcPaint()
 
 	dc.FillRect(m_rectNCBottom, &Brush);
 	dc.FillRect(m_rectNCTop, &Brush);
-	
-	if (m_bHover && GetFocus() != this)
-	{
-
-		CRect rc;
-		GetClientRect(&rc);
-		using namespace Gdiplus;
-
-		Graphics graphics(dc.GetSafeHdc());
-		graphics.SetSmoothingMode(SmoothingModeAntiAlias);
-		graphics.SetInterpolationMode(InterpolationModeHighQualityBicubic);
-
-		//DrawThemeParentBackground(GetSafeHwnd(), dc.GetDC().GetSafeHdc(), rc);
-
-
-		//rc.InflateRect(5, 5);
-		//rc.DeflateRect(5, 5);
-		Gdiplus::Rect r2(m_rectNCTop.left, m_rectNCTop.top, m_rectNCTop.Width(), m_rectNCTop.Height() + m_rectNCBottom.Height() + rc.Height());
-
-		Gdiplus::Rect r3(r2);
-		Gdiplus::Color c1(Gdiplus::Color::Red);
-
-		//r2.InflateRect(10, 10);
-		//DrawThemeParentBackground(GetSafeHwnd(), dc.GetDC().GetSafeHdc(), rc);
-		//r3.Inflate(-5, -5);
-
-		//graphics.ExcludeClip(r3);
-
-		RectangleDropShadow(graphics, Gdiplus::Rect(r3.GetLeft(), r3.GetTop(), r3.Width, r3.Height), c1, 2, 128);
-	}
 }
-
 
 void CTTEdit::OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS* lpncsp)
 {
@@ -171,73 +124,9 @@ void CTTEdit::OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS* lpncsp)
 
 	lpncsp->rgrc[0].left += uiCX;
 	lpncsp->rgrc[0].right -= uiCY;
+
+	//CEdit::OnNcCalcSize(bCalcValidRects, lpncsp);
 }
-
-
-void CTTEdit::OnPaint()
-{
-	CPaintDC paintDC(this); // device context for painting
-	CRect rc;
-	GetClientRect(&rc);
-	
-	CFont *pFont = GetFont();
-
-	CMemDC dc(paintDC, rc);	
-
-	CFont *pOld = dc.GetDC().SelectObject(pFont);
-
-	dc.GetDC().FillSolidRect(rc, GetSysColor(COLOR_WINDOW));
-
-	if (m_bHover && GetFocus() != this)
-	{
-		using namespace Gdiplus;
-		
-		Graphics graphics(dc.GetDC().GetSafeHdc());
-		graphics.SetSmoothingMode(SmoothingModeAntiAlias);
-		graphics.SetInterpolationMode(InterpolationModeHighQualityBicubic);
-
-		//DrawThemeParentBackground(GetSafeHwnd(), dc.GetDC().GetSafeHdc(), rc);
-
-		
-		//rc.InflateRect(5, 5);
-		//rc.DeflateRect(5, 5);
-		Gdiplus::Rect r2(m_rectNCTop.left, m_rectNCTop.top, m_rectNCTop.Width(), m_rectNCTop.Height() + m_rectNCBottom.Height() + rc.Height());
-
-		Gdiplus::Rect r3(r2);
-		Gdiplus::Color c1(Gdiplus::Color::Red);
-
-		//r2.InflateRect(10, 10);
-		//DrawThemeParentBackground(GetSafeHwnd(), dc.GetDC().GetSafeHdc(), rc);
-		//r3.Inflate(-5, -5);
-
-		//graphics.ExcludeClip(r3);
-		
-		RectangleDropShadow(graphics, Gdiplus::Rect(r3.GetLeft(), r3.GetTop(), r3.Width, r3.Height), c1, 5, 128);
-	}
-
-	// Clearing the background
-	dc.GetDC().FillSolidRect(rc, GetSysColor(COLOR_WINDOW));
-
-	CString text;
-	GetWindowText(text);
-	dc.GetDC().DrawText(text, rc, DT_SINGLELINE | DT_INTERNAL | DT_EDITCONTROL);
-}
-
-
-BOOL CTTEdit::OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message)
-{	
-	if (nHitTest == HTCLIENT)
-	{
-		m_bHover = true;			
-	}
-	else
-	{
-		m_bHover = false;
-	}
-
-	return CEdit::OnSetCursor(pWnd, nHitTest, message);
-}
-
 
 UINT CTTEdit::OnGetDlgCode()
 {
@@ -247,4 +136,15 @@ UINT CTTEdit::OnGetDlgCode()
 	}
 
 	return CEdit::OnGetDlgCode();
+}
+
+
+
+HBRUSH CTTEdit::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
+{
+	HBRUSH hbr = CEdit::OnCtlColor(pDC, pWnd, nCtlColor);
+
+	hbr = CreateSolidBrush(RGB(255, 0, 0));
+	
+	return hbr;
 }

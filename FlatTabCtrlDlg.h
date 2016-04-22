@@ -80,6 +80,8 @@ public:
 	CTTStatic m_TTStatic7;
 	CTTStatic m_TTStatic8;
 	
+	CTTEdit m_Edit1;
+	CTTEdit m_Edit2;
 
 	void FillCombo(CComboBox &Combo);
 

@@ -85,13 +85,11 @@ void CTTComboBox::OnMouseMove(UINT nFlags, CPoint point)
 
 	if (GetArrowButtonRect().PtInRect(point))
 	{
-		m_bOnButton = true;
-		//Invalidate(false);
+		m_bOnButton = true;		
 	}
 	else
 	{
-		m_bOnButton = false;
-		//Invalidate(false);
+		m_bOnButton = false;		
 	}
 
 	CComboBoxEx::OnMouseMove(nFlags, point);
