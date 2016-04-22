@@ -59,3 +59,13 @@ void ControlsColorMap::SetDefaultColors()
 	m_ColorMap[Disable][BackgroundBottomGradientStart] = RGB(239, 239, 239);
 	m_ColorMap[Disable][BackgroundBottomGradientFinish] = RGB(239, 239, 239);
 }
+
+void ControlsColorMap::AddToColorMap(int state, int area, COLORREF color)
+{
+	m_ColorMap[state][area] = color;
+}
+
+COLORREF ControlsColorMap::GetFromColorMap(int state, int area)
+{
+	return m_ColorMap[state][area];
+}

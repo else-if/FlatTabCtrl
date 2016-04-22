@@ -16,6 +16,7 @@
 #include "BoringButtonCtrl.h"
 #include "ttbutton2.h"
 #include "TTComboBox.h"
+#include "TTStatic.h"
 #include <msclr\event.h>
 
 using namespace System;
@@ -70,6 +71,16 @@ public:
 
 	CComboBox m_CommonCombo;
 
+	CTTStatic m_TTStatic1;
+	CTTStatic m_TTStatic2;
+	CTTStatic m_TTStatic3;
+	CTTStatic m_TTStatic4;
+	CTTStatic m_TTStatic5;
+	CTTStatic m_TTStatic6;
+	CTTStatic m_TTStatic7;
+	CTTStatic m_TTStatic8;
+	
+
 	void FillCombo(CComboBox &Combo);
 
 	BoringEditCtrl2 m_EditCtrl;
@@ -85,4 +96,5 @@ public:
 	afx_msg void OnBnClickedOk();
 	afx_msg void OnBnClickedButton2();
 	afx_msg void OnBnClickedButton3();
+	afx_msg void OnBnClickedCancel();
 };

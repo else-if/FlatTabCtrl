@@ -27,7 +27,7 @@ public enum ColorArea
 class ControlsColorMap
 {
 private:
-	map<ControlState, map<ColorArea, COLORREF>> m_ColorMap;
+	map<int, map<int, COLORREF>> m_ColorMap;
 
 public:
 	ControlsColorMap();
@@ -37,5 +37,7 @@ public:
 
 	COLORREF GetColor(ControlState state, ColorArea area);
 	void SetColor(ControlState state, ColorArea area, COLORREF color);
+	void AddToColorMap(int state, int area, COLORREF color);
+	COLORREF GetFromColorMap(int state, int area);
 
 };

@@ -69,7 +69,7 @@ void CTTComboBox::UpdateControlState()
 
 BOOL CTTComboBox::OnEraseBkgnd(CDC* pDC)
 {
-	return FALSE;
+	return TRUE;
 }
 
 void CTTComboBox::OnMouseMove(UINT nFlags, CPoint point)

@@ -77,6 +77,14 @@ void CFlatTabCtrlDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_COMBO6, m_SimpleComboBox2);
 	DDX_Control(pDX, IDC_COMBO7, m_DropDownComboBox2);
 	DDX_Control(pDX, IDC_COMBO8, m_DropDownListComboBox2);
+	DDX_Control(pDX, IDC_TT_STATIC1, m_TTStatic1);
+	DDX_Control(pDX, IDC_TT_STATIC2, m_TTStatic2);
+	DDX_Control(pDX, IDC_TT_STATIC3, m_TTStatic3);
+	DDX_Control(pDX, IDC_TT_STATIC4, m_TTStatic4);
+	DDX_Control(pDX, IDC_TT_STATIC5, m_TTStatic5);
+	DDX_Control(pDX, IDC_TT_STATIC6, m_TTStatic6);
+	DDX_Control(pDX, IDC_TT_STATIC7, m_TTStatic7);
+	DDX_Control(pDX, IDC_TT_STATIC8, m_TTStatic8);
 }
 
 BEGIN_MESSAGE_MAP(CFlatTabCtrlDlg, CDialogEx)
@@ -169,6 +177,24 @@ BOOL CFlatTabCtrlDlg::OnInitDialog()
 	FillCombo(m_DropDownComboBox2);
 	FillCombo(m_DropDownListComboBox2);
 	
+	
+	m_TTStatic1.DrawBorders(true);
+	m_TTStatic1.SetBackgroundColor(RGB(255, 255, 255));
+
+	m_TTStatic2.SetDrawingProperties(2, 10, true);
+	m_TTStatic2.SetBackgroundColor(RGB(255, 255, 255));
+	
+	m_TTStatic3.SetDrawingProperties(2, 10, true);
+	m_TTStatic4.DrawBorders(true);
+
+	m_TTStatic5.SetDrawingProperties(2, 10, false);
+
+	m_TTStatic7.DrawBorders(true);
+	m_TTStatic7.SetColorProperies(RGB(221, 232, 101), RGB(23, 55, 125), RGB(202, 81, 0));
+
+	m_TTStatic8.SetDrawingProperties(2, 10, true);
+	m_TTStatic8.SetColorProperies(RGB(221, 232, 101), RGB(23, 55, 125), RGB(202, 81, 0));
+
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
@@ -223,20 +249,6 @@ void CFlatTabCtrlDlg::OnPaint()
 	{
 		CPaintDC dc(this); // device context for painting
 
-		/*using namespace Gdiplus;
-		Graphics graphics(dc.GetSafeHdc());
-		graphics.SetSmoothingMode(SmoothingModeAntiAlias);
-		graphics.SetInterpolationMode(InterpolationModeHighQualityBicubic);
-
-		CRect shadow;
-		GetClientRect(&shadow);
-		//ClientToScreen(&shadow);
-		shadow.top = shadow.top + 100;
-		shadow.bottom = shadow.top + 50;
-		shadow.left = shadow.right - 200;
-		shadow.right = shadow.left + 150;
-		
-		DrawBlurredRectangle(graphics, Gdiplus::Rect(shadow.left, shadow.top, shadow.Width(), shadow.Height()));*/
 		CDialogEx::OnPaint();
 	}
 
@@ -308,6 +320,11 @@ void CFlatTabCtrlDlg::OnBnClickedButton2()
 		GetDlgItem(IDC_COMBO3)->EnableWindow(FALSE);
 		GetDlgItem(IDC_COMBO4)->EnableWindow(FALSE);
 		GetDlgItem(IDC_COMBO5)->EnableWindow(FALSE);
+
+		GetDlgItem(IDC_TT_STATIC2)->EnableWindow(FALSE);
+		GetDlgItem(IDC_TT_STATIC3)->EnableWindow(FALSE);
+		GetDlgItem(IDC_TT_STATIC5)->EnableWindow(FALSE);
+		GetDlgItem(IDC_TT_STATIC8)->EnableWindow(FALSE);
 	}
 	else
 	{
@@ -317,6 +334,11 @@ void CFlatTabCtrlDlg::OnBnClickedButton2()
 		GetDlgItem(IDC_COMBO3)->EnableWindow(TRUE);
 		GetDlgItem(IDC_COMBO4)->EnableWindow(TRUE);
 		GetDlgItem(IDC_COMBO5)->EnableWindow(TRUE);
+
+		GetDlgItem(IDC_TT_STATIC2)->EnableWindow(TRUE);
+		GetDlgItem(IDC_TT_STATIC3)->EnableWindow(TRUE);
+		GetDlgItem(IDC_TT_STATIC5)->EnableWindow(TRUE);
+		GetDlgItem(IDC_TT_STATIC8)->EnableWindow(TRUE);
 	}
 }
 
@@ -334,6 +356,11 @@ void CFlatTabCtrlDlg::OnBnClickedButton3()
 		GetDlgItem(IDC_COMBO6)->EnableWindow(FALSE);
 		GetDlgItem(IDC_COMBO7)->EnableWindow(FALSE);
 		GetDlgItem(IDC_COMBO8)->EnableWindow(FALSE);
+
+		GetDlgItem(IDC_TT_STATIC1)->EnableWindow(FALSE);
+		GetDlgItem(IDC_TT_STATIC4)->EnableWindow(FALSE);
+		GetDlgItem(IDC_TT_STATIC6)->EnableWindow(FALSE);
+		GetDlgItem(IDC_TT_STATIC7)->EnableWindow(FALSE);
 	}
 	else
 	{
@@ -343,5 +370,10 @@ void CFlatTabCtrlDlg::OnBnClickedButton3()
 		GetDlgItem(IDC_COMBO6)->EnableWindow(TRUE);
 		GetDlgItem(IDC_COMBO7)->EnableWindow(TRUE);
 		GetDlgItem(IDC_COMBO8)->EnableWindow(TRUE);
+
+		GetDlgItem(IDC_TT_STATIC1)->EnableWindow(TRUE);
+		GetDlgItem(IDC_TT_STATIC4)->EnableWindow(TRUE);
+		GetDlgItem(IDC_TT_STATIC6)->EnableWindow(TRUE);
+		GetDlgItem(IDC_TT_STATIC7)->EnableWindow(TRUE);
 	}
 }
