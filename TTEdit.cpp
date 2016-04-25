@@ -1,124 +1,306 @@
-#pragma once
-
 #include "stdafx.h"
 #include "TTEdit.h"
-#include "CommonDrawing.h"
-#include "ControlsColorMap.h"
 
-IMPLEMENT_DYNAMIC(CTTEdit, CEdit);
+//#include "colors.h"
 
-CTTEdit::CTTEdit()	
-	:m_ClientRect(0, 0, 0, 0)
+using namespace Gdiplus;
+
+/////////////////////////////////////////////////////////////////////////////
+// CTTEdit
+
+CTTEdit::CTTEdit()
+	:m_EditRect(0, 0, 0, 0),
+	m_LayerRect(0, 0, 0, 0)
 {
 	m_OffsetY = -1;
-	SetDrawingProperties(1, 5);
-
-	m_ControlState = Normal;
-
-	m_ColorMap.SetDefaultColors();
-	m_ColorMap.SetColor(Mouseover, BackgroundTopGradientFinish, RGB(255, 255, 255));
+	m_HollowBrush.CreateStockObject(HOLLOW_BRUSH);
+	m_TextColor = RGB(0, 0, 0);
 }
 
 CTTEdit::~CTTEdit()
 {
 }
 
-void CTTEdit::SetDrawingProperties(int borderPenWidth, int cornerRadius)
+void CTTEdit::SetPosition(int x, int y)
 {
-	m_borderPenWidth = borderPenWidth;
-	m_CornerRadius = cornerRadius;
+	int xoff = x - m_FrameRect.X;
+	int yoff = y - m_FrameRect.Y;
+
+	// set the frame origin
+	m_FrameRect.X = x; m_FrameRect.Y = y;
+
+	// iterate all the layers
+	m_LayerRect.X += xoff;
+	m_LayerRect.Y += yoff;
+
 }
 
-void CTTEdit::UpdateControlState()
+void CTTEdit::Paint(CDC* pDevC, CRect rect)
 {
-	if (!IsWindowEnabled())
-		m_ControlState = Disable;
-	else if (m_bHover || GetFocus() == this)
-		m_ControlState = Mouseover;
+	//GetpDC(pDevC, rect, TRUE);
+
+	CDC* pDC = new CDC();
+	pDC->CreateCompatibleDC(pDevC);
+
+	CBitmap*	m_pOld;
+	CBitmap		m_bitmap;
+
+	// create a compatible bitmap
+	m_bitmap.CreateCompatibleBitmap(pDevC, rect.Width(), rect.Height());
+
+	// select bitmap into dc
+	m_pOld = pDC->SelectObject(&m_bitmap);
+
+	// set window origin
+	pDC->SetWindowOrg(rect.left, rect.top);
+
+	// needed for transparency support
+	pDC->BitBlt(rect.left, rect.top, rect.Width(), rect.Height(),
+		pDevC, rect.left, rect.top, SRCCOPY);
+	
+	// = &m_MemDC;
+
+	Graphics gdi(pDC->m_hDC);
+
+	// default smoothing mode
+	gdi.SetSmoothingMode(SmoothingModeAntiAlias);
+	gdi.SetTextRenderingHint(TextRenderingHintClearTypeGridFit);
+
+	// paint all stacks
+	if (m_bUseBitmap)
+	{
+		// copy the bitmap to the DC
+		pDC->BitBlt(m_FrameRect.X,
+			m_FrameRect.Y,
+			m_FrameRect.Width,
+			m_FrameRect.Height,
+			&m_LayerDC, 0, 0, SRCCOPY);
+	}
 	else
-		m_ControlState = Normal;
+	{
+		// the first call to PaintStyle will create all the bitmaps here
+		PaintStack(pDC, &gdi);
+	}
+
+	
+	pDevC->BitBlt(rect.left, rect.top, rect.Width(), rect.Height(),
+		pDC, rect.left, rect.top, SRCCOPY);
+
+	//delete m_pOld;
+	//delete pDC;
+
 }
 
-void CTTEdit::Paint(CDC* pDC)
+void CTTEdit::PaintStack(CDC* pDC, Graphics* pGraphics)
 {
-	if (m_ClientRect.IsRectEmpty())
-		return;
+	// set the Graphics object
+	m_LayerpGdi = pGraphics;
 
-	UpdateControlState();
+	// set the MemDC object
+	m_LayerMemDC = pDC;
 
-	CString str;
-	GetWindowText(str);
-	DWORD curSel = GetSel();
+	SetBorderClip(m_LayerpGdi, m_FrameRect);
+	
+	m_LayerRect = m_FrameRect;
+	Gdiplus::SolidBrush br(Color::Green);
+	m_LayerpGdi->FillRectangle(&br, m_LayerRect);
 
-	CMemDC memDC(*pDC, m_ClientRect);
+	m_LayerpGdi->ResetClip();
+	
+	// paint the borders
+	PaintBorders(m_LayerpGdi, m_FrameRect, Color::Red, Color::Blue, 1);
+	
+	// delete dc in case of regeneration
+	m_LayerDC.DeleteDC();
+	
+	int x = m_FrameRect.X;
+	int y = m_FrameRect.Y;
+	int width = m_FrameRect.Width;
+	int height = m_FrameRect.Height;
 
-	Gdiplus::Graphics graphics(memDC.GetDC().GetSafeHdc());
-	graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
-	graphics.SetInterpolationMode(Gdiplus::InterpolationModeHighQualityBicubic);
+	// store into m_dc
+	CBitmap bmp;
+	m_LayerDC.CreateCompatibleDC(pDC);
+	bmp.CreateCompatibleBitmap(pDC, width, height);
+	m_LayerDC.SelectObject(&bmp);
+	m_LayerDC.BitBlt(0, 0, width, height, pDC, x, y, SRCCOPY);
+	bmp.DeleteObject();
 
-	CRgn frgn;
-	frgn.CreateRectRgn(m_ClientRect.left, m_ClientRect.top, m_ClientRect.right, m_ClientRect.bottom);
-	Gdiplus::Region grgn(frgn);
-	graphics.SetClip(&grgn, CombineModeReplace);
+	m_bUseBitmap = TRUE;	
+}
 
-	DrawThemeParentBackground(GetSafeHwnd(), memDC.GetDC().GetSafeHdc(), m_ClientRect);
+void CTTEdit::PaintBorders(Graphics* pGraphics, Rect r, Color ulclr, Color brclr, int width)
+{
+	int i, left, top, bottom, right;
 
-	// Borders
-	Gdiplus::Rect BorderRect(m_ClientRect.left, m_ClientRect.top, m_ClientRect.right, m_ClientRect.bottom);
+	// disable smoothing mode
+	SmoothingMode oldMode = pGraphics->GetSmoothingMode();
+	pGraphics->SetSmoothingMode(SmoothingModeNone);
 
-	// Clear background
-	COLORREF backgroundColor = m_ColorMap.GetColor(m_ControlState, BackgroundTopGradientFinish);;
-	Color cl(0, 0, 0);
-	cl.SetFromCOLORREF(backgroundColor);
-	Gdiplus::SolidBrush brush(cl);
-	graphics.FillRectangle(&brush, BorderRect);
+	// define the upper left pen
+	Pen ulpen(ulclr, 1); ulpen.SetAlignment(PenAlignmentCenter);
 
-	DrawRectArea(BorderRect, graphics, m_ColorMap.GetColor(m_ControlState, Border),
-		m_CornerRadius, m_borderPenWidth);
+	// define the bottom right pen
+	Pen brpen(brclr, 1); brpen.SetAlignment(PenAlignmentCenter);
 
-	SetWindowText(str);
-	SetSel(curSel);
+	// not sure why
+	Rect rc(r);
+
+	for (i = 0; i < width; i++)
+	{
+		left = rc.X; top = rc.Y; bottom = rc.GetBottom() - 1; right = rc.GetRight() - 1;
+
+		// left
+		pGraphics->DrawLine(&ulpen, left, top, left, bottom);
+
+		// top
+		pGraphics->DrawLine(&ulpen, left, top, right, top);
+
+		// right
+		pGraphics->DrawLine(&brpen, right, top + 1, right, bottom);
+
+		// bottom
+		pGraphics->DrawLine(&brpen, left + 1, bottom, right, bottom);
+
+		rc.Inflate(-1, -1);
+	}
+}
+
+void CTTEdit::SetBorderClip(Graphics* pGraphics, Rect rc, CombineMode mode)
+{
+	int radius = 5;
+	CRgn frgn; int dia;
+
+	dia = 2 * radius;
+
+	/*if (shape == UNDEFINED)
+	{
+		// the border needs a shape
+		ASSERT(FALSE);
+	}
+	if (shape == RECTANGLE)
+	{*/
+		frgn.CreateRectRgn(rc.X, rc.Y, rc.GetRight() + 1, rc.GetBottom() + 1);
+	/*}
+	else if (shape == ELLIPSE)
+	{
+		frgn.CreateEllipticRgn(rc.X - 1, rc.Y - 1, rc.GetRight() + 2, rc.GetBottom() + 2);
+	}
+	// handle this special case - TODO: add for Height < dia
+	else if (rc.Width < dia)
+	{
+		rc.Width++; rc.Height++;
+		Rect lrc(rc); lrc.Width = 2 * dia;
+		Rect rrc(rc); rrc.Width = 2 * dia; rrc.X = rrc.X - (rrc.Width - rc.Width);
+		CRgn lrgn, rrgn;
+		lrgn.CreateRoundRectRgn(lrc.X, lrc.Y, lrc.GetRight() + 1, lrc.GetBottom() + 1, dia + 1, dia + 1);
+		rrgn.CreateRoundRectRgn(rrc.X, rrc.Y, rrc.GetRight() + 1, rrc.GetBottom() + 1, dia + 1, dia + 1);
+		frgn.CreateRectRgn(0, 0, 0, 0);
+		frgn.CombineRgn(&lrgn, &rrgn, RGN_AND);
+	}
+	else
+	{
+		frgn.CreateRoundRectRgn(rc.X, rc.Y, rc.GetRight() + 1, rc.GetBottom() + 1, dia + 1, dia + 1);
+	}*/
+
+	Region grgn(frgn);
+
+	pGraphics->SetClip(&grgn, mode);
+
+}
+
+void CTTEdit::GetpDC(CDC* pDC, CRect rect, BOOL bCopyFirst)
+{/*
+	//pDC;
+	m_MemDCrect = rect;
+
+	bool bStorageDC = FALSE;
+
+	// true if printing
+	BOOL m_bPrintDC = pDC->IsPrinting();
+
+	//if (!m_bPrintDC)
+	//{
+	// Create a compatible DC
+	m_MemDC.CreateCompatibleDC(pDC);
+
+	// create a compatible bitmap
+	m_bitmap.CreateCompatibleBitmap(pDC, m_MemDCrect.Width(), m_MemDCrect.Height());
+
+	// select bitmap into dc
+	m_pOld = m_MemDC.SelectObject(&m_bitmap);
+
+	// set window origin
+	m_MemDC.SetWindowOrg(m_MemDCrect.left, m_MemDCrect.top);
+
+	// needed for transparency support
+	if (bCopyFirst)
+	{
+		m_MemDC.BitBlt(m_MemDCrect.left, m_MemDCrect.top, m_MemDCrect.Width(), m_MemDCrect.Height(),
+			pDC, m_MemDCrect.left, m_MemDCrect.top, SRCCOPY);
+	}
+	//return m_MemDC;
+	/*}
+	else
+	{
+	// Make a copy of the relevent parts of the current DC for printing
+	m_bPrinting = m_pDC->m_bPrinting;
+	m_hAttribDC = m_pDC->m_hAttribDC;
+	m_hDC = m_pDC->m_hDC;
+	}
+
+	m_bCreated = TRUE;*/
+}
+
+void CTTEdit::DeletepDC(CDC* pDC)
+{
+	
+
+	// Swap back the original bitmap.
+	//m_MemDC.SelectObject(m_pOld);
+	//delete m_pOld;
 }
 
 BEGIN_MESSAGE_MAP(CTTEdit, CEdit)
 	ON_WM_CTLCOLOR_REFLECT()
 	ON_WM_ERASEBKGND()
+	ON_CONTROL_REFLECT(EN_UPDATE, OnUpdate)
 	ON_WM_NCCALCSIZE()
-	ON_WM_NCPAINT()		
-	ON_WM_KILLFOCUS()
-	ON_WM_SETCURSOR()	
-	ON_WM_MOUSELEAVE()
+	ON_WM_NCPAINT()
 END_MESSAGE_MAP()
+
+/////////////////////////////////////////////////////////////////////////////
+// CTTEdit message handlers
 
 HBRUSH CTTEdit::CtlColor(CDC* pDC, UINT nCtlColor)
 {
-	return NULL;
+	TRACE(_T("CtlCOLOR\n"));
+	pDC->SetBkMode(TRANSPARENT);
+	pDC->SetTextColor(m_TextColor);
+	return (HBRUSH)m_HollowBrush;
 }
 
 BOOL CTTEdit::OnEraseBkgnd(CDC* pDC)
 {
-	if (m_ClientRect.IsRectEmpty())
-		return TRUE;
-
-	m_ClientRect.DeflateRect(-m_borderPenWidth, m_OffsetY, -m_borderPenWidth, 0);
-	Paint(pDC);
-	m_ClientRect.DeflateRect(m_borderPenWidth, -m_OffsetY, m_borderPenWidth, 0);
-
+	SetPosition(0, m_OffsetY); //m_Style.SetPosition(0, m_OffsetY); //
+	Paint(pDC, m_EditRect); //m_Style.PaintStyle(pDC, m_EditRect); // Paint(pDC, m_EditRect)
 	return TRUE;
 }
 
+void CTTEdit::OnUpdate()
+{
+	Invalidate();
+}
+
+// center text vertically
 void CTTEdit::OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS* lpncsp)
 {
-	if (m_OffsetY != -1)
-	{
-		lpncsp->rgrc[0].top += -m_OffsetY;
-		lpncsp->rgrc[0].bottom -= -m_OffsetY;
-
-		lpncsp->rgrc[0].left += uiCX + m_borderPenWidth;
-		lpncsp->rgrc[0].right -= uiCY + m_borderPenWidth;
-
-		return;
-	}
+	GetWindowRect(m_EditRect);
+	m_EditRect.OffsetRect(-m_EditRect.left, -m_EditRect.top);
+	m_FrameRect.X = m_EditRect.top;
+	m_FrameRect.Y = m_EditRect.left;
+	m_FrameRect.Width = m_EditRect.Width();
+	m_FrameRect.Height = m_EditRect.Height();
 
 	CRect rectWnd, rectClient;
 
@@ -136,9 +318,6 @@ void CTTEdit::OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS* lpncsp)
 	pDC->SelectObject(pOld);
 	ReleaseDC(pDC);
 
-	GetWindowRect(m_ClientRect);
-	m_ClientRect.OffsetRect(-m_ClientRect.left, -m_ClientRect.top);
-	
 	//calculate NC area to center text.
 
 	GetClientRect(rectClient);
@@ -155,9 +334,8 @@ void CTTEdit::OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS* lpncsp)
 	lpncsp->rgrc[0].top += uiCenterOffset;
 	lpncsp->rgrc[0].bottom -= uiCenterOffset;
 
-	lpncsp->rgrc[0].left += uiCX + m_borderPenWidth;
-	lpncsp->rgrc[0].right -= uiCY + m_borderPenWidth;
-
+	lpncsp->rgrc[0].left += uiCX;
+	lpncsp->rgrc[0].right -= uiCY;
 }
 
 BOOL CTTEdit::OnChildNotify(UINT message, WPARAM wParam, LPARAM lParam, LRESULT* pLResult)
@@ -172,36 +350,13 @@ BOOL CTTEdit::OnChildNotify(UINT message, WPARAM wParam, LPARAM lParam, LRESULT*
 
 void CTTEdit::OnNcPaint()
 {
-	Default();	
+	Default();
 
 	CWindowDC dc(this);
-	Paint(&dc);	
-}
 
-void CTTEdit::OnKillFocus(CWnd* pNewWnd)
-{
-	CEdit::OnKillFocus(pNewWnd);
-	Invalidate();	
-}
-
-BOOL CTTEdit::OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message)
-{
-	if (nHitTest == HTCLIENT)
-	{
-		m_bHover = true;
-	}
-	else
-	{
-		m_bHover = false;
-	}
-	
-	return CEdit::OnSetCursor(pWnd, nHitTest, message);
-}
-
-void CTTEdit::OnMouseLeave()
-{
-	m_bHover = false;
-	Invalidate();
-
-	CEdit::OnMouseLeave();
+	CString str;
+	GetWindowText(str);
+	SetPosition(0, 0); //m_Style.SetPosition(0, 0);
+	Paint(&dc, m_EditRect); //m_Style.PaintStyle(&dc, m_EditRect);
+	SetWindowText(str);
 }
