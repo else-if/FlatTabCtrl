@@ -4,7 +4,7 @@
 
 #pragma once
 #include "afxcmn.h"
-#include "BoringTabCtrl.h"
+#include "TTTabCtrl.h"
 #include "afxwin.h"
 #include "ttbutton.h"
 #include "wbbutton.h"
@@ -53,7 +53,7 @@ protected:
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
 public:
-	CBoringTabCtrl m_FlatTabCtrl;
+	CTTTabCtrl m_FlatTabCtrl;
 
 	CTTButton m_OkButton;
 	CWBButton m_CancelButton;
@@ -82,7 +82,9 @@ public:
 	
 	CTTEdit m_Edit1;
 	CTTEdit m_Edit2;
-
+	CTTEdit m_WideEdit1;
+	CTTEdit m_WideEdit2;
+	
 	void FillCombo(CComboBox &Combo);
 
 	BoringEditCtrl2 m_EditCtrl;

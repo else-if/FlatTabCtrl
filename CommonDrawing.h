@@ -17,7 +17,7 @@ void Draw2ColorsGradientRect(CRect &rc, CMemDC &dc,
 	COLORREF colorStart, COLORREF colorFinish,
 	int cornerRadius, BOOL drawOnCurrentRgn = FALSE);
 
-void DrawRectArea(Gdiplus::Rect &rc, Gdiplus::Graphics &graphics, COLORREF color, int cornerRadius, float penWidth);
+void DrawRectArea(Gdiplus::Rect &rc, Gdiplus::Graphics &graphics, COLORREF color, int cornerRadius, int penWidth);
 
 void DrawText(CRect &rc, CMemDC &dc, CFont &font, COLORREF textColor, CString text, UINT nFormat);
 

@@ -1,20 +1,23 @@
 #pragma once
 #include "ControlsColorMap.h"
 
-// CBoringTabCtrl
+// CTTTabCtrl
 
-class CBoringTabCtrl : public CTabCtrl
+class CTTTabCtrl : public CTabCtrl
 {
-	DECLARE_DYNAMIC(CBoringTabCtrl)
+	DECLARE_DYNAMIC(CTTTabCtrl)
 
 public:
-	CBoringTabCtrl();
-	virtual ~CBoringTabCtrl();
+	CTTTabCtrl();
+	virtual ~CTTTabCtrl();
 
 	COLORREF BackgroundColor();
 	void BackgroundColor(COLORREF backgroundColor);
 
+	void SetDrawingProperties(int borderPenWidth, int cornerRadius);
+
 protected:
+
 	bool m_bTracking;
 	int m_iMouseOverTab;
 	COLORREF m_backgroundColor;
@@ -23,13 +26,13 @@ protected:
 
 	ControlsColorMap m_ColorMap;
 
+	void GetTabControlPath(Gdiplus::GraphicsPath *pPath, Gdiplus::Rect tab, Gdiplus::Rect tabView, int dia);
+
 	DECLARE_MESSAGE_MAP()
 public:
 	afx_msg void OnDrawItem(int nIDCtl, LPDRAWITEMSTRUCT lpDrawItemStruct);	
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	virtual void PreSubclassWindow();
-	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
-	virtual void DrawItem(LPDRAWITEMSTRUCT /*lpDrawItemStruct*/);
 	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
 	void GetInteriorRect(CRect& rect);
 	afx_msg void OnPaint();

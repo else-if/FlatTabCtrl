@@ -2,7 +2,7 @@
 
 #include "stdafx.h"
 #include "TTButton.h"
-#include "common.h"
+#include "CommonDrawing.h"
 
 
 using namespace Gdiplus;
@@ -10,9 +10,8 @@ using namespace Gdiplus;
 CTTButton::CTTButton()
 {
 	m_bTracking = false;
-	m_fBorderPenWidth = 1;
 	
-	m_CornerRadius = 5;
+	SetDrawingProperties(1, 5);
 
 	NONCLIENTMETRICS ncm;
 	ncm.cbSize = sizeof(NONCLIENTMETRICS);
@@ -27,6 +26,26 @@ CTTButton::CTTButton()
 
 CTTButton::~CTTButton()
 {
+}
+
+void CTTButton::SetDrawingProperties(int borderPenWidth, int cornerRadius)
+{
+	m_BorderPenWidth = borderPenWidth;
+	m_CornerRadius = cornerRadius;
+}
+
+void CTTButton::UpdateButtonState(UINT state)
+{
+	if (state & ODS_DISABLED)
+		m_ButtonState = Disable;
+	else if (state & ODS_SELECTED)
+		m_ButtonState = Press;
+	else if (m_bTracking)
+		m_ButtonState = Mouseover;
+	else if (state & ODS_FOCUS)
+		m_ButtonState = Focus;
+	else
+		m_ButtonState = Normal;
 }
 
 BEGIN_MESSAGE_MAP(CTTButton, CButton)
@@ -52,8 +71,7 @@ void CTTButton::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 	graphics.SetInterpolationMode(InterpolationModeHighQualityBicubic);
 
 	DrawThemeParentBackground(GetSafeHwnd(), memDC.GetDC().GetSafeHdc(), cRect);
-	
-	
+		
 	UpdateButtonState(lpDrawItemStruct->itemState);	
 	
 	Gdiplus::Rect BorderRect(cRect.left, cRect.top, cRect.Width(), cRect.Height());
@@ -63,7 +81,7 @@ void CTTButton::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 
 	cRect.DeflateRect(1, 1, 1, 1);
 	
-	float lightPenWidth = (m_ButtonState == Press || m_ButtonState == Focus) ? 2.0f : 1.0f;
+	int lightPenWidth = (m_ButtonState == Press || m_ButtonState == Focus) ? 2 : 1;
 
 	// Background
 	Draw4ColorsGradientRect(cRect, memDC, 
@@ -79,7 +97,7 @@ void CTTButton::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 	
 	// Border
 	DrawRectArea(BorderRect, graphics, m_ColorMap.GetColor(m_ButtonState, Border),
-		m_CornerRadius, m_fBorderPenWidth);
+		m_CornerRadius, m_BorderPenWidth);
 
 	// Button text
 	CString buttonText;
@@ -87,20 +105,6 @@ void CTTButton::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 	COLORREF textColor = m_ButtonState == Disable ? GetSysColor(COLOR_GRAYTEXT) : m_CaptionTextColor;
 
 	DrawText(cRect, memDC, m_TextFont, textColor, buttonText, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
-}
-
-void CTTButton::UpdateButtonState(UINT state)
-{
-	if (state & ODS_DISABLED)
-		m_ButtonState = Disable;	
-	else if (state & ODS_SELECTED)
-		m_ButtonState = Press;	
-	else if (m_bTracking)
-		m_ButtonState = Mouseover;	
-	else if (state & ODS_FOCUS)
-		m_ButtonState = Focus;	
-	else
-		m_ButtonState = Normal;	
 }
 
 BOOL CTTButton::OnEraseBkgnd(CDC* pDC)

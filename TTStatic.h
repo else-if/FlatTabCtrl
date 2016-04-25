@@ -21,7 +21,7 @@ class CTTStatic : public CStatic
 
 		void DrawBorders(bool drawBorder);
 
-		void SetDrawingProperties(float borderPenWidth, int cornerRadius, bool drawBorder = false);
+		void SetDrawingProperties(int borderPenWidth, int cornerRadius, bool drawBorder = false);
 
 		void SetColorProperies(COLORREF backgroundColor, COLORREF textColor, COLORREF borderColor);
 
@@ -35,7 +35,7 @@ class CTTStatic : public CStatic
 		COLORREF m_borderColor;
 		
 		bool m_bDrawBorders;
-		float m_fBorderPenWidth;
+		int m_borderPenWidth;
 		int m_iCornerRadius;
 		
 		void UpdateControlState();

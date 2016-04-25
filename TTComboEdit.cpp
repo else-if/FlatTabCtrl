@@ -43,7 +43,7 @@ void CTTComboEdit::OnMouseLeave()
 	CEdit::OnMouseLeave();	
 }
 
-void CTTComboEdit::InvalidateParentOnMouseLeave(BOOL bInvalidate)
+void CTTComboEdit::InvalidateParentOnMouseLeave(bool bInvalidate)
 {
 	m_bSendInvalidate = bInvalidate;
 }

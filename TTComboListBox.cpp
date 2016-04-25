@@ -2,7 +2,7 @@
 
 #include "stdafx.h"
 #include "TTComboListBox.h"
-#include "common.h"
+#include "CommonDrawing.h"
 
 using namespace Gdiplus;
 

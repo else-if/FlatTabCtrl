@@ -8,6 +8,8 @@ public:
 	CTTButton();
 	virtual ~CTTButton();
 
+	void SetDrawingProperties(int borderPenWidth, int cornerRadius);
+
 protected:
 	
 	ControlState m_ButtonState;
@@ -15,7 +17,7 @@ protected:
 
 	COLORREF m_CaptionTextColor;
 
-	float m_fBorderPenWidth;
+	int m_BorderPenWidth;
 	int m_CornerRadius;
 	bool m_bTracking;	
 

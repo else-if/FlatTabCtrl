@@ -3,7 +3,7 @@
 #include "stdafx.h"
 #include "TTButton2.h"
 #include "ControlsColorMap.h"
-#include "common.h"
+#include "CommonDrawing.h"
 
 using namespace Gdiplus;
 
@@ -11,7 +11,7 @@ IMPLEMENT_DYNAMIC(CTTButton2, CTTButton)
 
 CTTButton2::CTTButton2()
 {
-	m_fBorderPenWidth = 2;
+	m_BorderPenWidth = 2;
 	m_CornerRadius = 10;
 
 	m_ColorMap.SetColor(Normal, Border, RGB(153, 152, 158));
@@ -65,7 +65,7 @@ void CTTButton2::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 
 	// Border
 	DrawRectArea(BorderRect, graphics, m_ColorMap.GetColor(m_ButtonState, Border),
-		m_CornerRadius, m_fBorderPenWidth);
+		m_CornerRadius, m_BorderPenWidth);
 
 	// Highlight area
 	DrawRectArea(LightRect, graphics, m_ColorMap.GetColor(m_ButtonState, BorderLight),

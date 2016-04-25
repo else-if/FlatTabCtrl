@@ -2,7 +2,7 @@
 
 #include "stdafx.h"
 #include "TTStatic.h"
-#include "common.h"
+#include "CommonDrawing.h"
 
 using namespace Gdiplus;
 
@@ -14,32 +14,19 @@ CTTStatic::CTTStatic()
 	SetTextColor(GetSysColor(COLOR_CAPTIONTEXT));
 	SetDrawingProperties(1, 5, false);
 	
-	m_ControlState = Normal;
-	
-	m_ColorMap.SetDefaultColors();	
+	m_ControlState = Normal;	
 }
 
 CTTStatic::~CTTStatic()
 {	
 }
 
-BEGIN_MESSAGE_MAP(CTTStatic, CStatic)
-	ON_WM_ERASEBKGND()
-	ON_WM_PAINT()
-	ON_WM_ENABLE()
-END_MESSAGE_MAP()
-
 void CTTStatic::UpdateControlState()
 {
 	if (!IsWindowEnabled())
 		m_ControlState = Disable;
 	else
-		m_ControlState = Normal;	
-}
-
-BOOL CTTStatic::OnEraseBkgnd(CDC* pDC)
-{
-	return TRUE;
+		m_ControlState = Normal;
 }
 
 COLORREF CTTStatic::GetBackgroundColor()
@@ -53,7 +40,7 @@ void CTTStatic::SetBackgroundColor(COLORREF backgroundColor)
 }
 
 COLORREF CTTStatic::GetTextColor()
-{	
+{
 	return m_textColor;
 }
 
@@ -62,11 +49,44 @@ void CTTStatic::SetTextColor(COLORREF textColor)
 	m_textColor = textColor;
 }
 
-void CTTStatic::SetDrawingProperties(float borderPenWidth, int cornerRadius, bool drawBorders)
+void CTTStatic::SetDrawingProperties(int borderPenWidth, int cornerRadius, bool drawBorders)
 {
-	m_fBorderPenWidth = borderPenWidth;
+	m_borderPenWidth = borderPenWidth;
 	m_iCornerRadius = cornerRadius;
 	m_bDrawBorders = drawBorders;
+}
+
+COLORREF CTTStatic::GetBorderColor()
+{
+	return m_borderColor;
+}
+
+void CTTStatic::SetBorderColor(COLORREF borderColor)
+{
+	m_borderColor = borderColor;
+}
+
+void CTTStatic::DrawBorders(bool drawBorders)
+{
+	m_bDrawBorders = drawBorders;
+}
+
+void CTTStatic::SetColorProperies(COLORREF backgroundColor, COLORREF textColor, COLORREF borderColor)
+{
+	SetBackgroundColor(backgroundColor);
+	SetTextColor(textColor);
+	SetBorderColor(borderColor);
+}
+
+BEGIN_MESSAGE_MAP(CTTStatic, CStatic)
+	ON_WM_ERASEBKGND()
+	ON_WM_PAINT()
+	ON_WM_ENABLE()
+END_MESSAGE_MAP()
+
+BOOL CTTStatic::OnEraseBkgnd(CDC* pDC)
+{
+	return TRUE;
 }
 
 void CTTStatic::OnPaint()
@@ -101,7 +121,7 @@ void CTTStatic::OnPaint()
 			borderColor = m_ColorMap.GetColor(m_ControlState, Border);
 
 		Gdiplus::Rect BorderRect(cRect.left, cRect.top, cRect.right, cRect.bottom);
-		DrawRectArea(BorderRect, graphics, borderColor, m_iCornerRadius, m_fBorderPenWidth);
+		DrawRectArea(BorderRect, graphics, borderColor, m_iCornerRadius, m_borderPenWidth);
 	}
 
 	// Caption text
@@ -114,7 +134,7 @@ void CTTStatic::OnPaint()
 		GetFont()->GetLogFont(&logFont);
 		Gdiplus::Font font(memDC.GetDC().GetSafeHdc(), &logFont);
 
-		cRect.DeflateRect(m_fBorderPenWidth, 1, m_fBorderPenWidth, 1);
+		cRect.DeflateRect(m_borderPenWidth, 1, m_borderPenWidth, 1);
 		
 		Color textColor;
 		if (m_ControlState == Disable)
@@ -123,33 +143,11 @@ void CTTStatic::OnPaint()
 			textColor.SetFromCOLORREF(m_textColor);
 
 		SolidBrush textBrush(textColor);
-		Gdiplus::RectF layoutRect(cRect.left, cRect.top, cRect.Width(), cRect.Height());
+		Gdiplus::RectF layoutRect((REAL)cRect.left, (REAL)cRect.top, (REAL)cRect.Width(), (REAL)cRect.Height());
 
 		graphics.DrawString(staticText.GetBuffer(0), staticText.GetLength(), &font,
 			layoutRect, Gdiplus::StringFormat::GenericDefault(), &textBrush);
 	}
-}
-
-COLORREF CTTStatic::GetBorderColor()
-{
-	return m_borderColor;
-}
-
-void CTTStatic::SetBorderColor(COLORREF borderColor)
-{
-	m_borderColor = borderColor;
-}
-
-void CTTStatic::DrawBorders(bool drawBorders)
-{
-	m_bDrawBorders = drawBorders;
-}
-
-void CTTStatic::SetColorProperies(COLORREF backgroundColor, COLORREF textColor, COLORREF borderColor)
-{
-	SetBackgroundColor(backgroundColor);
-	SetTextColor(textColor);
-	SetBorderColor(borderColor);
 }
 
 void CTTStatic::OnEnable(BOOL bEnable)

@@ -110,8 +110,8 @@
     <ClInclude Include="BoringEditCtrl.h" />
     <ClInclude Include="BoringEditCtrl2.h" />
     <ClInclude Include="BoringStaticCtrl.h" />
-    <ClInclude Include="BoringTabCtrl.h" />
-    <ClInclude Include="common.h" />
+    <ClInclude Include="TTTabCtrl.h" />
+    <ClInclude Include="CommonDrawing.h" />
     <ClInclude Include="ControlsColorMap.h" />
     <ClInclude Include="FlatTabCtrl.h" />
     <ClInclude Include="FlatTabCtrlDlg.h" />
@@ -136,8 +136,8 @@
     <ClCompile Include="BoringEditCtrl.cpp" />
     <ClCompile Include="BoringEditCtrl2.cpp" />
     <ClCompile Include="BoringStaticCtrl.cpp" />
-    <ClCompile Include="BoringTabCtrl.cpp" />
-    <ClCompile Include="common.cpp" />
+    <ClCompile Include="TTTabCtrl.cpp" />
+    <ClCompile Include="CommonDrawing.cpp" />
     <ClCompile Include="ControlsColorMap.cpp" />
     <ClCompile Include="FlatTabCtrl.cpp" />
     <ClCompile Include="FlatTabCtrlDlg.cpp" />

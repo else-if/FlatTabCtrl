@@ -4,7 +4,7 @@
 #include "stdafx.h"
 #include "FlatTabCtrl.h"
 #include "BoringStaticCtrl.h"
-#include "common.h"
+#include "CommonDrawing.h"
 
 // BoringStaticCtrl
 

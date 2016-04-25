@@ -87,6 +87,8 @@ void CFlatTabCtrlDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_TT_STATIC8, m_TTStatic8);
 	DDX_Control(pDX, IDC_EDIT4, m_Edit1);
 	DDX_Control(pDX, IDC_EDIT5, m_Edit2);
+	DDX_Control(pDX, IDC_EDIT6, m_WideEdit1);
+	DDX_Control(pDX, IDC_EDIT7, m_WideEdit2);	
 }
 
 BEGIN_MESSAGE_MAP(CFlatTabCtrlDlg, CDialogEx)
@@ -171,9 +173,9 @@ BOOL CFlatTabCtrlDlg::OnInitDialog()
 	FillCombo(m_DropDownComboBox);
 	FillCombo(m_DropDownListComboBox);	
 
-	m_SimpleComboBox2.SetDrawingProperties(1, 5);
-	m_DropDownComboBox2.SetDrawingProperties(1, 5);
-	m_DropDownListComboBox2.SetDrawingProperties(1, 5);
+	m_SimpleComboBox2.SetDrawingProperties(2, 10);
+	m_DropDownComboBox2.SetDrawingProperties(2, 10);
+	m_DropDownListComboBox2.SetDrawingProperties(2, 10);
 
 	FillCombo(m_SimpleComboBox2);
 	FillCombo(m_DropDownComboBox2);
@@ -198,6 +200,12 @@ BOOL CFlatTabCtrlDlg::OnInitDialog()
 	m_TTStatic8.SetColorProperies(RGB(221, 232, 101), RGB(23, 55, 125), RGB(202, 81, 0));
 
 	m_Edit1.SetDrawingProperties(1, 5);
+	m_Edit1.SetWindowTextW(_T("Sample edit box"));
+	m_Edit2.SetWindowTextW(_T("Sample edit box"));
+
+	m_WideEdit1.SetDrawingProperties(1, 5);
+	m_WideEdit1.SetWindowTextW(_T("Wide edit box"));
+	m_WideEdit2.SetWindowTextW(_T("Wide edit box"));
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -329,6 +337,9 @@ void CFlatTabCtrlDlg::OnBnClickedButton2()
 		GetDlgItem(IDC_TT_STATIC3)->EnableWindow(FALSE);
 		GetDlgItem(IDC_TT_STATIC5)->EnableWindow(FALSE);
 		GetDlgItem(IDC_TT_STATIC8)->EnableWindow(FALSE);
+
+		GetDlgItem(IDC_EDIT5)->EnableWindow(FALSE);
+		GetDlgItem(IDC_EDIT7)->EnableWindow(FALSE);		
 	}
 	else
 	{
@@ -343,6 +354,9 @@ void CFlatTabCtrlDlg::OnBnClickedButton2()
 		GetDlgItem(IDC_TT_STATIC3)->EnableWindow(TRUE);
 		GetDlgItem(IDC_TT_STATIC5)->EnableWindow(TRUE);
 		GetDlgItem(IDC_TT_STATIC8)->EnableWindow(TRUE);
+
+		GetDlgItem(IDC_EDIT5)->EnableWindow(TRUE);
+		GetDlgItem(IDC_EDIT7)->EnableWindow(TRUE);		
 	}
 }
 
@@ -365,6 +379,9 @@ void CFlatTabCtrlDlg::OnBnClickedButton3()
 		GetDlgItem(IDC_TT_STATIC4)->EnableWindow(FALSE);
 		GetDlgItem(IDC_TT_STATIC6)->EnableWindow(FALSE);
 		GetDlgItem(IDC_TT_STATIC7)->EnableWindow(FALSE);
+
+		GetDlgItem(IDC_EDIT4)->EnableWindow(FALSE);
+		GetDlgItem(IDC_EDIT6)->EnableWindow(FALSE);		
 	}
 	else
 	{
@@ -379,5 +396,8 @@ void CFlatTabCtrlDlg::OnBnClickedButton3()
 		GetDlgItem(IDC_TT_STATIC4)->EnableWindow(TRUE);
 		GetDlgItem(IDC_TT_STATIC6)->EnableWindow(TRUE);
 		GetDlgItem(IDC_TT_STATIC7)->EnableWindow(TRUE);
+
+		GetDlgItem(IDC_EDIT4)->EnableWindow(TRUE);
+		GetDlgItem(IDC_EDIT6)->EnableWindow(TRUE);		
 	}
 }

@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "common.h"
+#include "CommonDrawing.h"
 
 void GetRoundRectPath(GraphicsPath *pPath, Rect r, int dia)
 {
@@ -155,7 +155,7 @@ void FillRectRegion(CRect &rc, CMemDC &dc, COLORREF backgroundColor, int cornerR
 		dc.GetDC().SelectClipRgn(&oldRgn);
 }
 
-void DrawRectArea(Gdiplus::Rect &rc, Gdiplus::Graphics &graphics, COLORREF color, int cornerRadius, float penWidth)
+void DrawRectArea(Gdiplus::Rect &rc, Gdiplus::Graphics &graphics, COLORREF color, int cornerRadius, int penWidth)
 {
 	Gdiplus::Color penColor(0, 0, 0);
 	penColor.SetFromCOLORREF(color);
@@ -163,7 +163,7 @@ void DrawRectArea(Gdiplus::Rect &rc, Gdiplus::Graphics &graphics, COLORREF color
 	GraphicsPath path;
 	GetRoundRectPath(&path, rc, cornerRadius);
 
-	Gdiplus::Pen pen(penColor, penWidth);
+	Gdiplus::Pen pen(penColor, (REAL)penWidth);
 	pen.SetLineJoin(LineJoinRound);
 	graphics.DrawPath(&pen, &path);
 }

@@ -6,7 +6,7 @@ public:
 	CTTComboEdit();
 	virtual ~CTTComboEdit();
 	bool IsMouseover() { return m_bTracking; }
-	void InvalidateParentOnMouseLeave(BOOL bInvalidate);
+	void InvalidateParentOnMouseLeave(bool bInvalidate);
 
 protected:
 	bool m_bTracking;

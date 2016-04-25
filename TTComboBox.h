@@ -10,6 +10,8 @@ public:
 	CTTComboBox();
 	virtual ~CTTComboBox();
 
+	void SetDrawingProperties(int borderPenWidth, int cornerRadius);
+
 protected:
 
 	CTTComboEdit m_edit;
@@ -19,14 +21,18 @@ protected:
 	ControlState m_ArrowButtonState;
 	ControlsColorMap m_ColorMap;
 
+	COLORREF m_arrowColorStart;
+	COLORREF m_arrowColorFinish;
+
 	DWORD m_iComboBoxStyle;
 
-	float m_fBorderPenWidth;
+	int m_borderPenWidth;
 	int m_CornerRadius;
 	bool m_bTracking;
 	bool m_bHasFocus;
 	bool m_bOnButton;
 	bool m_bButtonPress;
+	bool m_bFilledArrow;
 	
 	void UpdateControlState();
 	
@@ -41,9 +47,6 @@ protected:
 
 	DECLARE_MESSAGE_MAP()
 public:
-
-	void SetDrawingProperties(float borderPenWidth, int cornerRadius);
-
 	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
 	afx_msg void OnMouseLeave();	

@@ -4,7 +4,7 @@
 #include "stdafx.h"
 #include "FlatTabCtrl.h"
 #include "BoringComboBox.h"
-#include "common.h"
+#include "CommonDrawing.h"
 
 // CBoringComboBox
 

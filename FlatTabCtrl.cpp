@@ -117,7 +117,7 @@ int DrawGlow(CDC* pDC, Gdiplus::GraphicsPath* gp)
 	Gdiplus::Color cb_colors[3] = { Gdiplus::Color::Transparent,
 		Gdiplus::Color::MakeARGB(180, GetRValue(Gdiplus::Color::DimGray), GetGValue(Gdiplus::Color::DimGray), GetBValue(Gdiplus::Color::DimGray)),
 		Gdiplus::Color::MakeARGB(180, GetRValue(Gdiplus::Color::DimGray), GetGValue(Gdiplus::Color::DimGray), GetBValue(Gdiplus::Color::DimGray)) };
-	Gdiplus::REAL pos[3] = { 0.0, 0.1, 1 };
+	Gdiplus::REAL pos[3] = { 0.0f, 0.1f, 1.0f };
 
 	pthGrBrush.SetInterpolationColors(cb_colors, pos, 3);
 		

@@ -2,87 +2,124 @@
 
 #include "stdafx.h"
 #include "TTEdit.h"
-#include "common.h"
+#include "CommonDrawing.h"
+#include "ControlsColorMap.h"
 
-using namespace Gdiplus;
+IMPLEMENT_DYNAMIC(CTTEdit, CEdit);
 
-IMPLEMENT_DYNAMIC(CTTEdit, CEdit)
-
-CTTEdit::CTTEdit()
-	: m_rectNCBottom(0, 0, 0, 0)
-	, m_rectNCTop(0, 0, 0, 0)
+CTTEdit::CTTEdit()	
+	:m_ClientRect(0, 0, 0, 0)
 {
-	m_bTracking = false;
+	m_OffsetY = -1;
+	SetDrawingProperties(1, 5);
+
 	m_ControlState = Normal;
 
-	SetDrawingProperties(2, 10);
-
 	m_ColorMap.SetDefaultColors();
+	m_ColorMap.SetColor(Mouseover, BackgroundTopGradientFinish, RGB(255, 255, 255));
 }
 
 CTTEdit::~CTTEdit()
 {
 }
 
-BEGIN_MESSAGE_MAP(CTTEdit, CEdit)
-	ON_WM_MOUSEMOVE()
-	ON_WM_MOUSELEAVE()
-	ON_WM_NCPAINT()
-	ON_WM_NCCALCSIZE()
-	ON_WM_GETDLGCODE()
-	ON_WM_CTLCOLOR()
-END_MESSAGE_MAP()
-
-void CTTEdit::SetDrawingProperties(float borderPenWidth, int cornerRadius)
+void CTTEdit::SetDrawingProperties(int borderPenWidth, int cornerRadius)
 {
-	m_fBorderPenWidth = borderPenWidth;
+	m_borderPenWidth = borderPenWidth;
 	m_CornerRadius = cornerRadius;
 }
 
 void CTTEdit::UpdateControlState()
-{	
+{
+	if (!IsWindowEnabled())
+		m_ControlState = Disable;
+	else if (m_bHover || GetFocus() == this)
+		m_ControlState = Mouseover;
+	else
+		m_ControlState = Normal;
+}
+
+void CTTEdit::Paint(CDC* pDC)
+{
+	if (m_ClientRect.IsRectEmpty())
+		return;
+
+	UpdateControlState();
+
+	CString str;
+	GetWindowText(str);
+	DWORD curSel = GetSel();
+
+	CMemDC memDC(*pDC, m_ClientRect);
+
+	Gdiplus::Graphics graphics(memDC.GetDC().GetSafeHdc());
+	graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
+	graphics.SetInterpolationMode(Gdiplus::InterpolationModeHighQualityBicubic);
+
+	CRgn frgn;
+	frgn.CreateRectRgn(m_ClientRect.left, m_ClientRect.top, m_ClientRect.right, m_ClientRect.bottom);
+	Gdiplus::Region grgn(frgn);
+	graphics.SetClip(&grgn, CombineModeReplace);
+
+	DrawThemeParentBackground(GetSafeHwnd(), memDC.GetDC().GetSafeHdc(), m_ClientRect);
+
+	// Borders
+	Gdiplus::Rect BorderRect(m_ClientRect.left, m_ClientRect.top, m_ClientRect.right, m_ClientRect.bottom);
+
+	// Clear background
+	COLORREF backgroundColor = m_ColorMap.GetColor(m_ControlState, BackgroundTopGradientFinish);;
+	Color cl(0, 0, 0);
+	cl.SetFromCOLORREF(backgroundColor);
+	Gdiplus::SolidBrush brush(cl);
+	graphics.FillRectangle(&brush, BorderRect);
+
+	DrawRectArea(BorderRect, graphics, m_ColorMap.GetColor(m_ControlState, Border),
+		m_CornerRadius, m_borderPenWidth);
+
+	SetWindowText(str);
+	SetSel(curSel);
+}
+
+BEGIN_MESSAGE_MAP(CTTEdit, CEdit)
+	ON_WM_CTLCOLOR_REFLECT()
+	ON_WM_ERASEBKGND()
+	ON_WM_NCCALCSIZE()
+	ON_WM_NCPAINT()		
+	ON_WM_KILLFOCUS()
+	ON_WM_SETCURSOR()	
+	ON_WM_MOUSELEAVE()
+END_MESSAGE_MAP()
+
+HBRUSH CTTEdit::CtlColor(CDC* pDC, UINT nCtlColor)
+{
+	return NULL;
 }
 
 BOOL CTTEdit::OnEraseBkgnd(CDC* pDC)
 {
-	return FALSE;
-}
+	if (m_ClientRect.IsRectEmpty())
+		return TRUE;
 
-void CTTEdit::OnMouseMove(UINT nFlags, CPoint point)
-{
-	if (!m_bTracking)
-	{
-		TRACKMOUSEEVENT tme;
-		tme.cbSize = sizeof(TRACKMOUSEEVENT);
-		tme.dwFlags = TME_LEAVE;
-		tme.hwndTrack = GetSafeHwnd();
-		m_bTracking = ::_TrackMouseEvent(&tme) ? true : false;
-	}
+	m_ClientRect.DeflateRect(-m_borderPenWidth, m_OffsetY, -m_borderPenWidth, 0);
+	Paint(pDC);
+	m_ClientRect.DeflateRect(m_borderPenWidth, -m_OffsetY, m_borderPenWidth, 0);
 
-	CEdit::OnMouseMove(nFlags, point);
-}
-
-void CTTEdit::OnMouseLeave()
-{
-	m_bTracking = false;
-	Invalidate();
-
-	CEdit::OnMouseLeave();
-}
-
-void CTTEdit::OnNcPaint()
-{
-	Default();
-
-	CWindowDC dc(this);
-	CBrush Brush(GetSysColor(COLOR_WINDOW));
-
-	dc.FillRect(m_rectNCBottom, &Brush);
-	dc.FillRect(m_rectNCTop, &Brush);
+	return TRUE;
 }
 
 void CTTEdit::OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS* lpncsp)
 {
+	if (m_OffsetY != -1)
+	{
+		lpncsp->rgrc[0].top += -m_OffsetY;
+		lpncsp->rgrc[0].bottom -= -m_OffsetY;
+
+		lpncsp->rgrc[0].left += uiCX + m_borderPenWidth;
+		lpncsp->rgrc[0].right -= uiCY + m_borderPenWidth;
+
+		return;
+	}
+
 	CRect rectWnd, rectClient;
 
 	//calculate client area height needed for a font
@@ -93,12 +130,15 @@ void CTTEdit::OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS* lpncsp)
 	CDC *pDC = GetDC();
 
 	CFont *pOld = pDC->SelectObject(pFont);
-	pDC->DrawText(_T("Ky"), rectText, DT_CALCRECT | DT_LEFT);
+	pDC->DrawText(_T("Eb"), rectText, DT_CALCRECT | DT_LEFT);
 	UINT uiVClientHeight = rectText.Height();
 
 	pDC->SelectObject(pOld);
 	ReleaseDC(pDC);
 
+	GetWindowRect(m_ClientRect);
+	m_ClientRect.OffsetRect(-m_ClientRect.left, -m_ClientRect.top);
+	
 	//calculate NC area to center text.
 
 	GetClientRect(rectClient);
@@ -110,41 +150,58 @@ void CTTEdit::OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS* lpncsp)
 	UINT uiCY = (rectWnd.Height() - rectClient.Height()) / 2;
 	UINT uiCX = (rectWnd.Width() - rectClient.Width()) / 2;
 
-	rectWnd.OffsetRect(-rectWnd.left, -rectWnd.top);
-	m_rectNCTop = rectWnd;
-
-	m_rectNCTop.DeflateRect(uiCX, uiCY, uiCX, uiCenterOffset + uiVClientHeight + uiCY);
-
-	m_rectNCBottom = rectWnd;
-
-	m_rectNCBottom.DeflateRect(uiCX, uiCenterOffset + uiVClientHeight + uiCY, uiCX, uiCY);
+	m_OffsetY = -(int)uiCenterOffset;
 
 	lpncsp->rgrc[0].top += uiCenterOffset;
 	lpncsp->rgrc[0].bottom -= uiCenterOffset;
 
-	lpncsp->rgrc[0].left += uiCX;
-	lpncsp->rgrc[0].right -= uiCY;
+	lpncsp->rgrc[0].left += uiCX + m_borderPenWidth;
+	lpncsp->rgrc[0].right -= uiCY + m_borderPenWidth;
 
-	//CEdit::OnNcCalcSize(bCalcValidRects, lpncsp);
 }
 
-UINT CTTEdit::OnGetDlgCode()
+BOOL CTTEdit::OnChildNotify(UINT message, WPARAM wParam, LPARAM lParam, LRESULT* pLResult)
 {
-	if (m_rectNCTop.IsRectEmpty())
+	if (m_OffsetY == -1)
 	{
 		SetWindowPos(NULL, 0, 0, 0, 0, SWP_NOOWNERZORDER | SWP_NOSIZE | SWP_NOMOVE | SWP_FRAMECHANGED);
 	}
 
-	return CEdit::OnGetDlgCode();
+	return CEdit::OnChildNotify(message, wParam, lParam, pLResult);
 }
 
-
-
-HBRUSH CTTEdit::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
+void CTTEdit::OnNcPaint()
 {
-	HBRUSH hbr = CEdit::OnCtlColor(pDC, pWnd, nCtlColor);
+	Default();	
 
-	hbr = CreateSolidBrush(RGB(255, 0, 0));
+	CWindowDC dc(this);
+	Paint(&dc);	
+}
+
+void CTTEdit::OnKillFocus(CWnd* pNewWnd)
+{
+	CEdit::OnKillFocus(pNewWnd);
+	Invalidate();	
+}
+
+BOOL CTTEdit::OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message)
+{
+	if (nHitTest == HTCLIENT)
+	{
+		m_bHover = true;
+	}
+	else
+	{
+		m_bHover = false;
+	}
 	
-	return hbr;
+	return CEdit::OnSetCursor(pWnd, nHitTest, message);
+}
+
+void CTTEdit::OnMouseLeave()
+{
+	m_bHover = false;
+	Invalidate();
+
+	CEdit::OnMouseLeave();
 }
