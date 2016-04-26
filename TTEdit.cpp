@@ -2,6 +2,7 @@
 #include "TTEdit.h"
 
 //#include "colors.h"
+#include "CommonDrawing.h"
 
 using namespace Gdiplus;
 
@@ -37,6 +38,7 @@ void CTTEdit::SetPosition(int x, int y)
 
 void CTTEdit::Paint(CDC* pDevC, CRect rect)
 {
+	//TRACE(_T("PAINT CDC CRECT\n"));
 	//GetpDC(pDevC, rect, TRUE);
 
 	CDC* pDC = new CDC();
@@ -46,17 +48,17 @@ void CTTEdit::Paint(CDC* pDevC, CRect rect)
 	CBitmap		m_bitmap;
 
 	// create a compatible bitmap
-	m_bitmap.CreateCompatibleBitmap(pDevC, rect.Width(), rect.Height());
+		m_bitmap.CreateCompatibleBitmap(pDevC, rect.Width(), rect.Height());
 
-	// select bitmap into dc
-	m_pOld = pDC->SelectObject(&m_bitmap);
+		// select bitmap into dc
+		m_pOld = pDC->SelectObject(&m_bitmap);
 
-	// set window origin
-	pDC->SetWindowOrg(rect.left, rect.top);
+		// set window origin
+		pDC->SetWindowOrg(rect.left, rect.top);
 
-	// needed for transparency support
-	pDC->BitBlt(rect.left, rect.top, rect.Width(), rect.Height(),
-		pDevC, rect.left, rect.top, SRCCOPY);
+		// needed for transparency support
+		pDC->BitBlt(rect.left, rect.top, rect.Width(), rect.Height(),
+			pDevC, rect.left, rect.top, SRCCOPY);
 	
 	// = &m_MemDC;
 
@@ -67,6 +69,7 @@ void CTTEdit::Paint(CDC* pDevC, CRect rect)
 	gdi.SetTextRenderingHint(TextRenderingHintClearTypeGridFit);
 
 	// paint all stacks
+	//m_bUseBitmap = false;
 	if (m_bUseBitmap)
 	{
 		// copy the bitmap to the DC
@@ -82,9 +85,10 @@ void CTTEdit::Paint(CDC* pDevC, CRect rect)
 		PaintStack(pDC, &gdi);
 	}
 
-	
 	pDevC->BitBlt(rect.left, rect.top, rect.Width(), rect.Height(),
-		pDC, rect.left, rect.top, SRCCOPY);
+			pDC, rect.left, rect.top, SRCCOPY);
+	
+	//pDC->Detach();
 
 	//delete m_pOld;
 	//delete pDC;
@@ -102,13 +106,13 @@ void CTTEdit::PaintStack(CDC* pDC, Graphics* pGraphics)
 	SetBorderClip(m_LayerpGdi, m_FrameRect);
 	
 	m_LayerRect = m_FrameRect;
-	Gdiplus::SolidBrush br(Color::Green);
+	Gdiplus::SolidBrush br(Color::White);
 	m_LayerpGdi->FillRectangle(&br, m_LayerRect);
 
 	m_LayerpGdi->ResetClip();
 	
 	// paint the borders
-	PaintBorders(m_LayerpGdi, m_FrameRect, Color::Red, Color::Blue, 1);
+	PaintBorders(m_LayerpGdi, m_FrameRect, Color::Red, Color::Red, 1);
 	
 	// delete dc in case of regeneration
 	m_LayerDC.DeleteDC();
@@ -137,6 +141,12 @@ void CTTEdit::PaintBorders(Graphics* pGraphics, Rect r, Color ulclr, Color brclr
 	SmoothingMode oldMode = pGraphics->GetSmoothingMode();
 	pGraphics->SetSmoothingMode(SmoothingModeNone);
 
+	Rect rc(r);
+	rc.Width -= 1;
+	rc.Height -= 1;
+
+	DrawRectArea(r, *pGraphics, RGB(153, 152, 158), 5, 1);
+	/*
 	// define the upper left pen
 	Pen ulpen(ulclr, 1); ulpen.SetAlignment(PenAlignmentCenter);
 
@@ -163,7 +173,7 @@ void CTTEdit::PaintBorders(Graphics* pGraphics, Rect r, Color ulclr, Color brclr
 		pGraphics->DrawLine(&brpen, left + 1, bottom, right, bottom);
 
 		rc.Inflate(-1, -1);
-	}
+	}*/
 }
 
 void CTTEdit::SetBorderClip(Graphics* pGraphics, Rect rc, CombineMode mode)
@@ -275,14 +285,14 @@ END_MESSAGE_MAP()
 HBRUSH CTTEdit::CtlColor(CDC* pDC, UINT nCtlColor)
 {
 	//TRACE(_T("CtlCOLOR\n"));
-	//pDC->SetBkMode(TRANSPARENT);
+	pDC->SetBkMode(TRANSPARENT);
 	pDC->SetTextColor(m_TextColor);
 	return (HBRUSH)m_HollowBrush;
 }
 
 BOOL CTTEdit::OnEraseBkgnd(CDC* pDC)
 {
-	TRACE("ERASE\n");
+	//TRACE("ERASE\n");
 	SetPosition(0, m_OffsetY); //m_Style.SetPosition(0, m_OffsetY); //
 	Paint(pDC, m_EditRect); //m_Style.PaintStyle(pDC, m_EditRect); // Paint(pDC, m_EditRect)
 	return TRUE;
@@ -290,14 +300,14 @@ BOOL CTTEdit::OnEraseBkgnd(CDC* pDC)
 
 void CTTEdit::OnUpdate()
 {
-	TRACE("UPDATE\n");
+	//TRACE("UPDATE\n");
 	Invalidate();
 }
 
 // center text vertically
 void CTTEdit::OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS* lpncsp)
 {
-	TRACE("CALC\n");
+	//TRACE("CALC\n");
 	if (m_EditRect.IsRectEmpty())
 	{
 		GetWindowRect(m_EditRect);
@@ -346,7 +356,6 @@ void CTTEdit::OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS* lpncsp)
 
 BOOL CTTEdit::OnChildNotify(UINT message, WPARAM wParam, LPARAM lParam, LRESULT* pLResult)
 {
-	TRACE("Child\n");
 	if (m_OffsetY == -1)
 	{
 		SetWindowPos(NULL, 0, 0, 0, 0, SWP_NOOWNERZORDER | SWP_NOSIZE | SWP_NOMOVE | SWP_FRAMECHANGED);
@@ -357,7 +366,7 @@ BOOL CTTEdit::OnChildNotify(UINT message, WPARAM wParam, LPARAM lParam, LRESULT*
 
 void CTTEdit::OnNcPaint()
 {
-	TRACE("NcPaint\n");
+	//TRACE("NcPaint\n");
 
 	CString str;
 	GetWindowText(str);

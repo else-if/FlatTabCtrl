@@ -16,7 +16,7 @@ public:
 
 protected:
 
-	CRect m_ClientRect;
+	Gdiplus::Rect m_ClientRect;
 
 	ControlState m_ControlState;
 	ControlsColorMap m_ColorMap;
@@ -25,11 +25,16 @@ protected:
 	int m_CornerRadius;
 	bool m_bHover;
 
+	bool m_bUseBitmap;
+	CDC m_dc;
+
 	void UpdateControlState();
 	void Paint(CDC* pDC);
 
 	int m_OffsetY;
 	int uiCX, uiCY;
+
+	void SetPosition(int x, int y);
 
 	DECLARE_MESSAGE_MAP()
 public:
@@ -42,6 +47,7 @@ public:
 	afx_msg void OnKillFocus(CWnd* pNewWnd);
 	afx_msg BOOL OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message);
 	afx_msg void OnMouseLeave();
+	afx_msg void OnEnUpdate();
 };
 
 

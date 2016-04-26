@@ -82,7 +82,7 @@ public:
 	CTTStatic m_TTStatic7;
 	CTTStatic m_TTStatic8;
 	
-	CTTEdit2 m_Edit1;
+	/*CEdit*/ CTTEdit2 m_Edit1;
 	/*CEdit*/ CTTEdit2 m_Edit2;
 	/*CEdit*/ CTTEdit2 m_WideEdit1;
 	/*CEdit*/ CTTEdit2 m_WideEdit2;

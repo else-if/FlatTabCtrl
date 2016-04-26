@@ -201,11 +201,11 @@ BOOL CFlatTabCtrlDlg::OnInitDialog()
 	m_TTStatic8.SetDrawingProperties(2, 10, true);
 	m_TTStatic8.SetColorProperies(RGB(221, 232, 101), RGB(23, 55, 125), RGB(202, 81, 0));
 
-	m_Edit1.SetDrawingProperties(1, 5);
+	//m_Edit1.SetDrawingProperties(1, 5);
 	m_Edit1.SetWindowTextW(_T("Sample edit box"));
 	m_Edit2.SetWindowTextW(_T("Sample edit box"));
 
-	m_WideEdit1.SetDrawingProperties(1, 5);
+	//m_WideEdit1.SetDrawingProperties(1, 5);
 	m_WideEdit1.SetWindowTextW(_T("Wide edit box"));
 	m_WideEdit2.SetWindowTextW(_T("Wide edit box"));
 
