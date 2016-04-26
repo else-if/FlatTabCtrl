@@ -9,6 +9,7 @@
 #include "ttbutton.h"
 #include "wbbutton.h"
 #include "TTEdit.h"
+#include "TTEdit2.h"
 #include "BoringStaticCtrl.h"
 #include "BoringComboBox.h"
 #include "BoringEditCtrl2.h"
@@ -18,6 +19,7 @@
 #include "TTComboBox.h"
 #include "TTStatic.h"
 #include <msclr\event.h>
+#include "TTGroupBox.h"
 
 using namespace System;
 using namespace System::ComponentModel;
@@ -80,11 +82,14 @@ public:
 	CTTStatic m_TTStatic7;
 	CTTStatic m_TTStatic8;
 	
-	CTTEdit m_Edit1;
-	CTTEdit m_Edit2;
-	CTTEdit m_WideEdit1;
-	CTTEdit m_WideEdit2;
+	CTTEdit2 m_Edit1;
+	/*CEdit*/ CTTEdit2 m_Edit2;
+	/*CEdit*/ CTTEdit2 m_WideEdit1;
+	/*CEdit*/ CTTEdit2 m_WideEdit2;
 	
+	CTTGroupBox m_GrBox1;
+	CTTGroupBox m_GrBox2;
+
 	void FillCombo(CComboBox &Combo);
 
 	BoringEditCtrl2 m_EditCtrl;

@@ -90,6 +90,12 @@
     <ClInclude Include="TTTabCtrl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="TTGroupBox.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TTEdit2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FlatTabCtrl.cpp">
@@ -156,6 +162,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="TTTabCtrl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TTGroupBox.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TTEdit2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

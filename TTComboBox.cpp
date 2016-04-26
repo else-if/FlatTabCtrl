@@ -24,8 +24,8 @@ CTTComboBox::CTTComboBox()
 	m_ColorMap.SetColor(Press, BackgroundBottomGradientStart, RGB(255, 241, 148));
 	m_ColorMap.SetColor(Press, BackgroundBottomGradientFinish, RGB(250, 213, 103));
 
-	m_arrowColorStart = RGB(193, 192, 200);
-	m_arrowColorFinish = RGB(83, 84, 95);
+	m_arrowColorStart = RGB(96, 96, 96);
+	m_arrowColorFinish = RGB(96, 96, 96);
 }
 
 CTTComboBox::~CTTComboBox()
@@ -92,8 +92,6 @@ void CTTComboBox::DrawSimple()
 	DrawRectArea(BorderRect, graphics, m_ColorMap.GetColor(m_ControlState, Border),
 		m_CornerRadius, m_borderPenWidth);
 
-	// For now just draw CComboBoxEx
-	//CComboBoxEx::OnPaint();
 }
 
 void CTTComboBox::DrawDropDown()
@@ -323,7 +321,7 @@ CRect CTTComboBox::GetArrowButtonRect()
 	return btnRect;
 }
 
-BEGIN_MESSAGE_MAP(CTTComboBox, CComboBoxEx)
+BEGIN_MESSAGE_MAP(CTTComboBox, CComboBox)
 	ON_WM_ERASEBKGND()
 	ON_WM_MOUSEMOVE()
 	ON_WM_MOUSELEAVE()
@@ -359,7 +357,7 @@ void CTTComboBox::OnMouseMove(UINT nFlags, CPoint point)
 		m_bOnButton = false;		
 	}
 
-	CComboBoxEx::OnMouseMove(nFlags, point);
+	CComboBox::OnMouseMove(nFlags, point);
 }
 
 void CTTComboBox::OnMouseLeave()
@@ -368,7 +366,7 @@ void CTTComboBox::OnMouseLeave()
 	m_bOnButton = false;
 	Invalidate();
 
-	CComboBoxEx::OnMouseLeave();
+	CComboBox::OnMouseLeave();
 }
 
 void CTTComboBox::OnPaint()
@@ -445,7 +443,7 @@ BOOL CTTComboBox::PreTranslateMessage(MSG* pMsg)
 		break;
 	}	
 
-	return CComboBoxEx::PreTranslateMessage(pMsg);
+	return CComboBox::PreTranslateMessage(pMsg);
 }
 
 void CTTComboBox::OnCbnKillfocus()

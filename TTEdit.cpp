@@ -126,7 +126,7 @@ void CTTEdit::PaintStack(CDC* pDC, Graphics* pGraphics)
 	m_LayerDC.BitBlt(0, 0, width, height, pDC, x, y, SRCCOPY);
 	bmp.DeleteObject();
 
-	m_bUseBitmap = TRUE;	
+	m_bUseBitmap = TRUE;
 }
 
 void CTTEdit::PaintBorders(Graphics* pGraphics, Rect r, Color ulclr, Color brclr, int width)
@@ -274,14 +274,15 @@ END_MESSAGE_MAP()
 
 HBRUSH CTTEdit::CtlColor(CDC* pDC, UINT nCtlColor)
 {
-	TRACE(_T("CtlCOLOR\n"));
-	pDC->SetBkMode(TRANSPARENT);
+	//TRACE(_T("CtlCOLOR\n"));
+	//pDC->SetBkMode(TRANSPARENT);
 	pDC->SetTextColor(m_TextColor);
 	return (HBRUSH)m_HollowBrush;
 }
 
 BOOL CTTEdit::OnEraseBkgnd(CDC* pDC)
 {
+	TRACE("ERASE\n");
 	SetPosition(0, m_OffsetY); //m_Style.SetPosition(0, m_OffsetY); //
 	Paint(pDC, m_EditRect); //m_Style.PaintStyle(pDC, m_EditRect); // Paint(pDC, m_EditRect)
 	return TRUE;
@@ -289,18 +290,23 @@ BOOL CTTEdit::OnEraseBkgnd(CDC* pDC)
 
 void CTTEdit::OnUpdate()
 {
+	TRACE("UPDATE\n");
 	Invalidate();
 }
 
 // center text vertically
 void CTTEdit::OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS* lpncsp)
 {
-	GetWindowRect(m_EditRect);
-	m_EditRect.OffsetRect(-m_EditRect.left, -m_EditRect.top);
-	m_FrameRect.X = m_EditRect.top;
-	m_FrameRect.Y = m_EditRect.left;
-	m_FrameRect.Width = m_EditRect.Width();
-	m_FrameRect.Height = m_EditRect.Height();
+	TRACE("CALC\n");
+	if (m_EditRect.IsRectEmpty())
+	{
+		GetWindowRect(m_EditRect);
+		m_EditRect.OffsetRect(-m_EditRect.left, -m_EditRect.top);
+		m_FrameRect.X = m_EditRect.top;
+		m_FrameRect.Y = m_EditRect.left;
+		m_FrameRect.Width = m_EditRect.Width();
+		m_FrameRect.Height = m_EditRect.Height();
+	}
 
 	CRect rectWnd, rectClient;
 
@@ -340,6 +346,7 @@ void CTTEdit::OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS* lpncsp)
 
 BOOL CTTEdit::OnChildNotify(UINT message, WPARAM wParam, LPARAM lParam, LRESULT* pLResult)
 {
+	TRACE("Child\n");
 	if (m_OffsetY == -1)
 	{
 		SetWindowPos(NULL, 0, 0, 0, 0, SWP_NOOWNERZORDER | SWP_NOSIZE | SWP_NOMOVE | SWP_FRAMECHANGED);
@@ -350,13 +357,29 @@ BOOL CTTEdit::OnChildNotify(UINT message, WPARAM wParam, LPARAM lParam, LRESULT*
 
 void CTTEdit::OnNcPaint()
 {
+	TRACE("NcPaint\n");
+
+	CString str;
+	GetWindowText(str);
+	DWORD curSel = GetSel();
+
+	if (m_EditRect.IsRectEmpty())
+	{
+		GetWindowRect(m_EditRect);
+		m_EditRect.OffsetRect(-m_EditRect.left, -m_EditRect.top);
+		m_FrameRect.X = m_EditRect.top;
+		m_FrameRect.Y = m_EditRect.left;
+		m_FrameRect.Width = m_EditRect.Width();
+		m_FrameRect.Height = m_EditRect.Height();
+	}
+
 	Default();
 
 	CWindowDC dc(this);
 
-	CString str;
-	GetWindowText(str);
 	SetPosition(0, 0); //m_Style.SetPosition(0, 0);
 	Paint(&dc, m_EditRect); //m_Style.PaintStyle(&dc, m_EditRect);
+	
 	SetWindowText(str);
+	SetSel(curSel);
 }

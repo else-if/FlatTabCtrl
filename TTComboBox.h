@@ -3,7 +3,7 @@
 #include "TTComboEdit.h"
 #include "TTComboListBox.h"
 
-class CTTComboBox : public CComboBoxEx
+class CTTComboBox : public CComboBox
 {
 
 public:

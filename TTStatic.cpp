@@ -102,6 +102,8 @@ void CTTStatic::OnPaint()
 
 	UpdateControlState();
 
+	LONG style = GetWindowLong(GetSafeHwnd(), GWL_STYLE) & BS_TYPEMASK;
+
 	//Background
 
 	DrawThemeParentBackground(GetSafeHwnd(), memDC.GetDC().GetSafeHdc(), cRect);
