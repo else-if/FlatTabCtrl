@@ -15,7 +15,6 @@ CTTEdit2::CTTEdit2()
 
 	m_ControlState = Normal;
 
-	m_ColorMap.SetDefaultColors();
 	m_ColorMap.SetColor(Mouseover, BackgroundTopGradientFinish, RGB(255, 255, 255));
 }
 
@@ -31,22 +30,21 @@ void CTTEdit2::SetDrawingProperties(int borderPenWidth, int cornerRadius)
 
 void CTTEdit2::SetPosition(int x, int y)
 {
-	int xoff = x - m_ClientRect.X;
-	int yoff = y - m_ClientRect.Y;
-
-	// set the frame origin
-	m_ClientRect.X = x; m_ClientRect.Y = y;
+	m_ClientRect.X = x;
+	m_ClientRect.Y = y;
 }
-
 
 void CTTEdit2::UpdateControlState()
 {
+	ControlState oldCtrlStrate = m_ControlState;
 	if (!IsWindowEnabled())
 		m_ControlState = Disable;
 	else if (m_bHover || GetFocus() == this)
 		m_ControlState = Mouseover;
 	else
 		m_ControlState = Normal;
+
+	m_bUseBitmap = (m_bUseBitmap && oldCtrlStrate == m_ControlState);	
 }
 
 void CTTEdit2::Paint(CDC* pDC)
@@ -56,39 +54,14 @@ void CTTEdit2::Paint(CDC* pDC)
 
 	UpdateControlState();
 
-	// Borders
-	Gdiplus::Rect BorderRect(m_ClientRect.X, m_ClientRect.Y, m_ClientRect.X + m_ClientRect.Width, m_ClientRect.Y + m_ClientRect.Height);
-
-	//TRACE("Erace\n");
 	if (m_bUseBitmap)
-	{/*
-		CBitmap*	m_pOld;
-		CBitmap		m_bitmap;
-		
-		// create a compatible bitmap
-		m_bitmap.CreateCompatibleBitmap(pDC, m_ClientRect.Width, m_ClientRect.Height);
-
-		// select bitmap into dc
-		m_pOld = pDC->SelectObject(&m_bitmap);
-
-		// set window origin
-		//pDC->SetWindowOrg(m_ClientRect.X, m_ClientRect.Y);
-
-		// needed for transparency support
-		pDC->BitBlt(m_ClientRect.X, m_ClientRect.Y, m_ClientRect.Width, m_ClientRect.Height,
-			pDC, m_ClientRect.X, m_ClientRect.Y, SRCCOPY);
-		*/
+	{
 		pDC->BitBlt(m_ClientRect.X,
 			m_ClientRect.Y,
 			m_ClientRect.Width,
 			m_ClientRect.Height,
 			&m_dc, 0, 0, SRCCOPY);
-		/*
-		pDC->BitBlt(m_ClientRect.X, m_ClientRect.Y, m_ClientRect.Width, m_ClientRect.Height,
-			pDC, m_ClientRect.X, m_ClientRect.Y, SRCCOPY);
-
-		// Swap back the original bitmap.
-		pDC->SelectObject(m_pOld);*/
+		
 		return;
 	}
 	
@@ -97,10 +70,8 @@ void CTTEdit2::Paint(CDC* pDC)
 	graphics.SetInterpolationMode(Gdiplus::InterpolationModeHighQualityBicubic);
 	graphics.SetTextRenderingHint(TextRenderingHintClearTypeGridFit);
 
-	CRgn frgn;
-	frgn.CreateRectRgn(m_ClientRect.X, m_ClientRect.Y, m_ClientRect.X + m_ClientRect.Width, m_ClientRect.Y + m_ClientRect.Height);
-	Gdiplus::Region grgn(frgn);
-	graphics.SetClip(&grgn, CombineModeReplace);
+	// Borders
+	Gdiplus::Rect BorderRect(m_ClientRect.X, m_ClientRect.Y, m_ClientRect.X + m_ClientRect.Width, m_ClientRect.Y + m_ClientRect.Height);
 
 	// Clear background
 	COLORREF backgroundColor = m_ColorMap.GetColor(m_ControlState, BackgroundTopGradientFinish);;
@@ -134,8 +105,7 @@ BEGIN_MESSAGE_MAP(CTTEdit2, CEdit)
 	ON_WM_CTLCOLOR_REFLECT()
 	ON_WM_ERASEBKGND()
 	ON_WM_NCCALCSIZE()
-	ON_WM_NCPAINT()
-	ON_WM_KILLFOCUS()
+	ON_WM_NCPAINT()	
 	ON_WM_SETCURSOR()
 	ON_WM_MOUSELEAVE()
 	ON_CONTROL_REFLECT(EN_UPDATE, &CTTEdit2::OnEnUpdate)
@@ -151,13 +121,9 @@ BOOL CTTEdit2::OnEraseBkgnd(CDC* pDC)
 	if (m_ClientRect.IsEmptyArea())
 		return TRUE;
 
-	TRACE("Erace\n");
-
-	//m_ClientRect.DeflateRect(-m_borderPenWidth, m_OffsetY, -m_borderPenWidth, 0);
 	SetPosition(-m_borderPenWidth, m_OffsetY);
 	Paint(pDC);
-	//m_ClientRect.DeflateRect(m_borderPenWidth, -m_OffsetY, m_borderPenWidth, 0);
-
+	
 	return TRUE;
 }
 
@@ -171,10 +137,16 @@ void CTTEdit2::OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS* lpncsp)
 		lpncsp->rgrc[0].left += uiCX + m_borderPenWidth;
 		lpncsp->rgrc[0].right -= uiCY + m_borderPenWidth;
 
-		//m_bUseBitmap = false;
-		Invalidate();
 		return;
-	}
+	}	
+
+	CRect rc;
+	GetWindowRect(rc);
+	rc.OffsetRect(-rc.left, -rc.top);
+	m_ClientRect.X = rc.left;
+	m_ClientRect.Y = rc.top;
+	m_ClientRect.Width = rc.Width();
+	m_ClientRect.Height = rc.Height();
 
 	CRect rectWnd, rectClient;
 
@@ -191,14 +163,6 @@ void CTTEdit2::OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS* lpncsp)
 
 	pDC->SelectObject(pOld);
 	ReleaseDC(pDC);
-
-	CRect rc; GetWindowRect(rc); rc.OffsetRect(-rc.left, -rc.top);
-	m_ClientRect.X = rc.left;
-	m_ClientRect.Y = rc.top;
-	m_ClientRect.Width = rc.Width();
-	m_ClientRect.Height = rc.Height();
-	/*GetWindowRect(m_ClientRect);
-	m_ClientRect.OffsetRect(-m_ClientRect.left, -m_ClientRect.top);*/
 
 	//calculate NC area to center text.
 
@@ -233,59 +197,26 @@ BOOL CTTEdit2::OnChildNotify(UINT message, WPARAM wParam, LPARAM lParam, LRESULT
 
 void CTTEdit2::OnNcPaint()
 {
-	TRACE("NC Paint\n");
-	
-	if (m_bUseBitmap)
-		return;
-
-	/*CString str;
-	GetWindowText(str);
-	DWORD curSel = GetSel();*/
-	
 	Default();
 	
-	//m_bUseBitmap = false;
-
 	CWindowDC dc(this);
 	SetPosition(0, 0);
-	Paint(&dc);	
-	
-	/*SetWindowText(str);
-	SetSel(curSel);*/
-}
-
-void CTTEdit2::OnKillFocus(CWnd* pNewWnd)
-{
-	TRACE("Kill focus\n");
-	CEdit::OnKillFocus(pNewWnd);
-	//Invalidate();
+	Paint(&dc);		
 }
 
 BOOL CTTEdit2::OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message)
 {
-	if (nHitTest == HTCLIENT)
-	{
-		m_bHover = true;
-	}
-	else
-	{
-		m_bHover = false;
-	}
-
+	m_bHover = nHitTest == HTCLIENT;
 	return CEdit::OnSetCursor(pWnd, nHitTest, message);
 }
 
 void CTTEdit2::OnMouseLeave()
 {
-	TRACE("Mouse leave\n");
 	m_bHover = false;
-	//Invalidate();
-
 	CEdit::OnMouseLeave();
 }
 
 void CTTEdit2::OnEnUpdate()
 {
-	TRACE(_T("Update\n"));
 	Invalidate();
 }

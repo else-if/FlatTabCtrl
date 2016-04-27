@@ -23,16 +23,18 @@ protected:
 
 	int m_borderPenWidth;
 	int m_CornerRadius;
+	
 	bool m_bHover;
 
-	bool m_bUseBitmap;
 	CDC m_dc;
+	bool m_bStateChanged;
+	bool m_bUseBitmap;	
 
 	void UpdateControlState();
 	void Paint(CDC* pDC);
 
 	int m_OffsetY;
-	int uiCX, uiCY;
+	UINT uiCX, uiCY;
 
 	void SetPosition(int x, int y);
 
@@ -44,7 +46,6 @@ public:
 	virtual BOOL OnChildNotify(UINT message, WPARAM wParam, LPARAM lParam, LRESULT* pLResult);
 	afx_msg void OnNcPaint();
 
-	afx_msg void OnKillFocus(CWnd* pNewWnd);
 	afx_msg BOOL OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message);
 	afx_msg void OnMouseLeave();
 	afx_msg void OnEnUpdate();

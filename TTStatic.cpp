@@ -154,6 +154,5 @@ void CTTStatic::OnPaint()
 
 void CTTStatic::OnEnable(BOOL bEnable)
 {
-	CStatic::OnEnable(bEnable);
 	Invalidate();
 }

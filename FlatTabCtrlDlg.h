@@ -86,9 +86,11 @@ public:
 	/*CEdit*/ CTTEdit2 m_Edit2;
 	/*CEdit*/ CTTEdit2 m_WideEdit1;
 	/*CEdit*/ CTTEdit2 m_WideEdit2;
+	/*CEdit*/ CTTEdit2 m_MultiLineEdit;
 	
 	CTTGroupBox m_GrBox1;
 	CTTGroupBox m_GrBox2;
+	CTTGroupBox m_GrBox3;
 
 	void FillCombo(CComboBox &Combo);
 
