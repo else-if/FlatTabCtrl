@@ -36,15 +36,18 @@ void CTTButton::SetDrawingProperties(int borderPenWidth, int cornerRadius)
 
 void CTTButton::UpdateButtonState(UINT state)
 {
-	if (state & ODS_DISABLED)
+    CWnd* focused = GetFocus();
+
+    if (state & ODS_DISABLED)
 		m_ButtonState = Disable;
-	else if (state & ODS_SELECTED)
+    else if ((state & ODS_SELECTED) || (state & ODS_CHECKED))
 		m_ButtonState = Press;
 	else if (m_bTracking)
 		m_ButtonState = Mouseover;
-	else if (state & ODS_FOCUS)
+    else if ((state & ODS_FOCUS) || 
+        (m_bIsDefault && m_bIsDefault))
 		m_ButtonState = Focus;
-	else
+    else
 		m_ButtonState = Normal;
 }
 
@@ -53,7 +56,11 @@ BEGIN_MESSAGE_MAP(CTTButton, CButton)
 	ON_WM_LBUTTONUP()
 	ON_WM_MOUSEMOVE()
 	ON_WM_MOUSELEAVE()	
-	ON_WM_PAINT()
+	ON_WM_UPDATEUISTATE()
+    ON_WM_TIMER()
+    ON_WM_NCPAINT()
+    ON_UPDATE_COMMAND_UI(AFX_ID_PREVIEW_CLOSE, &CTTButton::OnUpdateAfxIdPreviewClose)
+    ON_COMMAND(AFX_ID_PREVIEW_CLOSE, &CTTButton::OnAfxIdPreviewClose)
 END_MESSAGE_MAP()
 
 void CTTButton::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
@@ -109,6 +116,7 @@ void CTTButton::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 
 BOOL CTTButton::OnEraseBkgnd(CDC* pDC)
 {
+    TRACE(_T("btn ERase\n"));
 	return FALSE;
 }
 
@@ -148,4 +156,59 @@ void CTTButton::OnMouseLeave()
 	Invalidate(false);
 
 	CButton::OnMouseLeave();
+}
+
+void CTTButton::PreSubclassWindow()
+{
+    DWORD style = GetStyle();
+    m_bIsDefault = ((style & BS_TYPEMASK) == BS_DEFPUSHBUTTON);
+    if (m_bIsDefault)
+        SetTimer(1, 2000, NULL);
+
+    ModifyStyle(0, BS_OWNERDRAW, SWP_FRAMECHANGED);
+
+    CButton::PreSubclassWindow();
+}
+
+void CTTButton::OnUpdateUIState(UINT /*nAction*/, UINT /*nUIElement*/)
+{
+    // This feature requires Windows 2000 or greater.
+    // The symbols _WIN32_WINNT and WINVER must be >= 0x0500.
+    // TODO: Add your message handler code here
+    TRACE(_T("upd UI state\n"));
+}
+
+
+void CTTButton::OnTimer(UINT_PTR nIDEvent)
+{
+    // TODO: Add your message handler code here and/or call default
+    if (m_bIsDefault)
+    {
+        TRACE(_T("on Timer\n"));
+        CWnd* focused = GetFocus();
+    }
+
+    CButton::OnTimer(nIDEvent);
+}
+
+
+void CTTButton::OnNcPaint()
+{
+    // TODO: Add your message handler code here
+    // Do not call CButton::OnNcPaint() for painting messages
+    TRACE(_T("nc paint\n"));
+}
+
+
+void CTTButton::OnUpdateAfxIdPreviewClose(CCmdUI *pCmdUI)
+{
+    // TODO: Add your command update UI handler code here
+    TRACE(_T("Update afx Id preview\n"));
+}
+
+
+void CTTButton::OnAfxIdPreviewClose()
+{
+    // TODO: Add your command handler code here
+    TRACE(_T("Command\n"));
 }
