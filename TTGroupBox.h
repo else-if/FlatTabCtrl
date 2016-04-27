@@ -3,7 +3,7 @@
 
 #define OFS_LEFT 10
 
-class CTTGroupBox : public CButton
+class CTTGroupBox : public CStatic
 {
 public:
 	CTTGroupBox();

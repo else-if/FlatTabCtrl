@@ -85,6 +85,7 @@ void CFlatTabCtrlDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_TT_STATIC6, m_TTStatic6);
 	DDX_Control(pDX, IDC_TT_STATIC7, m_TTStatic7);
 	DDX_Control(pDX, IDC_TT_STATIC8, m_TTStatic8);
+    DDX_Control(pDX, IDC_TT_STATIC9, m_TTStatic9);
 	DDX_Control(pDX, IDC_EDIT4, m_Edit1);
 	DDX_Control(pDX, IDC_EDIT5, m_Edit2);
 	DDX_Control(pDX, IDC_EDIT6, m_WideEdit1);

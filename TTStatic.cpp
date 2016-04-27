@@ -132,12 +132,13 @@ void CTTStatic::OnPaint()
 
 	if (staticText && !staticText.IsEmpty())
 	{
+        
 		LOGFONT logFont;
 		GetFont()->GetLogFont(&logFont);
 		Gdiplus::Font font(memDC.GetDC().GetSafeHdc(), &logFont);
 
 		cRect.DeflateRect(m_borderPenWidth, 1, m_borderPenWidth, 1);
-		
+        
 		Color textColor;
 		if (m_ControlState == Disable)
 			textColor.SetFromCOLORREF(GetSysColor(COLOR_GRAYTEXT));
@@ -147,8 +148,23 @@ void CTTStatic::OnPaint()
 		SolidBrush textBrush(textColor);
 		Gdiplus::RectF layoutRect((REAL)cRect.left, (REAL)cRect.top, (REAL)cRect.Width(), (REAL)cRect.Height());
 
+        Gdiplus::StringFormat sFormat = Gdiplus::StringFormat::GenericDefault();
+        Gdiplus::StringAlignment sAlignment = Gdiplus::StringAlignment::StringAlignmentNear;
+
+        DWORD ExStyle = GetExStyle();
+        DWORD Style = GetStyle() & SS_TYPEMASK;
+
+        if (Style == SS_LEFT)
+            sAlignment = Gdiplus::StringAlignment::StringAlignmentNear; 
+        else if (Style == SS_RIGHT || ExStyle & WS_EX_RIGHT)
+            sAlignment = Gdiplus::StringAlignment::StringAlignmentFar;
+        else if (Style == SS_CENTER)
+            sAlignment = Gdiplus::StringAlignment::StringAlignmentCenter;
+
+        sFormat.SetAlignment(sAlignment);
+
 		graphics.DrawString(staticText.GetBuffer(0), staticText.GetLength(), &font,
-			layoutRect, Gdiplus::StringFormat::GenericDefault(), &textBrush);
+			layoutRect, &sFormat, &textBrush);        
 	}
 }
 

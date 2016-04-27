@@ -30,7 +30,7 @@ void CTTGroupBox::UpdateControlState()
 		m_ControlState = Normal;
 }
 
-BEGIN_MESSAGE_MAP(CTTGroupBox, CButton)
+BEGIN_MESSAGE_MAP(CTTGroupBox, CStatic)
 	ON_WM_PAINT()
 	ON_WM_ENABLE()
 END_MESSAGE_MAP()
@@ -45,9 +45,16 @@ void CTTGroupBox::OnPaint()
 
 	UpdateControlState();
 
+    LOGFONT logFont;
+    GetFont()->GetLogFont(&logFont);
+    CFont font;
+    font.CreateFontIndirect(&logFont);
+
+    dc.SelectObject(font);
+
 	CString captionText;
 	GetWindowText(captionText);
-	captionText = /*_T(" ") +*/ captionText /*+ _T(" ")*/;
+	captionText = _T(" ") + captionText + _T(" ");
 	CSize captionSize = dc.GetTextExtent(captionText);
 
 	captionSize.cy += 2;
@@ -107,12 +114,6 @@ void CTTGroupBox::OnPaint()
 
 	DrawThemeParentBackground(GetSafeHwnd(), dc.m_hDC, captionRect);
 
-	LOGFONT logFont;
-	GetFont()->GetLogFont(&logFont);
-	CFont font;	
-	font.CreateFontIndirect(&logFont);
-
-	dc.SelectObject(font);
 	dc.SetBkMode(TRANSPARENT);
 	
 	COLORREF textColor = m_ControlState == Disable ? GetSysColor(COLOR_GRAYTEXT) : m_CaptionTextColor;
@@ -128,7 +129,7 @@ void CTTGroupBox::OnEnable(BOOL bEnable)
 
 void CTTGroupBox::PreSubclassWindow()
 {
-	ModifyStyle(0, BS_OWNERDRAW | BS_GROUPBOX);
+	ModifyStyle(0, BS_GROUPBOX);
 
-	CButton::PreSubclassWindow();
+	CStatic::PreSubclassWindow();
 }
