@@ -116,7 +116,7 @@ void CTTButton::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 
 BOOL CTTButton::OnEraseBkgnd(CDC* pDC)
 {
-    TRACE(_T("btn ERase\n"));
+    //TRACE(_T("btn ERase\n"));
 	return FALSE;
 }
 
@@ -163,7 +163,7 @@ void CTTButton::PreSubclassWindow()
     DWORD style = GetStyle();
     m_bIsDefault = ((style & BS_TYPEMASK) == BS_DEFPUSHBUTTON);
     if (m_bIsDefault)
-        SetTimer(1, 2000, NULL);
+        //SetTimer(1, 2000, NULL);
 
     ModifyStyle(0, BS_OWNERDRAW, SWP_FRAMECHANGED);
 
@@ -175,7 +175,7 @@ void CTTButton::OnUpdateUIState(UINT /*nAction*/, UINT /*nUIElement*/)
     // This feature requires Windows 2000 or greater.
     // The symbols _WIN32_WINNT and WINVER must be >= 0x0500.
     // TODO: Add your message handler code here
-    TRACE(_T("upd UI state\n"));
+    //TRACE(_T("upd UI state\n"));
 }
 
 
@@ -184,7 +184,7 @@ void CTTButton::OnTimer(UINT_PTR nIDEvent)
     // TODO: Add your message handler code here and/or call default
     if (m_bIsDefault)
     {
-        TRACE(_T("on Timer\n"));
+        //TRACE(_T("on Timer\n"));
         CWnd* focused = GetFocus();
     }
 
@@ -196,19 +196,19 @@ void CTTButton::OnNcPaint()
 {
     // TODO: Add your message handler code here
     // Do not call CButton::OnNcPaint() for painting messages
-    TRACE(_T("nc paint\n"));
+    //TRACE(_T("nc paint\n"));
 }
 
 
 void CTTButton::OnUpdateAfxIdPreviewClose(CCmdUI *pCmdUI)
 {
     // TODO: Add your command update UI handler code here
-    TRACE(_T("Update afx Id preview\n"));
+    //TRACE(_T("Update afx Id preview\n"));
 }
 
 
 void CTTButton::OnAfxIdPreviewClose()
 {
     // TODO: Add your command handler code here
-    TRACE(_T("Command\n"));
+    //TRACE(_T("Command\n"));
 }

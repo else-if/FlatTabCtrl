@@ -5,13 +5,14 @@
 #include "CommonDrawing.h"
 #include "ControlsColorMap.h"
 
-IMPLEMENT_DYNAMIC(CTTEdit2, CEdit);
-
 CTTEdit2::CTTEdit2()
 	:m_ClientRect(0, 0, 0, 0)
 {
 	m_OffsetY = -1;
 	SetDrawingProperties(1, 5);
+
+	m_bUseBitmap = false;
+	painted = false;
 
 	m_ControlState = Normal;
 
@@ -62,9 +63,12 @@ void CTTEdit2::Paint(CDC* pDC)
 			m_ClientRect.Height,
 			&m_dc, 0, 0, SRCCOPY);
 		
+		TRACE(_T("Paint bitmap\n"));
 		return;
 	}
 	
+	TRACE(_T("Paint dc\n"));
+
 	Gdiplus::Graphics graphics(pDC->m_hDC);
 	graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
 	graphics.SetInterpolationMode(Gdiplus::InterpolationModeHighQualityBicubic);
@@ -99,6 +103,7 @@ void CTTEdit2::Paint(CDC* pDC)
 	bmp.DeleteObject();
 
 	m_bUseBitmap = true;
+	painted = true;
 }
 
 BEGIN_MESSAGE_MAP(CTTEdit2, CEdit)
@@ -109,6 +114,7 @@ BEGIN_MESSAGE_MAP(CTTEdit2, CEdit)
 	ON_WM_SETCURSOR()
 	ON_WM_MOUSELEAVE()
 	ON_CONTROL_REFLECT(EN_UPDATE, &CTTEdit2::OnEnUpdate)
+	ON_WM_PAINT()
 END_MESSAGE_MAP()
 
 HBRUSH CTTEdit2::CtlColor(CDC* pDC, UINT nCtlColor)
@@ -120,6 +126,8 @@ BOOL CTTEdit2::OnEraseBkgnd(CDC* pDC)
 {
 	if (m_ClientRect.IsEmptyArea())
 		return TRUE;
+
+	TRACE(_T("Erace\n"));
 
 	SetPosition(-m_borderPenWidth, m_OffsetY);
 	Paint(pDC);
@@ -140,13 +148,7 @@ void CTTEdit2::OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS* lpncsp)
 		return;
 	}	
 
-	CRect rc;
-	GetWindowRect(rc);
-	rc.OffsetRect(-rc.left, -rc.top);
-	m_ClientRect.X = rc.left;
-	m_ClientRect.Y = rc.top;
-	m_ClientRect.Width = rc.Width();
-	m_ClientRect.Height = rc.Height();
+	TRACE(_T("Calc regular\n"));
 
 	CRect rectWnd, rectClient;
 
@@ -163,6 +165,14 @@ void CTTEdit2::OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS* lpncsp)
 
 	pDC->SelectObject(pOld);
 	ReleaseDC(pDC);
+
+	CRect rc;
+	GetWindowRect(rc);
+	rc.OffsetRect(-rc.left, -rc.top);
+	m_ClientRect.X = rc.left;
+	m_ClientRect.Y = rc.top;
+	m_ClientRect.Width = rc.Width();
+	m_ClientRect.Height = rc.Height();
 
 	//calculate NC area to center text.
 
@@ -189,6 +199,7 @@ BOOL CTTEdit2::OnChildNotify(UINT message, WPARAM wParam, LPARAM lParam, LRESULT
 {
 	if (m_OffsetY == -1)
 	{
+		TRACE(_T("ChildNotify\n"));
 		SetWindowPos(NULL, 0, 0, 0, 0, SWP_NOOWNERZORDER | SWP_NOSIZE | SWP_NOMOVE | SWP_FRAMECHANGED);
 	}
 
@@ -197,6 +208,7 @@ BOOL CTTEdit2::OnChildNotify(UINT message, WPARAM wParam, LPARAM lParam, LRESULT
 
 void CTTEdit2::OnNcPaint()
 {
+	TRACE(_T("NC paint\n"));
 	Default();
 	
 	CWindowDC dc(this);
@@ -219,4 +231,40 @@ void CTTEdit2::OnMouseLeave()
 void CTTEdit2::OnEnUpdate()
 {
 	Invalidate();
+}
+
+
+void CTTEdit2::PreSubclassWindow()
+{
+	HWND hWnd = GetSafeHwnd();
+
+	LONG lStyle = GetWindowLong(hWnd, GWL_STYLE);
+	lStyle &= ~(WS_CAPTION | WS_THICKFRAME | WS_MINIMIZE | WS_MAXIMIZE | WS_SYSMENU);
+	SetWindowLong(hWnd, GWL_STYLE, lStyle);
+
+	LONG lExStyle = GetWindowLong(hWnd, GWL_EXSTYLE);
+	lExStyle &= ~(WS_EX_DLGMODALFRAME | WS_EX_CLIENTEDGE | WS_EX_STATICEDGE);
+	SetWindowLong(hWnd, GWL_EXSTYLE, lExStyle);
+
+	SetWindowPos(this, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER);
+
+	CEdit::PreSubclassWindow();
+}
+
+
+void CTTEdit2::OnPaint()
+{
+	//CPaintDC dc(this); // device context for painting
+	// TODO: Add your message handler code here
+	// Do not call CEdit::OnPaint() for painting messages
+	if (!painted)
+	{
+		CPaintDC dc(this);
+		CRect cRect;
+		GetClientRect(&cRect);
+		DrawThemeParentBackground(GetSafeHwnd(), dc.m_hDC, cRect);
+		return;
+	}
+	TRACE(_T("Paint\n"));
+	CEdit::OnPaint();
 }

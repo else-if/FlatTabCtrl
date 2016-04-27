@@ -83,3 +83,10 @@ void BoringButtonCtrl::DrawItem(
 {
 	int stopp = 2;
 }
+
+void BoringButtonCtrl::PreSubclassWindow()
+{
+	// TODO: Add your specialized code here and/or call the base class
+
+	CButton::PreSubclassWindow();
+}

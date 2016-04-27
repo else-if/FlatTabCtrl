@@ -6,7 +6,6 @@
 
 class CTTEdit2 : public CEdit
 {
-	DECLARE_DYNAMIC(CTTEdit2)
 
 public:
 	CTTEdit2();
@@ -29,6 +28,7 @@ protected:
 	CDC m_dc;
 	bool m_bStateChanged;
 	bool m_bUseBitmap;	
+	bool painted;
 
 	void UpdateControlState();
 	void Paint(CDC* pDC);
@@ -49,6 +49,8 @@ public:
 	afx_msg BOOL OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message);
 	afx_msg void OnMouseLeave();
 	afx_msg void OnEnUpdate();
+	virtual void PreSubclassWindow();
+	afx_msg void OnPaint();
 };
 
 
