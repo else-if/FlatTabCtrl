@@ -65,6 +65,7 @@ END_MESSAGE_MAP()
 
 void CTTButton::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 {
+    TRACE(_T("Button paint\n"));
 	CDC xdc;
 	xdc.Attach(lpDrawItemStruct->hDC);
 
@@ -111,7 +112,7 @@ void CTTButton::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 	GetWindowText(buttonText);
 	COLORREF textColor = m_ButtonState == Disable ? GetSysColor(COLOR_GRAYTEXT) : m_CaptionTextColor;
 
-	DrawText(cRect, memDC, m_TextFont, textColor, buttonText, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+    DrawText(cRect, memDC, m_TextFont, textColor, buttonText, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
 }
 
 BOOL CTTButton::OnEraseBkgnd(CDC* pDC)
@@ -162,7 +163,7 @@ void CTTButton::PreSubclassWindow()
 {
     DWORD style = GetStyle();
     m_bIsDefault = ((style & BS_TYPEMASK) == BS_DEFPUSHBUTTON);
-    if (m_bIsDefault)
+    //if (m_bIsDefault)
         //SetTimer(1, 2000, NULL);
 
     ModifyStyle(0, BS_OWNERDRAW, SWP_FRAMECHANGED);
@@ -175,7 +176,7 @@ void CTTButton::OnUpdateUIState(UINT /*nAction*/, UINT /*nUIElement*/)
     // This feature requires Windows 2000 or greater.
     // The symbols _WIN32_WINNT and WINVER must be >= 0x0500.
     // TODO: Add your message handler code here
-    //TRACE(_T("upd UI state\n"));
+    TRACE(_T("upd UI state\n"));
 }
 
 
@@ -196,14 +197,14 @@ void CTTButton::OnNcPaint()
 {
     // TODO: Add your message handler code here
     // Do not call CButton::OnNcPaint() for painting messages
-    //TRACE(_T("nc paint\n"));
+    TRACE(_T("nc paint\n"));
 }
 
 
 void CTTButton::OnUpdateAfxIdPreviewClose(CCmdUI *pCmdUI)
 {
     // TODO: Add your command update UI handler code here
-    //TRACE(_T("Update afx Id preview\n"));
+    TRACE(_T("Update afx Id preview\n"));
 }
 
 
