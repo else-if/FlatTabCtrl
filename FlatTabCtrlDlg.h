@@ -83,9 +83,9 @@ public:
 	CTTStatic m_TTStatic8;
     CTTStatic m_TTStatic9;
 
-	/*CEdit*/ CTTEdit2 m_Edit1;
+	/*CEdit*/ CTTEdit m_Edit1;
 	/*CEdit*/ CTTEdit m_Edit2;
-	CEdit /*CTTEdit2*/ m_WideEdit1;
+	/*CEdit*/ CTTEdit m_WideEdit1;
 	/*CEdit*/ CTTEdit m_WideEdit2;
 	CEdit /*CTTEdit2*/ m_MultiLineEdit;
 	
