@@ -259,10 +259,13 @@ void CTTEdit2::OnPaint()
 	// Do not call CEdit::OnPaint() for painting messages
 	if (!painted)
 	{
-		CPaintDC dc(this);
+		/*CPaintDC dc(this);
 		CRect cRect;
 		GetClientRect(&cRect);
-		DrawThemeParentBackground(GetSafeHwnd(), dc.m_hDC, cRect);
+		DrawThemeParentBackground(GetSafeHwnd(), dc.m_hDC, cRect);*/
+        CWindowDC dc(this);
+        SetPosition(0, 0);
+        Paint(&dc);
 		return;
 	}
 	TRACE(_T("Paint\n"));

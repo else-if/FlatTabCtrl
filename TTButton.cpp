@@ -13,15 +13,15 @@ CTTButton::CTTButton()
 	
 	SetDrawingProperties(1, 5);
 
-	NONCLIENTMETRICS ncm;
-	ncm.cbSize = sizeof(NONCLIENTMETRICS);
-	::SystemParametersInfo(SPI_GETNONCLIENTMETRICS, ncm.cbSize, &ncm, 0);
-	m_TextFont.CreateFontIndirect(&ncm.lfStatusFont);
-	
 	UpdateButtonState(0);
 
 	m_ColorMap.SetDefaultColors();
 	m_CaptionTextColor = GetSysColor(COLOR_BTNTEXT);
+
+    NONCLIENTMETRICS ncm;
+    ncm.cbSize = sizeof(NONCLIENTMETRICS);
+    ::SystemParametersInfo(SPI_GETNONCLIENTMETRICS, ncm.cbSize, &ncm, 0);
+    m_TextFont.CreateFontIndirect(&ncm.lfStatusFont);
 }
 
 CTTButton::~CTTButton()
@@ -44,39 +44,33 @@ void CTTButton::UpdateButtonState(UINT state)
 		m_ButtonState = Press;
 	else if (m_bTracking)
 		m_ButtonState = Mouseover;
-    else if ((state & ODS_FOCUS) || 
-        (m_bIsDefault && m_bIsDefault))
+    else if ((state & ODS_FOCUS) || IsDefault())
 		m_ButtonState = Focus;
     else
 		m_ButtonState = Normal;
 }
 
-BEGIN_MESSAGE_MAP(CTTButton, CButton)
+BEGIN_MESSAGE_MAP(CTTButton, CTTBaseButton)
 	ON_WM_ERASEBKGND()
 	ON_WM_LBUTTONUP()
 	ON_WM_MOUSEMOVE()
 	ON_WM_MOUSELEAVE()	
-	ON_WM_UPDATEUISTATE()
-    ON_WM_TIMER()
-    ON_WM_NCPAINT()
-    ON_UPDATE_COMMAND_UI(AFX_ID_PREVIEW_CLOSE, &CTTButton::OnUpdateAfxIdPreviewClose)
-    ON_COMMAND(AFX_ID_PREVIEW_CLOSE, &CTTButton::OnAfxIdPreviewClose)
 END_MESSAGE_MAP()
 
 void CTTButton::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 {
-    TRACE(_T("Button paint\n"));
-	CDC xdc;
+    CDC xdc;
 	xdc.Attach(lpDrawItemStruct->hDC);
 
-	CRect cRect;
-	GetClientRect(&cRect);
+    CRect cRect(lpDrawItemStruct->rcItem);
+	//GetClientRect(&cRect);
 
 	CMemDC memDC(xdc, cRect);
 
 	Graphics graphics(memDC.GetDC().GetSafeHdc());
 	graphics.SetSmoothingMode(SmoothingModeAntiAlias);
 	graphics.SetInterpolationMode(InterpolationModeHighQualityBicubic);
+    graphics.SetTextRenderingHint(TextRenderingHintSingleBitPerPixel);
 
 	DrawThemeParentBackground(GetSafeHwnd(), memDC.GetDC().GetSafeHdc(), cRect);
 		
@@ -104,7 +98,7 @@ void CTTButton::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 		m_CornerRadius, lightPenWidth);
 	
 	// Border
-	DrawRectArea(BorderRect, graphics, m_ColorMap.GetColor(m_ButtonState, Border),
+    DrawRectArea(BorderRect, graphics, m_ColorMap.GetColor(m_ButtonState, Border),
 		m_CornerRadius, m_BorderPenWidth);
 
 	// Button text
@@ -161,55 +155,7 @@ void CTTButton::OnMouseLeave()
 
 void CTTButton::PreSubclassWindow()
 {
-    DWORD style = GetStyle();
-    m_bIsDefault = ((style & BS_TYPEMASK) == BS_DEFPUSHBUTTON);
-    //if (m_bIsDefault)
-        //SetTimer(1, 2000, NULL);
+    //ModifyStyle(0, BS_OWNERDRAW, SWP_FRAMECHANGED);
 
-    ModifyStyle(0, BS_OWNERDRAW, SWP_FRAMECHANGED);
-
-    CButton::PreSubclassWindow();
-}
-
-void CTTButton::OnUpdateUIState(UINT /*nAction*/, UINT /*nUIElement*/)
-{
-    // This feature requires Windows 2000 or greater.
-    // The symbols _WIN32_WINNT and WINVER must be >= 0x0500.
-    // TODO: Add your message handler code here
-    TRACE(_T("upd UI state\n"));
-}
-
-
-void CTTButton::OnTimer(UINT_PTR nIDEvent)
-{
-    // TODO: Add your message handler code here and/or call default
-    if (m_bIsDefault)
-    {
-        //TRACE(_T("on Timer\n"));
-        CWnd* focused = GetFocus();
-    }
-
-    CButton::OnTimer(nIDEvent);
-}
-
-
-void CTTButton::OnNcPaint()
-{
-    // TODO: Add your message handler code here
-    // Do not call CButton::OnNcPaint() for painting messages
-    TRACE(_T("nc paint\n"));
-}
-
-
-void CTTButton::OnUpdateAfxIdPreviewClose(CCmdUI *pCmdUI)
-{
-    // TODO: Add your command update UI handler code here
-    TRACE(_T("Update afx Id preview\n"));
-}
-
-
-void CTTButton::OnAfxIdPreviewClose()
-{
-    // TODO: Add your command handler code here
-    //TRACE(_T("Command\n"));
+    CTTBaseButton::PreSubclassWindow();
 }

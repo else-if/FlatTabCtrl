@@ -1,7 +1,8 @@
 #pragma once
 #include "ControlsColorMap.h"
+#include "TTBaseButton.h"
 
-class CTTButton : public CButton
+class CTTButton : public CTTBaseButton
 {
 
 public:
@@ -20,8 +21,7 @@ protected:
 	int m_BorderPenWidth;
 	int m_CornerRadius;
 	bool m_bTracking;	
-    bool m_bIsDefault;
-
+    
 	CFont m_TextFont;
 
 	void UpdateButtonState(UINT state);
@@ -33,18 +33,14 @@ public:
 
 protected:
 
-	afx_msg BOOL OnEraseBkgnd(CDC* pDC);	
+	//afx_msg BOOL OnEraseBkgnd(CDC* pDC);	
 	afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
-	
+    afx_msg BOOL OnEraseBkgnd(CDC* pDC);
+
 	DECLARE_MESSAGE_MAP()
 public:
 	
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
 	afx_msg void OnMouseLeave();	
-    virtual void PreSubclassWindow();
-    afx_msg void OnUpdateUIState(UINT /*nAction*/, UINT /*nUIElement*/);
-    afx_msg void OnTimer(UINT_PTR nIDEvent);
-    afx_msg void OnNcPaint();
-    afx_msg void OnUpdateAfxIdPreviewClose(CCmdUI *pCmdUI);
-    afx_msg void OnAfxIdPreviewClose();
+    virtual void PreSubclassWindow();    
 };

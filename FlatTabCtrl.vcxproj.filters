@@ -96,6 +96,9 @@
     <ClInclude Include="TTEdit2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="TTBaseButton.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FlatTabCtrl.cpp">
@@ -168,6 +171,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="TTEdit2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TTBaseButton.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
