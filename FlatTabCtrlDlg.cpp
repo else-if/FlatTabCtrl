@@ -94,6 +94,7 @@ void CFlatTabCtrlDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_TTGROUPBOX2, m_GrBox2);
 	DDX_Control(pDX, IDC_TTGROUPBOX3, m_GrBox3);
 	DDX_Control(pDX, IDC_EDIT8, m_MultiLineEdit);
+    DDX_Control(pDX, IDC_CHECK1, m_TTPushButton);
 }
 
 BEGIN_MESSAGE_MAP(CFlatTabCtrlDlg, CDialogEx)
@@ -330,17 +331,6 @@ void CFlatTabCtrlDlg::OnBnClickedButton2()
 {
 	// TODO: Add your control notification handler code here
     CButton* pBtnWnd = (CButton*)GetDlgItem(IDC_BUTTON3);
-
-    int i = pBtnWnd->GetCheck();
-    if (i == BST_CHECKED)
-    {
-        pBtnWnd->SetCheck(BST_UNCHECKED);
-    }
-    else
-    {
-        pBtnWnd->SetCheck(BST_CHECKED);
-    }
-    
 
 	if (pBtnWnd->IsWindowEnabled())
 	{

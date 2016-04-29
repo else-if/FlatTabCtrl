@@ -8,6 +8,7 @@ CTTBaseButton::CTTBaseButton()
 {
     m_bDefault = FALSE;
     m_bCanBeDefault = FALSE;
+    m_bIsCheckBox = FALSE;
 
     // invalid value, since type still unknown
     m_nTypeStyle = BASEBTN_BS_TYPEMASK;
@@ -47,6 +48,9 @@ void CTTBaseButton::PreSubclassWindow()
         // enable default state handling for push buttons
         m_bCanBeDefault = TRUE;
     }
+
+    if (m_nTypeStyle & BS_CHECKBOX)
+        m_bIsCheckBox = TRUE;
 
     // you should not set the Owner Draw before this call
     // (don't use the resource editor "Owner Draw" or
@@ -238,4 +242,15 @@ void CTTBaseButton::SetDefID(CDialog* pDialog, const UINT nID)
                 BS_DEFPUSHBUTTON, MAKELPARAM(TRUE, 0));
         }
     }
+}
+
+/// <summary>
+///     Get the control's check box state
+/// </summary>
+/// <returns>
+///     TRUE if control is a check box, FALSE otherwise
+/// </returns>
+BOOL CTTBaseButton::IsCheckBox() const
+{
+    return m_bIsCheckBox;
 }

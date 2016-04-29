@@ -52,6 +52,7 @@ public:
     afx_msg void OnEnUpdate();
     virtual void PreSubclassWindow();
     afx_msg void OnPaint();
+    afx_msg void OnKillFocus(CWnd* pNewWnd);
 };
 
 

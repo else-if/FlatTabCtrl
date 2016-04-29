@@ -21,7 +21,8 @@ protected:
 	int m_BorderPenWidth;
 	int m_CornerRadius;
 	bool m_bTracking;	
-    
+    bool m_bChecked;
+
 	CFont m_TextFont;
 
 	void UpdateButtonState(UINT state);
@@ -33,9 +34,8 @@ public:
 
 protected:
 
-	//afx_msg BOOL OnEraseBkgnd(CDC* pDC);	
-	afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
-    afx_msg BOOL OnEraseBkgnd(CDC* pDC);
+	afx_msg BOOL OnEraseBkgnd(CDC* pDC);	
+	afx_msg void OnLButtonUp(UINT nFlags, CPoint point);    
 
 	DECLARE_MESSAGE_MAP()
 public:

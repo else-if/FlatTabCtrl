@@ -9,7 +9,7 @@ class CTTButton2 : public CTTButton
 		CTTButton2();
 		virtual ~CTTButton2();
 
-		virtual void DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct);
+		//virtual void DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct);
 
 protected:
 	DECLARE_MESSAGE_MAP()

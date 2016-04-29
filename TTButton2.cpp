@@ -14,8 +14,8 @@ CTTButton2::CTTButton2()
 	m_BorderPenWidth = 2;
 	m_CornerRadius = 10;
 
-	m_ColorMap.SetColor(Normal, Border, RGB(153, 152, 158));
-	m_ColorMap.SetColor(Focus, Border, RGB(153, 152, 158));
+    //m_ColorMap.SetColor(Normal, Border, RGB(153, 152, 158));
+	//m_ColorMap.SetColor(Focus, Border, RGB(153, 152, 158));
 }
 
 CTTButton2::~CTTButton2()
@@ -25,7 +25,7 @@ CTTButton2::~CTTButton2()
 BEGIN_MESSAGE_MAP(CTTButton2, CTTButton)
 END_MESSAGE_MAP()
 
-void CTTButton2::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
+/*void CTTButton2::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 {
 	CDC xdc;
 	xdc.Attach(lpDrawItemStruct->hDC);
@@ -78,4 +78,4 @@ void CTTButton2::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 
 	DrawText(cRect, memDC, m_TextFont, textColor, buttonText, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
 
-}
+}*/

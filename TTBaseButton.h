@@ -26,6 +26,7 @@ private:
     BOOL m_bCanBeDefault;	/* TRUE to enable default state handling */
     BOOL m_bDefault;		/* Set to TRUE when control has default state */
     UINT m_nTypeStyle;		/* Type of control */
+    BOOL m_bIsCheckBox;    /* Set to TRUE when control is a check button */
 
 protected:
     // Interface
@@ -38,6 +39,9 @@ protected:
 
     /// Use to know the type of control to draw
     UINT GetControlType() const;
+
+    /// Use to know whether the control has a default state
+    BOOL IsCheckBox() const;
 
 public:
     /// Use to set the dialog's default pushbutton

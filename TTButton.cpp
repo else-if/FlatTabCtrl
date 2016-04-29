@@ -40,11 +40,12 @@ void CTTButton::UpdateButtonState(UINT state)
 
     if (state & ODS_DISABLED)
 		m_ButtonState = Disable;
-    else if ((state & ODS_SELECTED) || (state & ODS_CHECKED))
+    else if ((state & ODS_SELECTED) || 
+        (IsCheckBox() && GetCheck()))
 		m_ButtonState = Press;
 	else if (m_bTracking)
 		m_ButtonState = Mouseover;
-    else if ((state & ODS_FOCUS) || IsDefault())
+    else if (state & ODS_FOCUS)
 		m_ButtonState = Focus;
     else
 		m_ButtonState = Normal;
@@ -54,7 +55,7 @@ BEGIN_MESSAGE_MAP(CTTButton, CTTBaseButton)
 	ON_WM_ERASEBKGND()
 	ON_WM_LBUTTONUP()
 	ON_WM_MOUSEMOVE()
-	ON_WM_MOUSELEAVE()	
+	ON_WM_MOUSELEAVE()    
 END_MESSAGE_MAP()
 
 void CTTButton::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
@@ -98,8 +99,11 @@ void CTTButton::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 		m_CornerRadius, lightPenWidth);
 	
 	// Border
-    DrawRectArea(BorderRect, graphics, m_ColorMap.GetColor(m_ButtonState, Border),
-		m_CornerRadius, m_BorderPenWidth);
+    COLORREF borderColor = m_ColorMap.GetColor(m_ButtonState, Border);
+    if (IsDefault() && (m_ButtonState == Normal || m_ButtonState == Focus))
+        borderColor = m_ColorMap.GetColor(Mouseover, Border);
+
+    DrawRectArea(BorderRect, graphics, borderColor, m_CornerRadius, m_BorderPenWidth);
 
 	// Button text
 	CString buttonText;
@@ -121,13 +125,26 @@ BOOL CTTButton::PreTranslateMessage(MSG* pMsg)
 	if (pMsg->message == WM_LBUTTONDBLCLK) {
 		pMsg->message = WM_LBUTTONDOWN;
 	}
-	return CButton::PreTranslateMessage(pMsg);	
+    
+    
+    if (IsCheckBox() && pMsg->message == WM_COMMAND)
+    {
+        WPARAM wmId = LOWORD(pMsg->wParam);
+        LPARAM wmEvent = HIWORD(pMsg->wParam);
+            
+        if (wmEvent == BN_CLICKED)
+        {
+            m_bChecked = !m_bChecked;
+        }
+    }
+
+    return CButton::PreTranslateMessage(pMsg);	
 }
 
 void CTTButton::OnLButtonUp(UINT nFlags, CPoint point)
 {
 	CButton::OnLButtonUp(nFlags, point);
-	Invalidate();
+    Invalidate();
 }
 
 void CTTButton::OnMouseMove(UINT nFlags, CPoint point)
@@ -147,15 +164,13 @@ void CTTButton::OnMouseMove(UINT nFlags, CPoint point)
 
 void CTTButton::OnMouseLeave()
 {
-	m_bTracking = false;
-	Invalidate(false);
+    m_bTracking = false;
+	Invalidate();
 
 	CButton::OnMouseLeave();
 }
 
 void CTTButton::PreSubclassWindow()
 {
-    //ModifyStyle(0, BS_OWNERDRAW, SWP_FRAMECHANGED);
-
     CTTBaseButton::PreSubclassWindow();
 }

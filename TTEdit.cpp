@@ -45,6 +45,7 @@ void CTTEdit::UpdateControlState()
     else
         m_ControlState = Normal;
 
+    m_bStateChanged = oldCtrlStrate != m_ControlState;
     m_bUseBitmap = (m_bUseBitmap && oldCtrlStrate == m_ControlState);
 }
 
@@ -55,6 +56,13 @@ void CTTEdit::Paint(CDC* pDC)
 
     UpdateControlState();
 
+    if (m_bUseBitmap && !m_bStateChanged)
+        return;
+
+    /*CString str;
+    DWORD curSel = GetSel();
+    GetWindowText(str);*/
+
     if (m_bUseBitmap)
     {
         Trace(_T("paint bmp"));
@@ -64,6 +72,9 @@ void CTTEdit::Paint(CDC* pDC)
             m_ClientRect.Width,
             m_ClientRect.Height,
             &m_dc, 0, 0, SRCCOPY);
+
+        /*SetWindowText(str);
+        SetSel(curSel);*/
 
         return;
     }
@@ -87,6 +98,9 @@ void CTTEdit::Paint(CDC* pDC)
 
     DrawRectArea(BorderRect, graphics, m_ColorMap.GetColor(m_ControlState, Border),
         m_CornerRadius, m_borderPenWidth);
+
+    /*SetWindowText(str);
+    SetSel(curSel);*/
 
     m_dc.DeleteDC();
 
@@ -115,6 +129,7 @@ BEGIN_MESSAGE_MAP(CTTEdit, CEdit)
     ON_WM_MOUSELEAVE()
     ON_CONTROL_REFLECT(EN_UPDATE, &CTTEdit::OnEnUpdate)
     ON_WM_PAINT()
+    ON_WM_KILLFOCUS()
 END_MESSAGE_MAP()
 
 HBRUSH CTTEdit::CtlColor(CDC* pDC, UINT nCtlColor)
@@ -178,6 +193,11 @@ void CTTEdit::OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS* lpncsp)
     //calculate NC area to center text.
 
     GetClientRect(rectClient);
+    if (rectClient.IsRectEmpty())
+    {
+        GetWindowRect(rectClient);
+        rectClient.OffsetRect(-rectClient.left, -rectClient.top);
+    }
     GetWindowRect(rectWnd);
 
     ClientToScreen(rectClient);
@@ -224,21 +244,14 @@ void CTTEdit::OnNcPaint()
 
     Default();
 
-    CString str;
-    DWORD curSel = GetSel();
-    GetWindowText(str);
-
     CWindowDC dc(this);
     SetPosition(0, 0);
     Paint(&dc);
-
-    SetWindowText(str);
-    SetSel(curSel);
 }
 
 BOOL CTTEdit::OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message)
 {
-    Trace(_T("SetCursor"));
+    //Trace(_T("SetCursor"));
     m_bHover = (nHitTest == HTCLIENT);
     return CEdit::OnSetCursor(pWnd, nHitTest, message);
 }
@@ -328,4 +341,10 @@ void CTTEdit::Trace(CString cMsg)
     CString cStr;
     cStr.Format(_T(" id: %d\n"), GetDlgCtrlID());
     TRACE(cMsg + cStr);
+}
+
+void CTTEdit::OnKillFocus(CWnd* pNewWnd)
+{
+    CEdit::OnKillFocus(pNewWnd);
+    Invalidate();
 }

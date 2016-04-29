@@ -93,6 +93,8 @@ public:
 	CTTGroupBox m_GrBox2;
 	CTTGroupBox m_GrBox3;
 
+    CTTButton m_TTPushButton;
+
 	void FillCombo(CComboBox &Combo);
 
 	BoringEditCtrl2 m_EditCtrl;
