@@ -124,10 +124,14 @@ void CTTStatic::OnPaint()
 		DrawRectArea(BorderRect, graphics, borderColor, m_iCornerRadius, m_borderPenWidth);
 	}
 
+    COLORREF textColor = m_textColor;
+    if (m_ControlState == Disable)
+        textColor = GetSysColor(COLOR_GRAYTEXT);    
+
+    memDC.GetDC().SetTextColor(textColor);
+
     CString strText = _T("");
     GetWindowText(strText);
-
-    memDC.GetDC().SetTextColor(m_textColor);
 
     LOGFONT logFont;
     GetFont()->GetLogFont(&logFont);
