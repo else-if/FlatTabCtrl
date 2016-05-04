@@ -71,7 +71,7 @@ void CTTStatic::DrawBorders(bool drawBorders)
 	m_bDrawBorders = drawBorders;
 }
 
-void CTTStatic::SetColorProperies(COLORREF backgroundColor, COLORREF textColor, COLORREF borderColor)
+void CTTStatic::SetColorProperties(COLORREF backgroundColor, COLORREF textColor, COLORREF borderColor)
 {
 	SetBackgroundColor(backgroundColor);
 	SetTextColor(textColor);
@@ -102,8 +102,6 @@ void CTTStatic::OnPaint()
 
 	UpdateControlState();
 
-	LONG style = GetWindowLong(GetSafeHwnd(), GWL_STYLE) & BS_TYPEMASK;
-
 	//Background
 
 	DrawThemeParentBackground(GetSafeHwnd(), memDC.GetDC().GetSafeHdc(), cRect);
@@ -126,46 +124,35 @@ void CTTStatic::OnPaint()
 		DrawRectArea(BorderRect, graphics, borderColor, m_iCornerRadius, m_borderPenWidth);
 	}
 
-	// Caption text
-	CString staticText;
-	GetWindowText(staticText);
+    CString strText = _T("");
+    GetWindowText(strText);
 
-	if (staticText && !staticText.IsEmpty())
-	{
-        
-		LOGFONT logFont;
-		GetFont()->GetLogFont(&logFont);
-		Gdiplus::Font font(memDC.GetDC().GetSafeHdc(), &logFont);
+    memDC.GetDC().SetTextColor(m_textColor);
 
-		cRect.DeflateRect(m_borderPenWidth, 1, m_borderPenWidth, 1);
-        
-		Color textColor;
-		if (m_ControlState == Disable)
-			textColor.SetFromCOLORREF(GetSysColor(COLOR_GRAYTEXT));
-		else
-			textColor.SetFromCOLORREF(m_textColor);
+    LOGFONT logFont;
+    GetFont()->GetLogFont(&logFont);
+    CFont font;
+    font.CreateFontIndirectW(&logFont);
+    memDC.GetDC().SelectObject(&font);
 
-		SolidBrush textBrush(textColor);
-		Gdiplus::RectF layoutRect((REAL)cRect.left, (REAL)cRect.top, (REAL)cRect.Width(), (REAL)cRect.Height());
+    DWORD ExStyle = GetExStyle();
+    DWORD Style = GetStyle() & SS_TYPEMASK;
 
-        Gdiplus::StringFormat sFormat = Gdiplus::StringFormat::GenericDefault();
-        Gdiplus::StringAlignment sAlignment = Gdiplus::StringAlignment::StringAlignmentNear;
+    UINT nFormat = DT_WORDBREAK;
 
-        DWORD ExStyle = GetExStyle();
-        DWORD Style = GetStyle() & SS_TYPEMASK;
+    if (Style == SS_LEFT)
+        nFormat |= DT_LEFT;
+    else if (Style == SS_RIGHT || ExStyle & WS_EX_RIGHT)
+        nFormat |= DT_RIGHT;
+    else if (Style == SS_CENTER)
+        nFormat |= DT_CENTER;
 
-        if (Style == SS_LEFT)
-            sAlignment = Gdiplus::StringAlignment::StringAlignmentNear; 
-        else if (Style == SS_RIGHT || ExStyle & WS_EX_RIGHT)
-            sAlignment = Gdiplus::StringAlignment::StringAlignmentFar;
-        else if (Style == SS_CENTER)
-            sAlignment = Gdiplus::StringAlignment::StringAlignmentCenter;
+    int textOffset = 0;
+    if (m_bDrawBorders)
+        textOffset += m_borderPenWidth + (m_borderPenWidth > 1 ? 0 : 1);
 
-        sFormat.SetAlignment(sAlignment);
-
-		graphics.DrawString(staticText.GetBuffer(0), staticText.GetLength(), &font,
-			layoutRect, &sFormat, &textBrush);        
-	}
+    cRect.DeflateRect(textOffset, textOffset, textOffset, textOffset);
+    memDC.GetDC().DrawText(strText, cRect, nFormat);
 }
 
 void CTTStatic::OnEnable(BOOL bEnable)

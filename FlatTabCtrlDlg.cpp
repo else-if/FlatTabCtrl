@@ -108,6 +108,7 @@ BEGIN_MESSAGE_MAP(CFlatTabCtrlDlg, CDialogEx)
 	ON_BN_CLICKED(IDOK, &CFlatTabCtrlDlg::OnBnClickedOk)
 	ON_BN_CLICKED(IDC_BUTTON2, &CFlatTabCtrlDlg::OnBnClickedButton2)
 	ON_BN_CLICKED(IDC_BUTTON3, &CFlatTabCtrlDlg::OnBnClickedButton3)
+    ON_BN_CLICKED(IDC_CHECK1, &CFlatTabCtrlDlg::OnBnClickedCheck1)
 END_MESSAGE_MAP()
 
 
@@ -200,10 +201,10 @@ BOOL CFlatTabCtrlDlg::OnInitDialog()
 	m_TTStatic5.SetDrawingProperties(2, 10, false);
 
 	m_TTStatic7.DrawBorders(true);
-	m_TTStatic7.SetColorProperies(RGB(221, 232, 101), RGB(23, 55, 125), RGB(202, 81, 0));
+	m_TTStatic7.SetColorProperties(RGB(221, 232, 101), RGB(23, 55, 125), RGB(202, 81, 0));
 
 	m_TTStatic8.SetDrawingProperties(2, 10, true);
-	m_TTStatic8.SetColorProperies(RGB(221, 232, 101), RGB(23, 55, 125), RGB(202, 81, 0));
+	m_TTStatic8.SetColorProperties(RGB(221, 232, 101), RGB(23, 55, 125), RGB(202, 81, 0));
 
 	//m_Edit2.SetDrawingProperties(2, 10);
 	m_Edit1.SetWindowTextW(_T("Sample edit box"));
@@ -414,4 +415,10 @@ void CFlatTabCtrlDlg::OnBnClickedButton3()
 		
 		GetDlgItem(IDC_TTGROUPBOX2)->EnableWindow(TRUE);
 	}
+}
+
+
+void CFlatTabCtrlDlg::OnBnClickedCheck1()
+{
+    GetDlgItem(IDC_TT_STATIC1)->SetWindowTextW(_T("NEW STRING"));
 }

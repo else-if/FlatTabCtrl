@@ -23,7 +23,7 @@ class CTTStatic : public CStatic
 
 		void SetDrawingProperties(int borderPenWidth, int cornerRadius, bool drawBorder = false);
 
-		void SetColorProperies(COLORREF backgroundColor, COLORREF textColor, COLORREF borderColor);
+        void SetColorProperties(COLORREF backgroundColor, COLORREF textColor, COLORREF borderColor);
 
 	protected:
 

@@ -20,6 +20,7 @@
 #include "TTStatic.h"
 #include <msclr\event.h>
 #include "TTGroupBox.h"
+#include "TTStatic2.h"
 
 using namespace System;
 using namespace System::ComponentModel;
@@ -111,4 +112,5 @@ public:
 	afx_msg void OnBnClickedButton2();
 	afx_msg void OnBnClickedButton3();
 	afx_msg void OnBnClickedCancel();
+    afx_msg void OnBnClickedCheck1();
 };

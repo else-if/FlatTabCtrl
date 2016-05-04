@@ -340,7 +340,7 @@ void CTTEdit::Trace(CString cMsg)
 {
     CString cStr;
     cStr.Format(_T(" id: %d\n"), GetDlgCtrlID());
-    TRACE(cMsg + cStr);
+    //TRACE(cMsg + cStr);
 }
 
 void CTTEdit::OnKillFocus(CWnd* pNewWnd)
