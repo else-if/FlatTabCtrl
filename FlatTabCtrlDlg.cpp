@@ -9,6 +9,8 @@
 #include "BGWorkerDlg.h"
 
 #include <Gdiplus.h>
+#include "TabSheet1.h"
+#include "TabSheet2.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -54,6 +56,17 @@ CFlatTabCtrlDlg::CFlatTabCtrlDlg(CWnd* pParent /*=NULL*/)
 	: CDialogEx(CFlatTabCtrlDlg::IDD, pParent)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
+}
+
+CFlatTabCtrlDlg::~CFlatTabCtrlDlg()
+{
+    m_vPages[0]->DestroyWindow();
+    m_vPages[1]->DestroyWindow();
+
+    delete m_vPages[0];
+    delete m_vPages[1];
+
+    m_vPages.clear();
 }
 
 void CFlatTabCtrlDlg::DoDataExchange(CDataExchange* pDX)
@@ -102,13 +115,14 @@ BEGIN_MESSAGE_MAP(CFlatTabCtrlDlg, CDialogEx)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
 	ON_STN_CLICKED(IDC_MY_STATIC, &CFlatTabCtrlDlg::OnStnClickedMyStatic)
-	ON_NOTIFY(TCN_SELCHANGE, IDC_TAB1, &CFlatTabCtrlDlg::OnTcnSelchangeTab1)
+	ON_NOTIFY(TCN_SELCHANGE, IDC_TAB1, &CFlatTabCtrlDlg::OnTabChanged)
 	ON_BN_CLICKED(IDC_BUTTON1, &CFlatTabCtrlDlg::OnBnClickedButton1)
 	ON_EN_CHANGE(IDC_EDIT2, &CFlatTabCtrlDlg::OnEnChangeEdit2)
 	ON_BN_CLICKED(IDOK, &CFlatTabCtrlDlg::OnBnClickedOk)
 	ON_BN_CLICKED(IDC_BUTTON2, &CFlatTabCtrlDlg::OnBnClickedButton2)
 	ON_BN_CLICKED(IDC_BUTTON3, &CFlatTabCtrlDlg::OnBnClickedButton3)
     ON_BN_CLICKED(IDC_CHECK1, &CFlatTabCtrlDlg::OnBnClickedCheck1)
+    ON_NOTIFY(TCN_SELCHANGING, IDC_TAB1, &CFlatTabCtrlDlg::OnTabChanging)
 END_MESSAGE_MAP()
 
 
@@ -168,11 +182,26 @@ BOOL CFlatTabCtrlDlg::OnInitDialog()
 
 	// TODO: Add extra initialization here	
 
-	m_FlatTabCtrl.InsertItem(0, _T("Test"));
-	m_FlatTabCtrl.InsertItem(1, _T("Test1"));
-	m_FlatTabCtrl.InsertItem(2, _T("Test2"));
-	m_FlatTabCtrl.InsertItem(4, _T("Here is a very very long tab item header"));
-	m_FlatTabCtrl.InsertItem(4, _T("Second very very long tab item header"));
+    m_vPages.push_back(new CTabSheet1(this));
+    m_vPages.push_back(new CTabSheet2(this));
+    
+    m_vPages[0]->Create(CTabSheet1::IDD, &m_FlatTabCtrl);
+    m_vPages[1]->Create(CTabSheet2::IDD, &m_FlatTabCtrl);
+
+	RECT r;
+    TCITEM tci;
+
+    m_FlatTabCtrl.GetClientRect(&r);
+
+    tci.mask = TCIF_TEXT;
+    tci.iImage = -1;
+    tci.pszText = L"Page One";
+    m_FlatTabCtrl.InsertItem(0, &tci);
+    tci.pszText = L"Page Two";
+    m_FlatTabCtrl.InsertItem(1, &tci);    
+
+    OnTabChanged(NULL, NULL);
+
 
 	FillCombo(m_CommonCombo);
 
@@ -215,6 +244,8 @@ BOOL CFlatTabCtrlDlg::OnInitDialog()
 	m_WideEdit2.SetWindowTextW(_T("Wide edit box"));
 
 	m_MultiLineEdit.SetWindowTextW(_T("multy\r\nline\r\ntext"));
+
+    Invalidate();
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -292,13 +323,6 @@ HCURSOR CFlatTabCtrlDlg::OnQueryDragIcon()
 void CFlatTabCtrlDlg::OnStnClickedMyStatic()
 {
 	// TODO: Add your control notification handler code here
-}
-
-
-void CFlatTabCtrlDlg::OnTcnSelchangeTab1(NMHDR *pNMHDR, LRESULT *pResult)
-{
-	// TODO: Add your control notification handler code here
-	*pResult = 0;
 }
 
 
@@ -421,4 +445,24 @@ void CFlatTabCtrlDlg::OnBnClickedButton3()
 void CFlatTabCtrlDlg::OnBnClickedCheck1()
 {
     GetDlgItem(IDC_TT_STATIC1)->SetWindowTextW(_T("NEW STRING"));
+}
+
+
+void CFlatTabCtrlDlg::OnTabChanging(NMHDR *pNMHDR, LRESULT *pResult)
+{
+    // TODO: Add your control notification handler code here
+    m_vPages[m_FlatTabCtrl.GetCurSel()]->ShowWindow(SW_HIDE);
+    *pResult = 0;
+}
+
+
+void CFlatTabCtrlDlg::OnTabChanged(NMHDR *pNMHDR, LRESULT *pResult)
+{
+    // TODO: Add your control notification handler code here
+    RECT rc;
+    m_FlatTabCtrl.GetItemRect(0, &rc);
+    int nIndex = m_FlatTabCtrl.GetCurSel();
+
+    m_vPages[nIndex]->SetWindowPos(NULL, rc.left + 1, rc.bottom + 1, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_SHOWWINDOW);
+    m_vPages[nIndex]->SetFocus();
 }

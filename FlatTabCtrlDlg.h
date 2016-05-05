@@ -21,6 +21,7 @@
 #include <msclr\event.h>
 #include "TTGroupBox.h"
 #include "TTStatic2.h"
+#include <vector>
 
 using namespace System;
 using namespace System::ComponentModel;
@@ -31,6 +32,7 @@ class CFlatTabCtrlDlg : public CDialogEx
 // Construction
 public:
 	CFlatTabCtrlDlg(CWnd* pParent = NULL);	// standard constructor
+    virtual ~CFlatTabCtrlDlg();
 
 // Dialog Data
 	enum { IDD = IDD_FLATTABCTRL_DIALOG };
@@ -46,6 +48,8 @@ protected:
 // Implementation
 protected:
 	HICON m_hIcon;
+
+    std::vector<CDialog*> m_vPages;
 
 	void bgWorker_DoWork(Object^ sender, DoWorkEventArgs^ e);
 
@@ -104,7 +108,7 @@ public:
 	CEdit m_EditCtrl1;
 	BoringButtonCtrl m_groupBox;
 	afx_msg void OnStnClickedMyStatic();
-	afx_msg void OnTcnSelchangeTab1(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnTabChanged(NMHDR *pNMHDR, LRESULT *pResult);
 	CBoringComboBox m_ComboBox;
 	afx_msg void OnBnClickedButton1();
 	afx_msg void OnEnChangeEdit2();
@@ -113,4 +117,5 @@ public:
 	afx_msg void OnBnClickedButton3();
 	afx_msg void OnBnClickedCancel();
     afx_msg void OnBnClickedCheck1();
+    afx_msg void OnTabChanging(NMHDR *pNMHDR, LRESULT *pResult);
 };

@@ -1,4 +1,6 @@
 #pragma once
+#include "afxwin.h"
+#include "TTButton.h"
 
 
 // CTabSheet1 dialog
@@ -18,4 +20,15 @@ protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
 	DECLARE_MESSAGE_MAP()
+public:
+    CTTButton m_CancelBtn;
+    CTTButton m_OkBtn;
+    CTTButton m_btn1;
+    CTTButton m_btn2;
+    CTTButton m_btn3;
+    CTTButton m_btn4;
+    CTTButton m_btn5;
+    CTTButton m_btn6;
+    CTTButton m_btn7;
+    CTTButton m_btn8;
 };

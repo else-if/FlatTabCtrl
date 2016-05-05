@@ -23,7 +23,9 @@ CTabSheet2::~CTabSheet2()
 
 void CTabSheet2::DoDataExchange(CDataExchange* pDX)
 {
-	CDialog::DoDataExchange(pDX);
+    CDialog::DoDataExchange(pDX);
+    DDX_Control(pDX, IDOK, m_OkBtn);
+    DDX_Control(pDX, IDCANCEL, m_CancelBtn);
 }
 
 

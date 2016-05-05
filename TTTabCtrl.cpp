@@ -14,7 +14,7 @@ CTTTabCtrl::CTTTabCtrl()
 	m_bTracking = false;
 	m_iMouseOverTab = -1;
 
-	SetDrawingProperties(1, 5);
+    SetDrawingProperties(1, 5);
 
 	m_ColorMap.SetDefaultColors();
 }
@@ -137,127 +137,144 @@ void CTTTabCtrl::PreSubclassWindow()
 
 BOOL CTTTabCtrl::OnEraseBkgnd(CDC* pDC)
 {
-	Invalidate(FALSE);
 	return TRUE;	
 }
 
 void CTTTabCtrl::OnPaint()
-{	
-	CRect cRect;
-	GetClientRect(&cRect);
-	CPaintDC dc(this); // device context for painting
+{
+    CRect cRect;
+    GetClientRect(&cRect);
+    CPaintDC dc(this); // device context for painting
 
-	CMemDC memDC(dc, cRect);
+    CMemDC memDC(dc, cRect);
 
-	Graphics graphics(memDC.GetDC().GetSafeHdc());
-	graphics.SetSmoothingMode(SmoothingModeAntiAlias);
-	graphics.SetInterpolationMode(InterpolationModeHighQualityBicubic);
-		
-	memDC.GetDC().FillSolidRect(&cRect, m_backgroundColor);
-	
-	CRect rPage;
-	GetClientRect(&rPage);
-	AdjustRect(FALSE, rPage);
+    Graphics graphics(memDC.GetDC().GetSafeHdc());
+    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
+    graphics.SetInterpolationMode(InterpolationModeHighQualityBicubic);
 
-	int nTab = GetItemCount();
-	int nSel = GetCurSel();
+    memDC.GetDC().FillSolidRect(&cRect, m_backgroundColor);
 
-	if (!nTab)
-		return;
-	
-	CRect r1;
-	VERIFY(GetItemRect(nSel, &r1));
-	CRect r2;
-	VERIFY(GetItemRect(0, &r2));
-	rPage.top = r1.bottom;
-	rPage.left = r2.left;
+    CRect rPage;
+    GetClientRect(&rPage);
+    AdjustRect(FALSE, rPage);
 
-	Gdiplus::Rect rTab(r1.left, r1.top, r1.Width(), r1.Height());
-	Gdiplus::Rect rView(rPage.left, rPage.top, rPage.Width(), rPage.Height());
+    int nTab = GetItemCount();
+    int nSel = GetCurSel();
 
-	GraphicsPath path;
-	GetTabControlPath(&path, rTab, rView, m_cornerRadius);
+    if (!nTab)
+        return;
 
-	Gdiplus::Region region(&path);
-	graphics.SetClip(&region);
+    CRect r1;
+    VERIFY(GetItemRect(nSel, &r1));
+    CRect r2;
+    VERIFY(GetItemRect(0, &r2));
+    rPage.top = r1.bottom;
+    rPage.left = r2.left;
 
-	LOGFONT logFont;
-	GetFont()->GetLogFont(&logFont);
-	CFont font;	
+    Gdiplus::Rect rTab(r1.left, r1.top, r1.Width(), r1.Height());
+    Gdiplus::Rect rView(rPage.left, rPage.top, rPage.Width(), rPage.Height());
 
-	if (GetFocus() == this)
-		logFont.lfUnderline = 1;		
-	
-	font.CreateFontIndirect(&logFont);
-	memDC.GetDC().SelectObject(&font);
-	
-	TCHAR buffer[256] = { 0 };
-	memDC.GetDC().SetBkMode(TRANSPARENT);
-	COLORREF textColor = GetSysColor(COLOR_CAPTIONTEXT);
-	
-	while (nTab--)
-	{		
-		if (nTab != nSel)
-		{
-			RECT TabRect;			
-			GetItemRect(nTab, &TabRect);
-			
-			if (m_iMouseOverTab == nTab)
-			{
-				RECT HighlightedRect;
-				GetItemRect(m_iMouseOverTab, &HighlightedRect);
+    GraphicsPath path;
+    GetTabControlPath(&path, rTab, rView, m_cornerRadius);
 
-				CRect rc = (CRect)HighlightedRect;
-				
-				Draw4ColorsGradientRect(rc, memDC,					
-					m_ColorMap.GetColor(Mouseover, BackgroundBottomGradientFinish), 
-					m_ColorMap.GetColor(Mouseover, BackgroundBottomGradientStart),
-					m_ColorMap.GetColor(Mouseover, BackgroundTopGradientFinish),
-					m_ColorMap.GetColor(Mouseover, BackgroundTopGradientStart),					
-					m_cornerRadius);
-			}
+    Gdiplus::Region region(&path);
+    graphics.SetClip(&region);
 
-			TCITEM tcItem;
-			tcItem.pszText = buffer;
-			tcItem.cchTextMax = 256;
-			tcItem.mask = TCIF_TEXT;
-			GetItem(nTab, &tcItem);			
+    LOGFONT logFont;
+    GetFont()->GetLogFont(&logFont);
+    CFont font;
 
-			DrawText((CRect)TabRect, memDC, font, textColor, CString(tcItem.pszText), DT_CENTER | DT_VCENTER | DT_SINGLELINE);			
-		}		
-	}
-	
-	// now selected tab
-	RECT TabRect;
-	GetItemRect(nSel, &TabRect);
-	
-	Gdiplus::SolidBrush b(Gdiplus::Color::White);
-	TabRect.bottom = rPage.top;
-	graphics.FillRegion(&b, &region);
+    if (GetFocus() == this)
+        logFont.lfUnderline = 1;
 
-	Color bordColor(0, 0, 0);
-	bordColor.SetFromCOLORREF(m_ColorMap.GetColor(Normal, Border));
-	Gdiplus::Pen pen(bordColor, (REAL)m_borderWidth);
-	pen.SetLineJoin(LineJoinRound);
-	pen.SetAlignment(PenAlignmentCenter);
-	
-	TCITEM tcItem;
-	tcItem.pszText = buffer;
-	tcItem.cchTextMax = 256;
-	tcItem.mask = TCIF_TEXT;
-	GetItem(nSel, &tcItem);
-	
-	DrawText((CRect)TabRect, memDC, font, textColor, CString(tcItem.pszText), DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+    font.CreateFontIndirect(&logFont);
+    memDC.GetDC().SelectObject(&font);
 
-	graphics.ResetClip();
-	graphics.DrawPath(&pen, &path);
+    TCHAR buffer[256] = { 0 };
+    memDC.GetDC().SetBkMode(TRANSPARENT);
+    COLORREF textColor = GetSysColor(COLOR_CAPTIONTEXT);
+
+    while (nTab--)
+    {
+        if (nTab != nSel)
+        {
+            RECT TabRect;
+            GetItemRect(nTab, &TabRect);
+
+            if (m_iMouseOverTab == nTab)
+            {
+                RECT HighlightedRect;
+                GetItemRect(m_iMouseOverTab, &HighlightedRect);
+
+                CRect rc = (CRect)HighlightedRect;
+
+                Draw4ColorsGradientRect(rc, memDC,
+                    m_ColorMap.GetColor(Mouseover, BackgroundBottomGradientFinish),
+                    m_ColorMap.GetColor(Mouseover, BackgroundBottomGradientStart),
+                    m_ColorMap.GetColor(Mouseover, BackgroundTopGradientFinish),
+                    m_ColorMap.GetColor(Mouseover, BackgroundTopGradientStart),
+                    m_cornerRadius);
+            }
+
+            TCITEM tcItem;
+            tcItem.pszText = buffer;
+            tcItem.cchTextMax = 256;
+            tcItem.mask = TCIF_TEXT;
+            GetItem(nTab, &tcItem);
+
+            DrawText((CRect)TabRect, memDC, font, textColor, CString(tcItem.pszText), DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+        }
+    }
+
+    // now selected tab
+    RECT TabRect;
+    GetItemRect(nSel, &TabRect);
+
+    Gdiplus::SolidBrush b(Gdiplus::Color::White);
+    TabRect.bottom = rPage.top;
+    graphics.FillRegion(&b, &region);
+
+    Color bordColor(0, 0, 0);
+    bordColor.SetFromCOLORREF(m_ColorMap.GetColor(Normal, Border));
+    Gdiplus::Pen pen(bordColor, (REAL)m_borderWidth);
+    pen.SetLineJoin(LineJoinRound);
+    pen.SetAlignment(PenAlignmentCenter);
+
+    TCITEM tcItem;
+    tcItem.pszText = buffer;
+    tcItem.cchTextMax = 256;
+    tcItem.mask = TCIF_TEXT;
+    GetItem(nSel, &tcItem);
+
+    DrawText((CRect)TabRect, memDC, font, textColor, CString(tcItem.pszText), DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+
+    graphics.ResetClip();
+    graphics.DrawPath(&pen, &path);
+
 }
 
 void CTTTabCtrl::OnMouseLeave()
 {
 	m_bTracking = false;
-	m_iMouseOverTab = -1;
-	Invalidate(false);
+    
+    if (m_iMouseOverTab >= 0)
+    {
+        if (m_iMouseOverTab != GetCurSel())
+        {
+            
+            //If we are here,then mouse leaved the raised item, so
+            //we have to redraw it as normal (unraised).
+
+            CRect rectItem;
+            GetItemRect(m_iMouseOverTab, &rectItem);
+            
+            m_iMouseOverTab = -1;
+
+            InvalidateRect(&rectItem);
+            UpdateWindow();                
+        }   
+        m_iMouseOverTab = -1;
+    }    
 
 	CTabCtrl::OnMouseLeave();
 }
@@ -278,11 +295,38 @@ void CTTTabCtrl::OnMouseMove(UINT nFlags, CPoint point)
 	info.flags = TCHT_ONITEM;
 	int hit = HitTest(&info);
 	
-	if (m_iMouseOverTab != hit)
+    if (m_iMouseOverTab != hit)
 	{
-		m_iMouseOverTab = hit;
-		Invalidate(false);
-	}
+        CRect rectItem(0, 0, 0, 0);
+
+        //	Mouse is over new inactive item.
+        if (m_iMouseOverTab >= 0 && m_iMouseOverTab != GetCurSel())
+        {
+            //	Redraw the item, over which mouse was on the previous step.
+            //	We redraw it as normal (unraised).
+
+            GetItemRect(m_iMouseOverTab, &rectItem);
+            
+            m_iMouseOverTab = hit;
+
+            InvalidateRect(&rectItem);
+            UpdateWindow();
+        }
+
+        m_iMouseOverTab = hit;
+
+        if (hit != GetCurSel())
+        {
+            //Redraw the item, over which mouse is now.
+            //We redraw it as raised.
+            GetClientRect(&rectItem);
+            ValidateRect(&rectItem);
+            GetItemRect(hit, &rectItem);
+            
+            InvalidateRect(&rectItem);
+            UpdateWindow();
+        }        
+	}   
 
 	CTabCtrl::OnMouseMove(nFlags, point);
 }

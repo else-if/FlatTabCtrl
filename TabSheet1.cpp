@@ -23,7 +23,17 @@ CTabSheet1::~CTabSheet1()
 
 void CTabSheet1::DoDataExchange(CDataExchange* pDX)
 {
-	CDialog::DoDataExchange(pDX);
+    CDialog::DoDataExchange(pDX);
+    DDX_Control(pDX, IDCANCEL, m_CancelBtn);
+    DDX_Control(pDX, IDOK, m_OkBtn);
+    DDX_Control(pDX, IDCANCEL2, m_btn1);
+    DDX_Control(pDX, IDCANCEL3, m_btn2);
+    DDX_Control(pDX, IDCANCEL4, m_btn3);
+    DDX_Control(pDX, IDCANCEL5, m_btn4);
+    DDX_Control(pDX, IDCANCEL6, m_btn5);
+    DDX_Control(pDX, IDCANCEL7, m_btn6);
+    DDX_Control(pDX, IDCANCEL9, m_btn7);
+    DDX_Control(pDX, IDCANCEL8, m_btn8);
 }
 
 
