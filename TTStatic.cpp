@@ -103,6 +103,7 @@ BOOL CTTStatic::OnEraseBkgnd(CDC* pDC)
         m_Bmp.CreateCompatibleBitmap(pDC, Rect.Width(), Rect.Height());
         CBitmap *pOldBmp = MemDC.SelectObject(&m_Bmp);
 
+        DrawThemeParentBackground(GetParent()->GetSafeHwnd(), pDC->GetSafeHdc(), Rect);
         MemDC.BitBlt(0, 0, Rect.Width(), Rect.Height(), pDC, Rect.left, Rect.top, SRCCOPY);
 
         MemDC.SelectObject(pOldBmp);
