@@ -75,6 +75,20 @@ void CTTTabCtrl::GetTabControlPath(GraphicsPath *pPath, Rect tab, Rect tabView, 
 		Corner.Y = (tab.Y - dia);
 		pPath->AddLine(tabView.X, tabView.Y - dia, tabView.X, tab.Y + dia);
 	}
+    else if (abs(tab.X - tabView.X) < 2 * dia)
+    {
+        int diff = abs(tab.X - tabView.X);
+        Corner.Width = diff / 2;
+
+        Corner.Y = tabView.Y;
+        pPath->AddArc(Corner, 180, 90);
+
+        Corner.Width = diff - Corner.Width;
+
+        Corner.Y -= dia;
+        Corner.X = tab.X - Corner.Width;
+        pPath->AddArc(Corner, 90, -90);
+    }
 	else
 	{
 		Corner.Y = tabView.Y;
@@ -154,22 +168,21 @@ void CTTTabCtrl::OnPaint()
 
     memDC.GetDC().FillSolidRect(&cRect, m_backgroundColor);
 
-    CRect rPage;
-    GetClientRect(&rPage);
-    AdjustRect(FALSE, rPage);
-
     int nTab = GetItemCount();
     int nSel = GetCurSel();
 
     if (!nTab)
         return;
 
+    CRect rPage;
     CRect r1;
     VERIFY(GetItemRect(nSel, &r1));
     CRect r2;
     VERIFY(GetItemRect(0, &r2));
     rPage.top = r1.bottom;
-    rPage.left = r2.left;
+    rPage.left = cRect.left;
+    rPage.right = cRect.right - 1;
+    rPage.bottom = cRect.bottom - 1;
 
     Gdiplus::Rect rTab(r1.left, r1.top, r1.Width(), r1.Height());
     Gdiplus::Rect rView(rPage.left, rPage.top, rPage.Width(), rPage.Height());

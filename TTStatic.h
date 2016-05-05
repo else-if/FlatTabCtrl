@@ -26,6 +26,7 @@ class CTTStatic : public CStatic
         void SetColorProperties(COLORREF backgroundColor, COLORREF textColor, COLORREF borderColor);
 
 	protected:
+        CBitmap m_Bmp;
 
 		ControlState m_ControlState;
 		ControlsColorMap m_ColorMap;
@@ -45,4 +46,5 @@ public:
 	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
 	afx_msg void OnPaint();
 	afx_msg void OnEnable(BOOL bEnable);
+    afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
 };

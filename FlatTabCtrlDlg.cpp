@@ -188,6 +188,9 @@ BOOL CFlatTabCtrlDlg::OnInitDialog()
     m_vPages[0]->Create(CTabSheet1::IDD, &m_FlatTabCtrl);
     m_vPages[1]->Create(CTabSheet2::IDD, &m_FlatTabCtrl);
 
+    ::EnableThemeDialogTexture(m_vPages[0]->GetSafeHwnd(), ETDT_ENABLETAB);
+    ::EnableThemeDialogTexture(m_vPages[1]->GetSafeHwnd(), ETDT_ENABLETAB);
+
 	RECT r;
     TCITEM tci;
 

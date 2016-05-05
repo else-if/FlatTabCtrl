@@ -56,6 +56,7 @@ BEGIN_MESSAGE_MAP(CTTButton, CTTBaseButton)
 	ON_WM_LBUTTONUP()
 	ON_WM_MOUSEMOVE()
 	ON_WM_MOUSELEAVE()    
+    ON_WM_CTLCOLOR()
 END_MESSAGE_MAP()
 
 void CTTButton::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
@@ -66,7 +67,7 @@ void CTTButton::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
     CRect cRect(lpDrawItemStruct->rcItem);
 	//GetClientRect(&cRect);
 
-	CMemDC memDC(xdc, cRect);
+    CMemDC memDC(xdc, cRect);
 
 	Graphics graphics(memDC.GetDC().GetSafeHdc());
 	graphics.SetSmoothingMode(SmoothingModeAntiAlias);
@@ -74,7 +75,8 @@ void CTTButton::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
     graphics.SetTextRenderingHint(TextRenderingHintSingleBitPerPixel);
 
 	DrawThemeParentBackground(GetSafeHwnd(), memDC.GetDC().GetSafeHdc(), cRect);
-		
+    cRect.DeflateRect(1, 1);
+
 	UpdateButtonState(lpDrawItemStruct->itemState);	
 	
 	Gdiplus::Rect BorderRect(cRect.left, cRect.top, cRect.Width(), cRect.Height());
@@ -115,8 +117,7 @@ void CTTButton::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 
 BOOL CTTButton::OnEraseBkgnd(CDC* pDC)
 {
-    //TRACE(_T("btn ERase\n"));
-	return FALSE;
+    return TRUE;
 }
 
 BOOL CTTButton::PreTranslateMessage(MSG* pMsg)
@@ -173,4 +174,12 @@ void CTTButton::OnMouseLeave()
 void CTTButton::PreSubclassWindow()
 {
     CTTBaseButton::PreSubclassWindow();
+}
+
+HBRUSH CTTButton::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
+{
+    pDC->SetBkMode(TRANSPARENT);
+    return (HBRUSH)GetStockObject(NULL_BRUSH);
+    /*HBRUSH hbr = CButton::OnCtlColor(pDC, pWnd, nCtlColor);
+    return hbr;*/
 }

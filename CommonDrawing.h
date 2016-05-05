@@ -21,4 +21,6 @@ void DrawRectArea(Gdiplus::Rect &rc, Gdiplus::Graphics &graphics, COLORREF color
 
 void DrawText(CRect &rc, CMemDC &dc, CFont &font, COLORREF textColor, CString text, UINT nFormat);
 
+void FillRectRegion(CRect &rc, CDC &dc, COLORREF backgroundColor, int cornerRadius, BOOL drawOnCurrentRgn = FALSE);
+
 void FillRectRegion(CRect &rc, CMemDC &dc, COLORREF backgroundColor, int cornerRadius, BOOL drawOnCurrentRgn = FALSE);

@@ -23,9 +23,9 @@ protected:
 	bool m_bTracking;	
     bool m_bChecked;
 
-	CFont m_TextFont;
+    CFont m_TextFont;
 
-	void UpdateButtonState(UINT state);
+	void UpdateButtonState(UINT state);    
 
 public:
 	
@@ -43,4 +43,5 @@ public:
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
 	afx_msg void OnMouseLeave();	
     virtual void PreSubclassWindow();    
+    afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
 };
