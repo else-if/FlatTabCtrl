@@ -27,6 +27,7 @@ private:
     BOOL m_bDefault;		/* Set to TRUE when control has default state */
     UINT m_nTypeStyle;		/* Type of control */
     BOOL m_bIsCheckBox;    /* Set to TRUE when control is a check button */
+    int  m_iCheckState;
 
 protected:
     // Interface
@@ -46,4 +47,8 @@ protected:
 public:
     /// Use to set the dialog's default pushbutton
     static void SetDefID(CDialog* pDialog, const UINT nID);
+
+    LRESULT OnSetCheck(WPARAM wParam, LPARAM lParam);
+    LRESULT OnGetCheck(WPARAM wParam, LPARAM lParam);
+    afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
 };

@@ -9,6 +9,7 @@ CTTBaseButton::CTTBaseButton()
     m_bDefault = FALSE;
     m_bCanBeDefault = FALSE;
     m_bIsCheckBox = FALSE;
+    m_iCheckState = BST_UNCHECKED;
 
     // invalid value, since type still unknown
     m_nTypeStyle = BASEBTN_BS_TYPEMASK;
@@ -21,6 +22,9 @@ CTTBaseButton::~CTTBaseButton()
 BEGIN_MESSAGE_MAP(CTTBaseButton, CButton)
     ON_WM_GETDLGCODE()
     ON_MESSAGE(BM_SETSTYLE, OnSetStyle)
+    ON_MESSAGE(BM_SETCHECK, OnSetCheck)
+    ON_MESSAGE(BM_GETCHECK, OnGetCheck)
+    ON_WM_LBUTTONUP()
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -49,7 +53,8 @@ void CTTBaseButton::PreSubclassWindow()
         m_bCanBeDefault = TRUE;
     }
 
-    if (m_nTypeStyle & BS_CHECKBOX)
+    if ((m_nTypeStyle & BS_CHECKBOX)
+        || (m_nTypeStyle & BS_AUTOCHECKBOX))
         m_bIsCheckBox = TRUE;
 
     // you should not set the Owner Draw before this call
@@ -253,4 +258,21 @@ void CTTBaseButton::SetDefID(CDialog* pDialog, const UINT nID)
 BOOL CTTBaseButton::IsCheckBox() const
 {
     return m_bIsCheckBox;
+}
+
+LRESULT CTTBaseButton::OnSetCheck(WPARAM wParam, LPARAM lParam) {
+    m_iCheckState = wParam;
+    return 0;
+}
+
+LRESULT CTTBaseButton::OnGetCheck(WPARAM wParam, LPARAM lParam) {
+    return m_iCheckState;
+}
+
+void CTTBaseButton::OnLButtonUp(UINT nFlags, CPoint point)
+{
+    BOOL buttonPressed = GetState() & 4;
+    if (buttonPressed) m_iCheckState = (GetStyle() & BS_PUSHLIKE) ? !m_iCheckState : 0;
+    
+    CButton::OnLButtonUp(nFlags, point);
 }
