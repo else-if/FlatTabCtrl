@@ -12,6 +12,11 @@ CTTComboBox::CTTComboBox()
 	m_bButtonPress = false;
 	
 	m_bFilledArrow = false;
+    m_bHasFocus = false;
+    m_bOnButton = false;
+
+    m_iComboBoxStyle = 0;
+
 	SetDrawingProperties(1, 5);
 
 	m_ControlState = Normal;
@@ -305,7 +310,9 @@ void CTTComboBox::DrawSelectedItemText(CRect &cRect, CMemDC &memDC, Gdiplus::Gra
 
 	COLORREF textColor = m_ControlState == Disable ? GetSysColor(COLOR_GRAYTEXT) : GetSysColor(COLOR_CAPTIONTEXT);
 
-	DrawText(cRect, memDC, font, textColor, cSelText, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+    CRect cTextRect(cRect);
+    cTextRect.DeflateRect(m_borderPenWidth + 2, 0);
+    DrawText(cTextRect, memDC, font, textColor, cSelText, DT_LEFT | DT_VCENTER | DT_SINGLELINE);
 }
 
 CRect CTTComboBox::GetArrowButtonRect()
