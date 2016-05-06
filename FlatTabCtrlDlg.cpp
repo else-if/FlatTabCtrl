@@ -222,9 +222,10 @@ BOOL CFlatTabCtrlDlg::OnInitDialog()
 	
 	
 	m_TTStatic1.DrawBorders(true);
+    m_TTStatic1.DrawBackground(true);
 	m_TTStatic1.SetBackgroundColor(RGB(255, 255, 255));
 
-	m_TTStatic2.SetDrawingProperties(2, 10, true);
+	m_TTStatic2.SetDrawingProperties(2, 10, true, true);
 	m_TTStatic2.SetBackgroundColor(RGB(255, 255, 255));
 	
 	m_TTStatic3.SetDrawingProperties(2, 10, true);
@@ -233,9 +234,10 @@ BOOL CFlatTabCtrlDlg::OnInitDialog()
 	m_TTStatic5.SetDrawingProperties(2, 10, false);
 
 	m_TTStatic7.DrawBorders(true);
+    m_TTStatic7.DrawBackground(true);
 	m_TTStatic7.SetColorProperties(RGB(221, 232, 101), RGB(23, 55, 125), RGB(202, 81, 0));
 
-	m_TTStatic8.SetDrawingProperties(2, 10, true);
+	m_TTStatic8.SetDrawingProperties(2, 10, true, true);
 	m_TTStatic8.SetColorProperties(RGB(221, 232, 101), RGB(23, 55, 125), RGB(202, 81, 0));
 
 	//m_Edit2.SetDrawingProperties(2, 10);

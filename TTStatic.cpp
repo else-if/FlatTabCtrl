@@ -12,7 +12,7 @@ CTTStatic::CTTStatic()
 {	
 	SetBackgroundColor(GetSysColor(COLOR_3DFACE));
 	SetTextColor(GetSysColor(COLOR_CAPTIONTEXT));
-	SetDrawingProperties(1, 5, false);
+	SetDrawingProperties(1, 5, false, false);
 	
 	m_ControlState = Normal;    
 }
@@ -49,11 +49,12 @@ void CTTStatic::SetTextColor(COLORREF textColor)
 	m_textColor = textColor;
 }
 
-void CTTStatic::SetDrawingProperties(int borderPenWidth, int cornerRadius, bool drawBorders)
+void CTTStatic::SetDrawingProperties(int borderPenWidth, int cornerRadius, bool drawBorders, bool drawBackground)
 {
 	m_borderPenWidth = borderPenWidth;
 	m_iCornerRadius = cornerRadius;
 	m_bDrawBorders = drawBorders;
+    m_bDrawBackground = drawBackground;
 }
 
 COLORREF CTTStatic::GetBorderColor()
@@ -69,6 +70,11 @@ void CTTStatic::SetBorderColor(COLORREF borderColor)
 void CTTStatic::DrawBorders(bool drawBorders)
 {
 	m_bDrawBorders = drawBorders;
+}
+
+void CTTStatic::DrawBackground(bool drawBackground)
+{
+    m_bDrawBackground = drawBackground;
 }
 
 void CTTStatic::SetColorProperties(COLORREF backgroundColor, COLORREF textColor, COLORREF borderColor)
@@ -87,40 +93,6 @@ END_MESSAGE_MAP()
 
 BOOL CTTStatic::OnEraseBkgnd(CDC* pDC)
 {
-    
-    if (m_Bmp.GetSafeHandle() == NULL)
-    {
-        CRect Rect;
-        GetWindowRect(&Rect);
-        CWnd *pParent = GetParent();
-        ASSERT(pParent);
-        pParent->ScreenToClient(&Rect); //convert our corrdinates to our parents
-
-        //copy what's on the parents at this point
-        CDC *pDC = pParent->GetDC();
-        CDC MemDC;
-        MemDC.CreateCompatibleDC(pDC);
-        m_Bmp.CreateCompatibleBitmap(pDC, Rect.Width(), Rect.Height());
-        CBitmap *pOldBmp = MemDC.SelectObject(&m_Bmp);
-
-        DrawThemeParentBackground(GetParent()->GetSafeHwnd(), pDC->GetSafeHdc(), Rect);
-        MemDC.BitBlt(0, 0, Rect.Width(), Rect.Height(), pDC, Rect.left, Rect.top, SRCCOPY);
-
-        MemDC.SelectObject(pOldBmp);
-
-        pParent->ReleaseDC(pDC);
-    }
-    else //copy what we copied off the parent the first time back onto the parent
-    {
-        CRect Rect;
-        GetClientRect(Rect);
-        CDC MemDC;
-        MemDC.CreateCompatibleDC(pDC);
-        CBitmap *pOldBmp = MemDC.SelectObject(&m_Bmp);
-        pDC->BitBlt(0, 0, Rect.Width(), Rect.Height(), &MemDC, 0, 0, SRCCOPY);        
-        MemDC.SelectObject(pOldBmp);
-    }
-    
     return TRUE;
 }
 
@@ -128,33 +100,26 @@ void CTTStatic::OnPaint()
 {
     CRect cRect;
     GetClientRect(&cRect);
-    CPaintDC MemDC(this);
+    CPaintDC dc(this);
 
-    Graphics graphics(MemDC.GetSafeHdc());
+    Graphics graphics(dc.GetSafeHdc());
     graphics.SetSmoothingMode(SmoothingModeAntiAlias);
     graphics.SetInterpolationMode(InterpolationModeHighQualityBicubic);
 
     UpdateControlState();
 
+    dc.SetBkMode(TRANSPARENT);
+
     //Background
-
-    //DrawThemeParentBackground(GetSafeHwnd(), MemDC.GetSafeHdc(), cRect);
-
-    if (m_backgroundColor)
-        FillRectRegion(cRect, MemDC, m_backgroundColor, m_iCornerRadius);
-
-    MemDC.SetBkMode(TRANSPARENT);
+    if (m_bDrawBackground)
+        FillRectRegion(cRect, dc, m_backgroundColor, m_iCornerRadius);
 
     // Borders
     if (m_bDrawBorders)
     {
-        COLORREF borderColor;
-        if (m_ControlState == Disable)
-            borderColor = m_ColorMap.GetColor(m_ControlState, Border);
-        else if (m_borderColor)
+        COLORREF borderColor = m_ColorMap.GetColor(m_ControlState, Border);
+        if (m_borderColor && m_ControlState != Disable)
             borderColor = m_borderColor;
-        else
-            borderColor = m_ColorMap.GetColor(m_ControlState, Border);
 
         Gdiplus::Rect BorderRect(cRect.left, cRect.top, cRect.right, cRect.bottom);
         DrawRectArea(BorderRect, graphics, borderColor, m_iCornerRadius, m_borderPenWidth);
@@ -164,7 +129,7 @@ void CTTStatic::OnPaint()
     if (m_ControlState == Disable)
         textColor = GetSysColor(COLOR_GRAYTEXT);
 
-    MemDC.SetTextColor(textColor);
+    dc.SetTextColor(textColor);
 
     CString strText = _T("");
     GetWindowText(strText);
@@ -173,7 +138,7 @@ void CTTStatic::OnPaint()
     GetFont()->GetLogFont(&logFont);
     CFont font;
     font.CreateFontIndirectW(&logFont);
-    MemDC.SelectObject(&font);
+    dc.SelectObject(&font);
 
     DWORD ExStyle = GetExStyle();
     DWORD Style = GetStyle() & SS_TYPEMASK;
@@ -192,15 +157,13 @@ void CTTStatic::OnPaint()
         textOffset += m_borderPenWidth + (m_borderPenWidth > 1 ? 0 : 1);
 
     cRect.DeflateRect(textOffset, textOffset, textOffset, textOffset);
-    MemDC.DrawText(strText, cRect, nFormat);
-
+    dc.DrawText(strText, cRect, nFormat);
 }
 
 void CTTStatic::OnEnable(BOOL bEnable)
 {
 	Invalidate();
 }
-
 
 HBRUSH CTTStatic::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 {
