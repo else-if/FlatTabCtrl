@@ -6,7 +6,6 @@
 
 class CTTEdit : public CEdit
 {
-    //DECLARE_DYNAMIC(CTTEdit)
 
 public:
     CTTEdit();
@@ -15,6 +14,8 @@ public:
     void SetDrawingProperties(int borderPenWidth, int cornerRadius);
 
 protected:
+
+    bool m_bUseBaseMessageHandlers;
 
     Gdiplus::Rect m_ClientRect;
 
@@ -25,6 +26,7 @@ protected:
     int m_CornerRadius;
 
     bool m_bHover;
+    bool m_bFocused;
 
     CDC m_dc;
     bool m_bStateChanged;
@@ -41,7 +43,6 @@ protected:
 
     DECLARE_MESSAGE_MAP()
 public:
-    afx_msg HBRUSH CtlColor(CDC* pDC, UINT nCtlColor);
     afx_msg BOOL OnEraseBkgnd(CDC* pDC);
     afx_msg void OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS* lpncsp);
     virtual BOOL OnChildNotify(UINT message, WPARAM wParam, LPARAM lParam, LRESULT* pLResult);
@@ -53,6 +54,8 @@ public:
     virtual void PreSubclassWindow();
     afx_msg void OnPaint();
     afx_msg void OnKillFocus(CWnd* pNewWnd);
+    afx_msg void OnSetFocus(CWnd* pOldWnd);
+    afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
 };
 
 

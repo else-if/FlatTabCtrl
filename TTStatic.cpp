@@ -141,15 +141,22 @@ void CTTStatic::OnPaint()
     dc.SelectObject(&font);
 
     DWORD ExStyle = GetExStyle();
-    DWORD Style = GetStyle() & SS_TYPEMASK;
+    DWORD Style = GetStyle();
 
-    UINT nFormat = DT_WORDBREAK;
+    UINT nFormat;
+
+    if (Style & SS_CENTERIMAGE)
+        nFormat = DT_VCENTER | DT_SINGLELINE;
+    else
+        nFormat = DT_WORDBREAK;
+
+    Style &= SS_TYPEMASK;
 
     if (Style == SS_LEFT)
         nFormat |= DT_LEFT;
     else if (Style == SS_RIGHT || ExStyle & WS_EX_RIGHT)
         nFormat |= DT_RIGHT;
-    else if (Style == SS_CENTER)
+    else if ((Style == SS_CENTER))
         nFormat |= DT_CENTER;
 
     int textOffset = 0;

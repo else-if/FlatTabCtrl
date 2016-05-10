@@ -2,6 +2,7 @@
 #include "ControlsColorMap.h"
 
 #define OFS_LEFT 10
+#define OFS_MODALFRAME 3
 
 class CTTGroupBox : public CStatic
 {

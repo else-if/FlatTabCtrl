@@ -47,6 +47,15 @@ void CTTGroupBox::OnPaint()
 
     UpdateControlState();
 
+    // exclude modal frame borders
+    if (GetExStyle() & WS_EX_DLGMODALFRAME)
+    {
+        cRect.left += OFS_MODALFRAME;
+        cRect.top += OFS_MODALFRAME;
+        cRect.right -= OFS_MODALFRAME + 1;
+        cRect.bottom -= OFS_MODALFRAME + 1;
+    }
+
     LOGFONT logFont;
     GetFont()->GetLogFont(&logFont);
     CFont font;
@@ -113,8 +122,6 @@ void CTTGroupBox::OnPaint()
     // Caption
 
     dc.SelectClipRgn(&captionRgn);
-
-    DrawThemeParentBackground(GetSafeHwnd(), dc.m_hDC, captionRect);
 
     dc.SetBkMode(TRANSPARENT);
     (CBrush*)dc.SelectStockObject(NULL_BRUSH);

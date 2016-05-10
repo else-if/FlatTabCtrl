@@ -17,11 +17,6 @@ CTTButton::CTTButton()
 
     m_ColorMap.SetDefaultColors();
     m_CaptionTextColor = GetSysColor(COLOR_BTNTEXT);
-
-    NONCLIENTMETRICS ncm;
-    ncm.cbSize = sizeof(NONCLIENTMETRICS);
-    ::SystemParametersInfo(SPI_GETNONCLIENTMETRICS, ncm.cbSize, &ncm, 0);
-    m_TextFont.CreateFontIndirect(&ncm.lfStatusFont);
 }
 
 CTTButton::~CTTButton()
@@ -102,8 +97,13 @@ void CTTButton::DrawPushButton(LPDRAWITEMSTRUCT lpDrawItemStruct)
     CString buttonText;
     GetWindowText(buttonText);
     COLORREF textColor = m_ButtonState == Disable ? GetSysColor(COLOR_GRAYTEXT) : m_CaptionTextColor;
+    
+    LOGFONT logFont;
+    GetFont()->GetLogFont(&logFont);
+    CFont font;
+    font.CreateFontIndirectW(&logFont);
 
-    DrawText(cRect, memDC, m_TextFont, textColor, buttonText, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+    DrawText(cRect, memDC, font, textColor, buttonText, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
 }
 
 void CTTButton::DrawCheckBox(LPDRAWITEMSTRUCT lpDrawItemStruct)
@@ -161,7 +161,12 @@ void CTTButton::DrawCheckBox(LPDRAWITEMSTRUCT lpDrawItemStruct)
     GetWindowText(buttonText);
     COLORREF textColor = m_ButtonState == Disable ? GetSysColor(COLOR_GRAYTEXT) : m_CaptionTextColor;
 
-    DrawText(cRect, memDC, m_TextFont, textColor, buttonText, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+    LOGFONT logFont;
+    GetFont()->GetLogFont(&logFont);
+    CFont font;
+    font.CreateFontIndirectW(&logFont);
+
+    DrawText(cRect, memDC, font, textColor, buttonText, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
 }
 
 BEGIN_MESSAGE_MAP(CTTButton, CTTBaseButton)

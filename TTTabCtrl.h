@@ -38,6 +38,8 @@ public:
 	afx_msg void OnPaint();
 	afx_msg void OnMouseLeave();
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
+    afx_msg void OnSetFocus(CWnd* pOldWnd);
+    afx_msg void OnKillFocus(CWnd* pNewWnd);
 };
 
 

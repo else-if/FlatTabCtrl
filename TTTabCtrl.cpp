@@ -51,7 +51,13 @@ void CTTTabCtrl::GetTabControlPath(GraphicsPath *pPath, Rect tab, Rect tabView, 
 
 	pPath->Reset();
 
-	pPath->AddArc(Corner, 180, 90);
+    if (abs(tab.X - tabView.X) < 2 * dia)
+        Corner.X -= tab.X;
+
+    pPath->AddArc(Corner, 180, 90);
+
+    if (abs(tab.X - tabView.X) < 2 * dia)
+        Corner.X += tab.X;
 
 	Corner.X += (tab.Width - dia);
 	pPath->AddArc(Corner, 270, 90);
@@ -70,25 +76,11 @@ void CTTTabCtrl::GetTabControlPath(GraphicsPath *pPath, Rect tab, Rect tabView, 
 	Corner.X -= (tabView.Width - dia);
 	pPath->AddArc(Corner, 90, 90);
 
-	if (tab.X == tabView.X)
+    if (abs(tab.X - tabView.X) < 2 * dia)
 	{
 		Corner.Y = (tab.Y - dia);
 		pPath->AddLine(tabView.X, tabView.Y - dia, tabView.X, tab.Y + dia);
-	}
-    else if (abs(tab.X - tabView.X) < 2 * dia)
-    {
-        int diff = abs(tab.X - tabView.X);
-        Corner.Width = diff / 2;
-
-        Corner.Y = tabView.Y;
-        pPath->AddArc(Corner, 180, 90);
-
-        Corner.Width = diff - Corner.Width;
-
-        Corner.Y -= dia;
-        Corner.X = tab.X - Corner.Width;
-        pPath->AddArc(Corner, 90, -90);
-    }
+	}    
 	else
 	{
 		Corner.Y = tabView.Y;
@@ -123,6 +115,8 @@ BEGIN_MESSAGE_MAP(CTTTabCtrl, CTabCtrl)
 	ON_WM_PAINT()
 	ON_WM_MOUSELEAVE()
 	ON_WM_MOUSEMOVE()
+    ON_WM_SETFOCUS()
+    ON_WM_KILLFOCUS()
 END_MESSAGE_MAP()
 
 // CTTTabCtrl message handlers
@@ -342,4 +336,18 @@ void CTTTabCtrl::OnMouseMove(UINT nFlags, CPoint point)
 	}   
 
 	CTabCtrl::OnMouseMove(nFlags, point);
+}
+
+void CTTTabCtrl::OnSetFocus(CWnd* pOldWnd)
+{
+    CTabCtrl::OnSetFocus(pOldWnd);
+
+    Invalidate();
+}
+
+void CTTTabCtrl::OnKillFocus(CWnd* pNewWnd)
+{
+    CTabCtrl::OnKillFocus(pNewWnd);
+
+    Invalidate();
 }

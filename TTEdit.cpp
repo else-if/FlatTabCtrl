@@ -3,8 +3,6 @@
 #include "CommonDrawing.h"
 #include "ControlsColorMap.h"
 
-//IMPLEMENT_DYNAMIC(CTTEdit, CEdit);
-
 CTTEdit::CTTEdit()
     :m_ClientRect(0, 0, 0, 0)
 {
@@ -15,8 +13,11 @@ CTTEdit::CTTEdit()
 
     m_bUseBitmap = false;
     m_bHover = false;
+    m_bFocused = false;
 
     m_ColorMap.SetColor(Mouseover, BackgroundTopGradientFinish, RGB(255, 255, 255));
+
+    m_bUseBaseMessageHandlers = false;
 }
 
 CTTEdit::~CTTEdit()
@@ -38,9 +39,12 @@ void CTTEdit::SetPosition(int x, int y)
 void CTTEdit::UpdateControlState()
 {
     ControlState oldCtrlStrate = m_ControlState;
+
     if (!IsWindowEnabled())
         m_ControlState = Disable;
-    else if (m_bHover || (GetFocus() == this))
+    else if (GetStyle() & ES_READONLY)
+        m_ControlState = ReadOnly;
+    else if (m_bHover || m_bFocused)
         m_ControlState = Mouseover;
     else
         m_ControlState = Normal;
@@ -56,16 +60,10 @@ void CTTEdit::Paint(CDC* pDC)
 
     UpdateControlState();
 
-    if (m_bUseBitmap && !m_bStateChanged)
-        return;
-
-    /*CString str;
-    DWORD curSel = GetSel();
-    GetWindowText(str);*/
-
     if (m_bUseBitmap)
     {
-        Trace(_T("paint bmp"));
+        if (!m_bStateChanged)
+            return;
 
         pDC->BitBlt(m_ClientRect.X,
             m_ClientRect.Y,
@@ -73,13 +71,8 @@ void CTTEdit::Paint(CDC* pDC)
             m_ClientRect.Height,
             &m_dc, 0, 0, SRCCOPY);
 
-        /*SetWindowText(str);
-        SetSel(curSel);*/
-
         return;
     }
-
-    Trace(_T("paint dc"));
 
     Gdiplus::Graphics graphics(pDC->m_hDC);
     graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
@@ -99,9 +92,6 @@ void CTTEdit::Paint(CDC* pDC)
     DrawRectArea(BorderRect, graphics, m_ColorMap.GetColor(m_ControlState, Border),
         m_CornerRadius, m_borderPenWidth);
 
-    /*SetWindowText(str);
-    SetSel(curSel);*/
-
     m_dc.DeleteDC();
 
     int x = m_ClientRect.X;
@@ -116,12 +106,9 @@ void CTTEdit::Paint(CDC* pDC)
     m_dc.SelectObject(&bmp);
     m_dc.BitBlt(0, 0, width, height, pDC, x, y, SRCCOPY);
     bmp.DeleteObject();
-
-    m_bUseBitmap = true;
 }
 
 BEGIN_MESSAGE_MAP(CTTEdit, CEdit)
-    ON_WM_CTLCOLOR_REFLECT()
     ON_WM_ERASEBKGND()
     ON_WM_NCCALCSIZE()
     ON_WM_NCPAINT()
@@ -130,19 +117,18 @@ BEGIN_MESSAGE_MAP(CTTEdit, CEdit)
     ON_CONTROL_REFLECT(EN_UPDATE, &CTTEdit::OnEnUpdate)
     ON_WM_PAINT()
     ON_WM_KILLFOCUS()
+    ON_WM_SETFOCUS()
+    ON_WM_CTLCOLOR()
 END_MESSAGE_MAP()
 
-HBRUSH CTTEdit::CtlColor(CDC* pDC, UINT nCtlColor)
-{
-    return NULL;
-}
 
 BOOL CTTEdit::OnEraseBkgnd(CDC* pDC)
 {
+    if (m_bUseBaseMessageHandlers)
+        return CEdit::OnEraseBkgnd(pDC);
+
     if (m_ClientRect.IsEmptyArea())
         return TRUE;
-
-    Trace(_T("Erase"));
 
     SetPosition(-m_borderPenWidth, m_OffsetY);
     Paint(pDC);
@@ -152,11 +138,16 @@ BOOL CTTEdit::OnEraseBkgnd(CDC* pDC)
 
 void CTTEdit::OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS* lpncsp)
 {
+    if (m_bUseBaseMessageHandlers)
+    {
+        CEdit::OnNcCalcSize(bCalcValidRects, lpncsp);
+        return;
+    }
+
     m_bUseBitmap = false;
 
     if (m_OffsetY != -1)
     {
-        Trace(_T("ReCalc"));
         lpncsp->rgrc[0].top += -m_OffsetY;
         lpncsp->rgrc[0].bottom -= -m_OffsetY;
 
@@ -192,19 +183,21 @@ void CTTEdit::OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS* lpncsp)
 
     //calculate NC area to center text.
 
-    GetClientRect(rectClient);
-    if (rectClient.IsRectEmpty())
-    {
-        GetWindowRect(rectClient);
-        rectClient.OffsetRect(-rectClient.left, -rectClient.top);
-    }
     GetWindowRect(rectWnd);
+    GetClientRect(rectClient);
 
     ClientToScreen(rectClient);
 
-    UINT uiCenterOffset = (rectClient.Height() - uiVClientHeight) / 2;
-    UINT uiCY = (rectWnd.Height() - rectClient.Height()) / 2;
-    UINT uiCX = (rectWnd.Width() - rectClient.Width()) / 2;
+    UINT uiCenterOffset = 0;
+    uiCY = 0;
+    uiCX = 0;
+
+    if (!rectClient.IsRectEmpty())
+    {
+        uiCenterOffset = max(rectClient.Height() - uiVClientHeight, 0) / 2;
+        uiCY = max(rectWnd.Height() - rectClient.Height(), 0) / 2;
+        uiCX = max(rectWnd.Width() - rectClient.Width(), 0) / 2;
+    }
 
     m_OffsetY = -(int)uiCenterOffset;
 
@@ -213,19 +206,15 @@ void CTTEdit::OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS* lpncsp)
 
     lpncsp->rgrc[0].left += uiCX + m_borderPenWidth;
     lpncsp->rgrc[0].right -= uiCY + m_borderPenWidth;
-
-    CString cStr;
-    cStr.Format(_T("Calc: [%d %d] [%d %d]"), lpncsp->rgrc[0].left, lpncsp->rgrc[0].top, lpncsp->rgrc[0].right, lpncsp->rgrc[0].bottom);
-    Trace(cStr);
-    //SetRedraw(TRUE);
-    Invalidate();
 }
 
 BOOL CTTEdit::OnChildNotify(UINT message, WPARAM wParam, LPARAM lParam, LRESULT* pLResult)
 {
+    if (m_bUseBaseMessageHandlers)
+        return CEdit::OnChildNotify(message, wParam, lParam, pLResult);
+
     if (m_OffsetY == -1)
     {
-        Trace(_T("ChildNotify"));
         SetWindowPos(NULL, 0, 0, 0, 0, SWP_NOOWNERZORDER | SWP_NOSIZE | SWP_NOMOVE | SWP_FRAMECHANGED);
     }
 
@@ -234,117 +223,118 @@ BOOL CTTEdit::OnChildNotify(UINT message, WPARAM wParam, LPARAM lParam, LRESULT*
 
 void CTTEdit::OnNcPaint()
 {
-    if (m_OffsetY == -1)
+    if (m_bUseBaseMessageHandlers)
     {
-        Trace(_T("Skipped NcPaint"));
+        CEdit::OnNcPaint();
         return;
     }
 
-    Trace(_T("NcPaint"));
+    if (m_ClientRect.IsEmptyArea())
+        return;
+
+    if (m_OffsetY == -1)
+        return;
 
     Default();
 
     CWindowDC dc(this);
     SetPosition(0, 0);
     Paint(&dc);
+
+    m_bUseBitmap = true;
 }
 
 BOOL CTTEdit::OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message)
 {
-    //Trace(_T("SetCursor"));
     m_bHover = (nHitTest == HTCLIENT);
     return CEdit::OnSetCursor(pWnd, nHitTest, message);
 }
 
 void CTTEdit::OnMouseLeave()
 {
-    Trace(_T("OnMouseLeave"));
     m_bHover = false;
     CEdit::OnMouseLeave();
 }
 
 void CTTEdit::OnEnUpdate()
 {
-    Trace(_T("Update"));
+    if (m_bUseBaseMessageHandlers)
+    {
+        return;
+    }
+
     Invalidate();
 }
 
 void CTTEdit::PreSubclassWindow()
 {
-    Trace(_T("PreSubclass"));
+    CRect rc;
+    GetClientRect(rc);
+    if (rc.IsRectEmpty())
+    {
+        // In case when window's client rect is empty (for example - edit box inside GridList control)
+        // params needed for TTEdit can't be calculated correctly
+        // so for now CEdit message handlers would be used
+        m_bUseBaseMessageHandlers = true;
+    }
+    else
+    {
+        HWND hWnd = GetSafeHwnd();
 
-    HWND hWnd = GetSafeHwnd();
+        LONG lStyle = GetWindowLong(hWnd, GWL_STYLE);
+        lStyle &= ~(WS_CAPTION | WS_THICKFRAME | WS_MINIMIZE | WS_MAXIMIZE | WS_SYSMENU);
+        SetWindowLong(hWnd, GWL_STYLE, lStyle);
 
-    LONG lStyle = GetWindowLong(hWnd, GWL_STYLE);
-    lStyle &= ~(WS_CAPTION | WS_THICKFRAME | WS_MINIMIZE | WS_MAXIMIZE | WS_SYSMENU);
-    SetWindowLong(hWnd, GWL_STYLE, lStyle);
+        LONG lExStyle = GetWindowLong(hWnd, GWL_EXSTYLE);
+        lExStyle &= ~(WS_EX_DLGMODALFRAME | WS_EX_CLIENTEDGE | WS_EX_STATICEDGE);
+        SetWindowLong(hWnd, GWL_EXSTYLE, lExStyle);
 
-    LONG lExStyle = GetWindowLong(hWnd, GWL_EXSTYLE);
-    lExStyle &= ~(WS_EX_DLGMODALFRAME | WS_EX_CLIENTEDGE | WS_EX_STATICEDGE);
-    SetWindowLong(hWnd, GWL_EXSTYLE, lExStyle);
-
-    SetWindowPos(NULL, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER);
+        SetWindowPos(NULL, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER);
+    }
 
     CEdit::PreSubclassWindow();
 }
 
 void CTTEdit::OnPaint()
 {
-
-    if (m_OffsetY == -1)
+    if (!m_bUseBaseMessageHandlers && m_OffsetY == -1)
     {
-        Trace(_T("Skipped OnPaint"));
-
-        // still no NC_CalcSize
-
+        // still no NcCalcSize
         CRect cRect;
         GetClientRect(&cRect);
         CPaintDC dc(this);
         DrawThemeParentBackground(GetSafeHwnd(), dc.m_hDC, cRect);
 
-        // 
+        // force NCCalcSize
         SetWindowPos(NULL, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER);
 
         return;
     }
-    /*else if (!m_dc)
-    {
-    OnNcPaint();
-    }*/
-    /*if (!m_dc)
-    {
-    Trace(_T("OnPaint !m_dc"));
-    //OnNcPaint();
-    //SetWindowPos(NULL, 0, 0, 0, 0, SWP_NOOWNERZORDER | SWP_NOSIZE | SWP_NOMOVE | SWP_FRAMECHANGED);
 
-    if (m_ClientRect.IsEmptyArea())
-    {
-    CRect rc;
-    GetWindowRect(rc);
-    rc.OffsetRect(-rc.left, -rc.top);
-    m_ClientRect.X = rc.left;
-    m_ClientRect.Y = rc.top;
-    m_ClientRect.Width = rc.Width();
-    m_ClientRect.Height = rc.Height();
-    }
-    OnNcPaint();
-
-    //return;
-    }*/
-
-    Trace(_T("OnPaint"));
     CEdit::OnPaint();
-}
-
-void CTTEdit::Trace(CString cMsg)
-{
-    CString cStr;
-    cStr.Format(_T(" id: %d\n"), GetDlgCtrlID());
-    //TRACE(cMsg + cStr);
 }
 
 void CTTEdit::OnKillFocus(CWnd* pNewWnd)
 {
+    m_bFocused = false;
     CEdit::OnKillFocus(pNewWnd);
-    Invalidate();
+}
+
+void CTTEdit::OnSetFocus(CWnd* pOldWnd)
+{
+    m_bFocused = true;
+    CEdit::OnSetFocus(pOldWnd);
+}
+
+HBRUSH CTTEdit::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
+{
+    if (m_bUseBaseMessageHandlers)
+    {
+        HBRUSH hbr = CEdit::OnCtlColor(pDC, pWnd, nCtlColor);
+        return hbr;
+    }
+    else
+    {
+        return NULL;
+    }
 }
