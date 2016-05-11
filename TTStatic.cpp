@@ -15,6 +15,7 @@ CTTStatic::CTTStatic()
 	SetDrawingProperties(1, 5, false, false);
 	
 	m_ControlState = Normal;    
+    m_borderColor = 0;
 }
 
 CTTStatic::~CTTStatic()
@@ -88,7 +89,9 @@ BEGIN_MESSAGE_MAP(CTTStatic, CStatic)
 	ON_WM_ERASEBKGND()
 	ON_WM_PAINT()
 	ON_WM_ENABLE()
-    ON_WM_CTLCOLOR()
+    ON_WM_CTLCOLOR()    
+    ON_MESSAGE(WM_SETTEXT, &CTTStatic::OnSetText)
+    ON_MESSAGE(WM_SETFONT, &CTTStatic::OnSetFont)
 END_MESSAGE_MAP()
 
 BOOL CTTStatic::OnEraseBkgnd(CDC* pDC)
@@ -134,11 +137,7 @@ void CTTStatic::OnPaint()
     CString strText = _T("");
     GetWindowText(strText);
 
-    LOGFONT logFont;
-    GetFont()->GetLogFont(&logFont);
-    CFont font;
-    font.CreateFontIndirectW(&logFont);
-    dc.SelectObject(&font);
+    dc.SelectObject(GetFont());
 
     DWORD ExStyle = GetExStyle();
     DWORD Style = GetStyle();
@@ -176,4 +175,52 @@ HBRUSH CTTStatic::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 {
     pDC->SetBkMode(TRANSPARENT);
     return (HBRUSH)GetStockObject(NULL_BRUSH);
+}
+
+void CTTStatic::PreSubclassWindow()
+{
+    HWND hWnd = GetSafeHwnd();
+
+    LONG lStyle = GetWindowLong(hWnd, GWL_STYLE);
+    LONG lExStyle = GetWindowLong(hWnd, GWL_EXSTYLE);
+
+    LONG lStyleBorderMask = WS_CAPTION | WS_THICKFRAME | WS_MINIMIZE | WS_MAXIMIZE | WS_SYSMENU;
+    LONG lExStyleBorderMask = WS_EX_DLGMODALFRAME | WS_EX_CLIENTEDGE | WS_EX_STATICEDGE;
+
+    // Remove default border style, if exist
+    if ((lStyle & lStyleBorderMask) || (lExStyle & lExStyleBorderMask))
+    {
+        DrawBorders(true);
+        lStyle &= ~lStyleBorderMask;
+        SetWindowLong(hWnd, GWL_STYLE, lStyle);
+
+        lExStyle &= ~lExStyleBorderMask;
+        SetWindowLong(hWnd, GWL_EXSTYLE, lExStyle);
+
+        SetWindowPos(NULL, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER);
+    }
+
+    CStatic::PreSubclassWindow();
+}
+
+afx_msg LRESULT CTTStatic::OnSetText(WPARAM wParam, LPARAM lParam)
+{
+    LRESULT Result = Default();
+    CRect Rect;
+    GetWindowRect(&Rect);
+    GetParent()->ScreenToClient(&Rect);
+    GetParent()->InvalidateRect(&Rect);
+    GetParent()->UpdateWindow();
+    return Result;
+}
+
+afx_msg LRESULT CTTStatic::OnSetFont(WPARAM wParam, LPARAM lParam)
+{
+    LRESULT Result = Default();
+    CRect Rect;
+    GetWindowRect(&Rect);
+    GetParent()->ScreenToClient(&Rect);
+    GetParent()->InvalidateRect(&Rect);
+    GetParent()->UpdateWindow();
+    return Result;
 }

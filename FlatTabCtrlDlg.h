@@ -60,6 +60,9 @@ protected:
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
 public:
+
+    LOGFONT m_lf;
+
 	CTTTabCtrl m_FlatTabCtrl;
 
 	CTTButton m_OkButton;
@@ -92,7 +95,7 @@ public:
 	/*CEdit*/ CTTEdit m_Edit2;
 	/*CEdit*/ CTTEdit m_WideEdit1;
 	/*CEdit*/ CTTEdit m_WideEdit2;
-	CEdit /*CTTEdit2*/ m_MultiLineEdit;
+	/*CEdit*/ CTTEdit m_MultiLineEdit;
 	
 	CStatic/*CTTGroupBox*/ m_GrBox1;
 	CTTGroupBox m_GrBox2;

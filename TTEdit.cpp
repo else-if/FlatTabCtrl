@@ -6,7 +6,10 @@
 CTTEdit::CTTEdit()
     :m_ClientRect(0, 0, 0, 0)
 {
-    m_OffsetY = -1;
+    m_OffsetY = 0;
+    uiCX = 0;
+    uiCY = 0;
+
     SetDrawingProperties(1, 5);
 
     m_ControlState = Normal;
@@ -18,6 +21,7 @@ CTTEdit::CTTEdit()
     m_ColorMap.SetColor(Mouseover, BackgroundTopGradientFinish, RGB(255, 255, 255));
 
     m_bUseBaseMessageHandlers = false;
+    m_bNcSizeIsCalculated = false;
 }
 
 CTTEdit::~CTTEdit()
@@ -146,7 +150,7 @@ void CTTEdit::OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS* lpncsp)
 
     m_bUseBitmap = false;
 
-    if (m_OffsetY != -1)
+    if (m_bNcSizeIsCalculated)
     {
         lpncsp->rgrc[0].top += -m_OffsetY;
         lpncsp->rgrc[0].bottom -= -m_OffsetY;
@@ -157,22 +161,6 @@ void CTTEdit::OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS* lpncsp)
         return;
     }
 
-    CRect rectWnd, rectClient;
-
-    //calculate client area height needed for a font
-    CFont *pFont = GetFont();
-    CRect rectText;
-    rectText.SetRectEmpty();
-
-    CDC *pDC = GetDC();
-
-    CFont *pOld = pDC->SelectObject(pFont);
-    pDC->DrawText(_T("Eb"), rectText, DT_CALCRECT | DT_LEFT);
-    UINT uiVClientHeight = rectText.Height();
-
-    pDC->SelectObject(pOld);
-    ReleaseDC(pDC);
-
     CRect rc;
     GetWindowRect(rc);
     rc.OffsetRect(-rc.left, -rc.top);
@@ -181,22 +169,45 @@ void CTTEdit::OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS* lpncsp)
     m_ClientRect.Width = rc.Width();
     m_ClientRect.Height = rc.Height();
 
-    //calculate NC area to center text.
+    UINT uiCenterOffset = 0;
+    uiCY = 0;
+    uiCX = 0;
+
+    CRect rectWnd, rectClient;
 
     GetWindowRect(rectWnd);
     GetClientRect(rectClient);
 
     ClientToScreen(rectClient);
-
-    UINT uiCenterOffset = 0;
-    uiCY = 0;
-    uiCX = 0;
-
-    if (!rectClient.IsRectEmpty())
+    
+    if (!(GetStyle() & ES_MULTILINE))  // multiline edit box shouldn't change NC area
     {
-        uiCenterOffset = max(rectClient.Height() - uiVClientHeight, 0) / 2;
-        uiCY = max(rectWnd.Height() - rectClient.Height(), 0) / 2;
-        uiCX = max(rectWnd.Width() - rectClient.Width(), 0) / 2;
+        //calculate client area height needed for a font
+        CFont *pFont = GetFont();
+        CRect rectText;
+        rectText.SetRectEmpty();
+
+        CDC *pDC = GetDC();
+
+        CFont *pOld = pDC->SelectObject(pFont);
+        pDC->DrawText(_T("Eb"), rectText, DT_CALCRECT | DT_LEFT);
+        UINT uiVClientHeight = rectText.Height();
+
+        pDC->SelectObject(pOld);
+        ReleaseDC(pDC);
+
+        //calculate NC area to center text.
+
+        if (!rectClient.IsRectEmpty())
+        {
+            uiCenterOffset = max(rectClient.Height() - uiVClientHeight, 0) / 2;
+            uiCY = max(rectWnd.Height() - rectClient.Height(), 0) / 2;
+            uiCX = max(rectWnd.Width() - rectClient.Width(), 0) / 2;
+        }
+    } 
+    else
+    {
+        uiCenterOffset = m_borderPenWidth;
     }
 
     m_OffsetY = -(int)uiCenterOffset;
@@ -206,6 +217,8 @@ void CTTEdit::OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS* lpncsp)
 
     lpncsp->rgrc[0].left += uiCX + m_borderPenWidth;
     lpncsp->rgrc[0].right -= uiCY + m_borderPenWidth;
+
+    m_bNcSizeIsCalculated = true;
 }
 
 BOOL CTTEdit::OnChildNotify(UINT message, WPARAM wParam, LPARAM lParam, LRESULT* pLResult)
@@ -213,7 +226,7 @@ BOOL CTTEdit::OnChildNotify(UINT message, WPARAM wParam, LPARAM lParam, LRESULT*
     if (m_bUseBaseMessageHandlers)
         return CEdit::OnChildNotify(message, wParam, lParam, pLResult);
 
-    if (m_OffsetY == -1)
+    if (!m_bNcSizeIsCalculated)
     {
         SetWindowPos(NULL, 0, 0, 0, 0, SWP_NOOWNERZORDER | SWP_NOSIZE | SWP_NOMOVE | SWP_FRAMECHANGED);
     }
@@ -232,7 +245,7 @@ void CTTEdit::OnNcPaint()
     if (m_ClientRect.IsEmptyArea())
         return;
 
-    if (m_OffsetY == -1)
+    if (!m_bNcSizeIsCalculated)
         return;
 
     Default();
@@ -242,6 +255,10 @@ void CTTEdit::OnNcPaint()
     Paint(&dc);
 
     m_bUseBitmap = true;
+
+    // for multi line Edit force OnPaint event
+    if (GetStyle() & ES_MULTILINE)
+        Invalidate();
 }
 
 BOOL CTTEdit::OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message)
@@ -297,7 +314,7 @@ void CTTEdit::PreSubclassWindow()
 
 void CTTEdit::OnPaint()
 {
-    if (!m_bUseBaseMessageHandlers && m_OffsetY == -1)
+    if (!m_bUseBaseMessageHandlers && !m_bNcSizeIsCalculated)
     {
         // still no NcCalcSize
         CRect cRect;

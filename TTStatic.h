@@ -48,4 +48,8 @@ public:
 	afx_msg void OnPaint();
 	afx_msg void OnEnable(BOOL bEnable);
     afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);    
+protected:
+    afx_msg LRESULT OnSetText(WPARAM wParam, LPARAM lParam);
+    virtual void PreSubclassWindow();
+    afx_msg LRESULT OnSetFont(WPARAM wParam, LPARAM lParam);
 };

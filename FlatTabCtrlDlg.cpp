@@ -221,7 +221,7 @@ BOOL CFlatTabCtrlDlg::OnInitDialog()
 	FillCombo(m_DropDownListComboBox2);
 	
 	
-	m_TTStatic1.DrawBorders(true);
+    m_TTStatic1.DrawBorders(true);
     m_TTStatic1.DrawBackground(true);
 	m_TTStatic1.SetBackgroundColor(RGB(255, 255, 255));
 
@@ -240,7 +240,8 @@ BOOL CFlatTabCtrlDlg::OnInitDialog()
 	m_TTStatic8.SetDrawingProperties(2, 10, true, true);
 	m_TTStatic8.SetColorProperties(RGB(221, 232, 101), RGB(23, 55, 125), RGB(202, 81, 0));
 
-	//m_Edit2.SetDrawingProperties(2, 10);
+
+    //m_Edit2.SetDrawingProperties(2, 10);
 	m_Edit1.SetWindowTextW(_T("Sample edit box"));
 	m_Edit2.SetWindowTextW(_T("Sample edit box"));
 
@@ -250,7 +251,9 @@ BOOL CFlatTabCtrlDlg::OnInitDialog()
 
 	m_MultiLineEdit.SetWindowTextW(_T("multy\r\nline\r\ntext"));
 
-    Invalidate();
+    m_lf.lfWeight = -1;
+
+    Invalidate();    
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -450,6 +453,24 @@ void CFlatTabCtrlDlg::OnBnClickedButton3()
 void CFlatTabCtrlDlg::OnBnClickedCheck1()
 {
     GetDlgItem(IDC_TT_STATIC1)->SetWindowTextW(_T("NEW STRING"));
+
+    //GetDlgItem(IDC_TT_STATIC6)->SetWindowTextW(_T("NEW STRING"));
+    
+    if (m_lf.lfWeight < 0)
+    {
+        CFont* curFont = GetDlgItem(IDC_TT_STATIC6)->GetFont();
+        curFont->GetLogFont(&m_lf);
+    }
+    else
+    {
+        m_lf.lfWeight += m_lf.lfWeight == 900 ? -900 : 100;
+    }    
+
+    CFont NewFont;
+    NewFont.CreateFontIndirect(&m_lf);
+
+    GetDlgItem(IDC_TT_STATIC6)->SetFont(&NewFont);
+    //GetDlgItem(IDC_TT_STATIC6)->SetWindowTextW(CString(m_lf.lfWeight.ToString()));    
 }
 
 

@@ -16,6 +16,7 @@ public:
 protected:
 
     bool m_bUseBaseMessageHandlers;
+    bool m_bNcSizeIsCalculated;
 
     Gdiplus::Rect m_ClientRect;
 
