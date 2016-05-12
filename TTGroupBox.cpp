@@ -65,7 +65,8 @@ void CTTGroupBox::OnPaint()
 
     CString captionText;
     GetWindowText(captionText);
-    captionText = _T(" ") + captionText + _T(" ");
+    if (!captionText.IsEmpty())
+        captionText = _T(" ") + captionText + _T(" ");
     CSize captionSize = dc.GetTextExtent(captionText);
 
     captionSize.cy += 2;
