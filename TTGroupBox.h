@@ -14,6 +14,11 @@ public:
 
 protected:
 
+	CDC m_dc;
+	bool m_bUseBmp;
+
+	CRect m_CaptionRect;
+
 	ControlState m_ControlState;
 	ControlsColorMap m_ColorMap;
 

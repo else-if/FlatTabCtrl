@@ -22,12 +22,11 @@ protected:
     int m_CornerRadius;
     bool m_bTracking;
 
-    CFont m_TextFont;
-
     void UpdateButtonState(UINT state);
 
     void DrawPushButton(LPDRAWITEMSTRUCT lpDrawItemStruct);
     void DrawCheckBox(LPDRAWITEMSTRUCT lpDrawItemStruct);
+	void DrawCaptionText(CMemDC &memDC, CRect clientRect);
 
 public:
 

@@ -16,6 +16,8 @@ CTTStatic::CTTStatic()
 	
 	m_ControlState = Normal;    
     m_borderColor = 0;
+
+	m_bUseBmp = false;
 }
 
 CTTStatic::~CTTStatic()
@@ -85,6 +87,16 @@ void CTTStatic::SetColorProperties(COLORREF backgroundColor, COLORREF textColor,
 	SetBorderColor(borderColor);
 }
 
+void CTTStatic::UpdateTextFont()
+{
+	LOGFONT m_lf;
+	CFont* curFont = GetFont();
+	curFont->GetLogFont(&m_lf);
+
+	m_TextFont.Detach();
+	m_TextFont.CreateFontIndirect(&m_lf);
+}
+
 BEGIN_MESSAGE_MAP(CTTStatic, CStatic)
 	ON_WM_ERASEBKGND()
 	ON_WM_PAINT()
@@ -96,12 +108,33 @@ END_MESSAGE_MAP()
 
 BOOL CTTStatic::OnEraseBkgnd(CDC* pDC)
 {
+	if (!m_bUseBmp){
+		CRect Rect;
+		GetWindowRect(&Rect);
+		CWnd *pParent = GetParent();
+		pParent->ScreenToClient(&Rect);
+		CDC *pParentDC = pParent->GetDC();
+		
+		m_dc.DeleteDC();
+		// store into m_dc
+		CBitmap bmp;
+		m_dc.CreateCompatibleDC(pParentDC);
+		bmp.CreateCompatibleBitmap(pParentDC, Rect.Width(), Rect.Height());
+		m_dc.SelectObject(&bmp);
+		m_dc.BitBlt(0, 0, Rect.Width(), Rect.Height(), pParentDC, Rect.left, Rect.top, SRCCOPY);
+		bmp.DeleteObject();
+
+		m_bUseBmp = true;
+
+		pParent->ReleaseDC(pParentDC);
+	}
+	
     return TRUE;
 }
 
 void CTTStatic::OnPaint()
 {
-    CRect cRect;
+	CRect cRect;
     GetClientRect(&cRect);
     CPaintDC dc(this);
 
@@ -110,6 +143,12 @@ void CTTStatic::OnPaint()
     graphics.SetInterpolationMode(InterpolationModeHighQualityBicubic);
 
     UpdateControlState();
+
+	if (m_bUseBmp)
+	{
+		dc.BitBlt(cRect.left, cRect.top, cRect.Width(), cRect.Height(),
+			&m_dc, 0, 0, SRCCOPY);
+	}
 
     dc.SetBkMode(TRANSPARENT);
 
@@ -137,7 +176,7 @@ void CTTStatic::OnPaint()
     CString strText = _T("");
     GetWindowText(strText);
 
-    dc.SelectObject(GetFont());
+    dc.SelectObject(m_TextFont);
 
     DWORD ExStyle = GetExStyle();
     DWORD Style = GetStyle();
@@ -200,6 +239,8 @@ void CTTStatic::PreSubclassWindow()
         SetWindowPos(NULL, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER);
     }
 
+	UpdateTextFont();
+
     CStatic::PreSubclassWindow();
 }
 
@@ -217,10 +258,13 @@ afx_msg LRESULT CTTStatic::OnSetText(WPARAM wParam, LPARAM lParam)
 afx_msg LRESULT CTTStatic::OnSetFont(WPARAM wParam, LPARAM lParam)
 {
     LRESULT Result = Default();
+	
+	UpdateTextFont();
+
     CRect Rect;
     GetWindowRect(&Rect);
     GetParent()->ScreenToClient(&Rect);
     GetParent()->InvalidateRect(&Rect);
     GetParent()->UpdateWindow();
-    return Result;
+	return Result;
 }

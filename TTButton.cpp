@@ -94,16 +94,7 @@ void CTTButton::DrawPushButton(LPDRAWITEMSTRUCT lpDrawItemStruct)
     DrawRectArea(BorderRect, graphics, borderColor, m_CornerRadius, m_BorderPenWidth);
 
     // Button text
-    CString buttonText;
-    GetWindowText(buttonText);
-    COLORREF textColor = m_ButtonState == Disable ? GetSysColor(COLOR_GRAYTEXT) : m_CaptionTextColor;
-    
-    LOGFONT logFont;
-    GetFont()->GetLogFont(&logFont);
-    CFont font;
-    font.CreateFontIndirectW(&logFont);
-
-    DrawText(cRect, memDC, font, textColor, buttonText, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+	DrawCaptionText(memDC, cRect);
 }
 
 void CTTButton::DrawCheckBox(LPDRAWITEMSTRUCT lpDrawItemStruct)
@@ -157,16 +148,39 @@ void CTTButton::DrawCheckBox(LPDRAWITEMSTRUCT lpDrawItemStruct)
     DrawRectArea(BorderRect, graphics, borderColor, m_CornerRadius, m_BorderPenWidth);
 
     // Button text
-    CString buttonText;
-    GetWindowText(buttonText);
-    COLORREF textColor = m_ButtonState == Disable ? GetSysColor(COLOR_GRAYTEXT) : m_CaptionTextColor;
+	DrawCaptionText(memDC, cRect);
+}
 
-    LOGFONT logFont;
-    GetFont()->GetLogFont(&logFont);
-    CFont font;
-    font.CreateFontIndirectW(&logFont);
+void CTTButton::DrawCaptionText(CMemDC &memDC, CRect clientRect)
+{
+	CString buttonText;
+	GetWindowText(buttonText);
+	COLORREF textColor = m_ButtonState == Disable ? GetSysColor(COLOR_GRAYTEXT) : m_CaptionTextColor;
 
-    DrawText(cRect, memDC, font, textColor, buttonText, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+	LOGFONT logFont;
+	GetFont()->GetLogFont(&logFont);
+	CFont font;
+	font.CreateFontIndirectW(&logFont);
+
+	memDC.GetDC().SelectObject(font);
+
+	CRect captionRect;
+	captionRect.SetRectEmpty();
+	memDC.GetDC().DrawText(buttonText, captionRect, DT_CALCRECT | DT_CENTER);
+
+	int iHeight = captionRect.Height();
+	int iWidth = captionRect.Width();
+
+	captionRect.left = clientRect.left + (clientRect.Width() - captionRect.Width()) / 2;
+	captionRect.right = captionRect.left + iWidth;
+	captionRect.top = clientRect.top + (clientRect.Height() - captionRect.Height()) / 2;
+	captionRect.bottom = captionRect.top + iHeight;
+
+	CRgn rgn;
+	rgn.CreateRectRgnIndirect(clientRect);
+	memDC.GetDC().SelectClipRgn(&rgn);
+
+	DrawText(captionRect, memDC, font, textColor, buttonText, DT_CENTER);
 }
 
 BEGIN_MESSAGE_MAP(CTTButton, CTTBaseButton)

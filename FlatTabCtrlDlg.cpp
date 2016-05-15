@@ -362,6 +362,10 @@ void CFlatTabCtrlDlg::OnBnClickedOk()
 
 void CFlatTabCtrlDlg::OnBnClickedButton2()
 {
+	Invalidate(TRUE);
+
+	return;
+
 	// TODO: Add your control notification handler code here
     CButton* pBtnWnd = (CButton*)GetDlgItem(IDC_BUTTON3);
 
@@ -406,6 +410,10 @@ void CFlatTabCtrlDlg::OnBnClickedButton2()
 
 void CFlatTabCtrlDlg::OnBnClickedButton3()
 {
+	Invalidate(FALSE);
+	
+	return;
+
 	// TODO: Add your control notification handler code here
 	CWnd* pBtnWnd = GetDlgItem(IDC_BUTTON2);
 
@@ -466,11 +474,13 @@ void CFlatTabCtrlDlg::OnBnClickedCheck1()
         m_lf.lfWeight += m_lf.lfWeight == 900 ? -900 : 100;
     }    
 
-    CFont NewFont;
-    NewFont.CreateFontIndirect(&m_lf);
+	CFont m_NewFont;
+    m_NewFont.CreateFontIndirect(&m_lf);
 
-    GetDlgItem(IDC_TT_STATIC6)->SetFont(&NewFont);
-    //GetDlgItem(IDC_TT_STATIC6)->SetWindowTextW(CString(m_lf.lfWeight.ToString()));    
+    GetDlgItem(IDC_TT_STATIC6)->SetFont(&m_NewFont);
+	//Invalidate();
+
+	//GetDlgItem(IDC_TT_STATIC6)->SetWindowTextW(CString(m_lf.lfWeight.ToString()));    
 }
 
 

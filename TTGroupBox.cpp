@@ -3,6 +3,7 @@
 #include "CommonDrawing.h"
 
 CTTGroupBox::CTTGroupBox()
+	:m_CaptionRect(0,0,0,0)
 {
     SetDrawingProperties(1, 5);
 
@@ -10,6 +11,8 @@ CTTGroupBox::CTTGroupBox()
 
     m_ControlState = Normal;
     m_ColorMap.SetColor(Normal, Border, RGB(168, 167, 174));
+
+	m_bUseBmp = false;
 }
 
 CTTGroupBox::~CTTGroupBox()
@@ -47,7 +50,7 @@ void CTTGroupBox::OnPaint()
 
     UpdateControlState();
 
-    // exclude modal frame borders
+	// exclude modal frame borders
     if (GetExStyle() & WS_EX_DLGMODALFRAME)
     {
         cRect.left += OFS_MODALFRAME;
@@ -96,9 +99,9 @@ void CTTGroupBox::OnPaint()
         ptEnd.x = ptStart.x + captionSize.cx;
     }
 
-    CRect captionRect(ptStart, ptEnd);
+	m_CaptionRect.CopyRect(CRect(ptStart, ptEnd));
     CRgn captionRgn;
-    captionRgn.CreateRectRgnIndirect(&captionRect);
+	captionRgn.CreateRectRgnIndirect(&m_CaptionRect);
 
     CRect bordRect(cRect.left, cRect.top + iTopOffset, cRect.right + 1, cRect.bottom + 1);
     CRgn borderRgn;
@@ -122,7 +125,7 @@ void CTTGroupBox::OnPaint()
 
     // Caption
 
-    dc.SelectClipRgn(&captionRgn);
+	dc.SelectClipRgn(&captionRgn);
 
     dc.SetBkMode(TRANSPARENT);
     (CBrush*)dc.SelectStockObject(NULL_BRUSH);
@@ -130,7 +133,7 @@ void CTTGroupBox::OnPaint()
     COLORREF textColor = m_ControlState == Disable ? GetSysColor(COLOR_GRAYTEXT) : m_CaptionTextColor;
     dc.SetTextColor(textColor);
 
-    dc.DrawText(captionText, captionRect, DT_VCENTER | DT_CENTER | DT_SINGLELINE | DT_NOCLIP);
+	dc.DrawText(captionText, m_CaptionRect, DT_VCENTER | DT_CENTER | DT_SINGLELINE | DT_NOCLIP);
 }
 
 void CTTGroupBox::OnEnable(BOOL bEnable)
@@ -156,5 +159,37 @@ HBRUSH CTTGroupBox::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 
 BOOL CTTGroupBox::OnEraseBkgnd(CDC* pDC)
 {
+	if (m_bUseBmp)
+	{
+		if (!m_CaptionRect.IsRectEmpty())
+		{
+			int iTopOffset = GetExStyle() & WS_EX_DLGMODALFRAME ? OFS_MODALFRAME : 0;
+			
+			pDC->BitBlt(m_CaptionRect.left, m_CaptionRect.top, m_CaptionRect.Width(), m_CaptionRect.Height(),
+				&m_dc, m_CaptionRect.left, m_CaptionRect.top + iTopOffset, SRCCOPY);
+		}
+	}
+	else
+	{
+		CRect Rect;
+		GetWindowRect(&Rect);
+		CWnd *pParent = GetParent();
+		pParent->ScreenToClient(&Rect);
+		CDC *pParentDC = pParent->GetDC();
+
+		m_dc.DeleteDC();
+		// store into m_dc
+		CBitmap bmp;
+		m_dc.CreateCompatibleDC(pParentDC);
+		bmp.CreateCompatibleBitmap(pParentDC, Rect.Width(), Rect.Height());
+		m_dc.SelectObject(&bmp);
+		m_dc.BitBlt(0, 0, Rect.Width(), Rect.Height(), pParentDC, Rect.left, Rect.top, SRCCOPY);
+		bmp.DeleteObject();
+
+		m_bUseBmp = true;
+
+		pParent->ReleaseDC(pParentDC);
+	}
+
     return TRUE;
 }

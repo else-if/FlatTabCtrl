@@ -81,15 +81,17 @@ public:
 
 	CComboBox m_CommonCombo;
 
-	CTTStatic m_TTStatic1;
-	CTTStatic m_TTStatic2;
-	CTTStatic m_TTStatic3;
-	CTTStatic m_TTStatic4;
-	CTTStatic m_TTStatic5;
-	CTTStatic m_TTStatic6;
-	CTTStatic m_TTStatic7;
-	CTTStatic m_TTStatic8;
-    CTTStatic m_TTStatic9;
+	//CFont m_NewFont;
+
+	/*CStatic*/ CTTStatic m_TTStatic1;
+	/*CStatic*/ CTTStatic m_TTStatic2;
+	/*CStatic*/ CTTStatic m_TTStatic3;
+	/*CStatic*/ CTTStatic m_TTStatic4;
+	/*CStatic*/ CTTStatic m_TTStatic5;
+	/*CStatic*/ CTTStatic m_TTStatic6;
+	/*CStatic*/ CTTStatic m_TTStatic7;
+	/*CStatic*/ CTTStatic m_TTStatic8;
+	/*CStatic*/ CTTStatic m_TTStatic9;
 
 	/*CEdit*/ CTTEdit m_Edit1;
 	/*CEdit*/ CTTEdit m_Edit2;
