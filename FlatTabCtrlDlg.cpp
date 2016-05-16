@@ -123,6 +123,7 @@ BEGIN_MESSAGE_MAP(CFlatTabCtrlDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON3, &CFlatTabCtrlDlg::OnBnClickedButton3)
     ON_BN_CLICKED(IDC_CHECK1, &CFlatTabCtrlDlg::OnBnClickedCheck1)
     ON_NOTIFY(TCN_SELCHANGING, IDC_TAB1, &CFlatTabCtrlDlg::OnTabChanging)
+    ON_WM_SIZE()
 END_MESSAGE_MAP()
 
 
@@ -253,7 +254,10 @@ BOOL CFlatTabCtrlDlg::OnInitDialog()
 
     m_lf.lfWeight = -1;
 
-    Invalidate();    
+    
+
+    m_dlgAnchor.Init(GetSafeHwnd());
+    m_dlgAnchor.Add(m_Edit2.GetSafeHwnd(), ANCHOR_BOTTOMLEFT | ANCHOR_BOTTOMRIGHT);
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -501,4 +505,11 @@ void CFlatTabCtrlDlg::OnTabChanged(NMHDR *pNMHDR, LRESULT *pResult)
 
     m_vPages[nIndex]->SetWindowPos(NULL, rc.left + 1, rc.bottom + 1, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_SHOWWINDOW);
     m_vPages[nIndex]->SetFocus();
+}
+
+void CFlatTabCtrlDlg::OnSize(UINT nType, int cx, int cy)
+{
+    __super::OnSize(nType, cx, cy);
+
+    m_dlgAnchor.OnSize(FALSE);
 }

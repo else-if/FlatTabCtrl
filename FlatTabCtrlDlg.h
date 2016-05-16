@@ -22,6 +22,7 @@
 #include "TTGroupBox.h"
 #include "TTStatic2.h"
 #include <vector>
+#include "anchor.h"
 
 using namespace System;
 using namespace System::ComponentModel;
@@ -61,6 +62,7 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
 
+    CDlgAnchor m_dlgAnchor;
     LOGFONT m_lf;
 
 	CTTTabCtrl m_FlatTabCtrl;
@@ -93,7 +95,7 @@ public:
 	/*CStatic*/ CTTStatic m_TTStatic8;
 	/*CStatic*/ CTTStatic m_TTStatic9;
 
-	/*CEdit*/ CTTEdit m_Edit1;
+	/*CEdit */CTTEdit m_Edit1;
 	/*CEdit*/ CTTEdit m_Edit2;
 	/*CEdit*/ CTTEdit m_WideEdit1;
 	/*CEdit*/ CTTEdit m_WideEdit2;
@@ -123,4 +125,5 @@ public:
 	afx_msg void OnBnClickedCancel();
     afx_msg void OnBnClickedCheck1();
     afx_msg void OnTabChanging(NMHDR *pNMHDR, LRESULT *pResult);
+    afx_msg void OnSize(UINT nType, int cx, int cy);
 };

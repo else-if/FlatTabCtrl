@@ -4,7 +4,8 @@
 #include "ControlsColorMap.h"
 
 CTTEdit::CTTEdit()
-    :m_ClientRect(0, 0, 0, 0)
+    :m_ClientRect(0, 0, 0, 0),
+    m_oldWndRect(0, 0, 0, 0)
 {
     m_OffsetY = 0;
     uiCX = 0;
@@ -22,6 +23,7 @@ CTTEdit::CTTEdit()
 
     m_bUseBaseMessageHandlers = false;
     m_bNcSizeIsCalculated = false;
+    m_bPainted = false;
 }
 
 CTTEdit::~CTTEdit()
@@ -66,9 +68,7 @@ void CTTEdit::Paint(CDC* pDC)
 
     if (m_bUseBitmap)
     {
-        if (!m_bStateChanged)
-            return;
-
+       
         pDC->BitBlt(m_ClientRect.X,
             m_ClientRect.Y,
             m_ClientRect.Width,
@@ -123,6 +123,8 @@ BEGIN_MESSAGE_MAP(CTTEdit, CEdit)
     ON_WM_KILLFOCUS()
     ON_WM_SETFOCUS()
     ON_WM_CTLCOLOR()
+    ON_WM_SIZE()
+    ON_WM_MOVE()
 END_MESSAGE_MAP()
 
 
@@ -150,17 +152,7 @@ void CTTEdit::OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS* lpncsp)
 
     m_bUseBitmap = false;
 
-    if (m_bNcSizeIsCalculated)
-    {
-        lpncsp->rgrc[0].top += -m_OffsetY;
-        lpncsp->rgrc[0].bottom -= -m_OffsetY;
-
-        lpncsp->rgrc[0].left += uiCX + m_borderPenWidth;
-        lpncsp->rgrc[0].right -= uiCY + m_borderPenWidth;
-
-        return;
-    }
-
+        
     CRect rc;
     GetWindowRect(rc);
     rc.OffsetRect(-rc.left, -rc.top);
@@ -180,6 +172,11 @@ void CTTEdit::OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS* lpncsp)
 
     ClientToScreen(rectClient);
     
+    rectClient.top += m_OffsetY;
+    rectClient.bottom -= m_OffsetY;
+    rectClient.left -= uiCX + m_borderPenWidth;
+    rectClient.right += uiCY + m_borderPenWidth;
+
     if (!(GetStyle() & ES_MULTILINE))  // multiline edit box shouldn't change NC area
     {
         //calculate client area height needed for a font
@@ -228,7 +225,7 @@ BOOL CTTEdit::OnChildNotify(UINT message, WPARAM wParam, LPARAM lParam, LRESULT*
 
     if (!m_bNcSizeIsCalculated)
     {
-        SetWindowPos(NULL, 0, 0, 0, 0, SWP_NOOWNERZORDER | SWP_NOSIZE | SWP_NOMOVE | SWP_FRAMECHANGED);
+        SetWindowPos(NULL, 0, 0, 0, 0, SWP_NOOWNERZORDER | SWP_NOSIZE | SWP_NOMOVE | SWP_FRAMECHANGED);        
     }
 
     return CEdit::OnChildNotify(message, wParam, lParam, pLResult);
@@ -255,10 +252,9 @@ void CTTEdit::OnNcPaint()
     Paint(&dc);
 
     m_bUseBitmap = true;
+    m_bPainted = true;
 
-    // for multi line Edit force OnPaint event
-    if (GetStyle() & ES_MULTILINE)
-        Invalidate();
+    Invalidate();    
 }
 
 BOOL CTTEdit::OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message)
@@ -279,7 +275,7 @@ void CTTEdit::OnEnUpdate()
     {
         return;
     }
-
+    
     Invalidate();
 }
 
@@ -327,8 +323,12 @@ void CTTEdit::OnPaint()
 
         return;
     }
-
-    CEdit::OnPaint();
+    
+    CEdit::OnPaint();   
+    if (!m_bPainted)
+    {
+        OnNcPaint();
+    }
 }
 
 void CTTEdit::OnKillFocus(CWnd* pNewWnd)
@@ -354,4 +354,43 @@ HBRUSH CTTEdit::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
     {
         return NULL;
     }
+}
+
+void CTTEdit::OnSize(UINT nType, int cx, int cy)
+{   
+    if (m_bPainted)
+    {
+        GetParent()->InvalidateRect(&m_oldWndRect);
+        GetParent()->UpdateWindow();
+
+        m_ClientRect.Width = cx + 2 * m_borderPenWidth;
+
+        m_bUseBitmap = false;
+        OnNcPaint();
+    }    
+
+    m_oldWndRect.right = m_oldWndRect.left + m_ClientRect.Width;
+    m_oldWndRect.bottom = m_oldWndRect.top + m_ClientRect.Height;
+
+    CEdit::OnSize(nType, cx, cy);    
+}
+
+void CTTEdit::OnMove(int x, int y)
+{
+    CEdit::OnMove(x, y);
+
+    if (m_bPainted)
+    {
+        GetParent()->InvalidateRect(&m_oldWndRect);
+        GetParent()->UpdateWindow();
+
+        m_bUseBitmap = false;
+        OnNcPaint();
+        Invalidate();
+    }
+
+    m_oldWndRect.left = x - m_borderPenWidth;
+    m_oldWndRect.top = y + m_OffsetY;
+    m_oldWndRect.right = m_oldWndRect.left + m_ClientRect.Width;
+    m_oldWndRect.bottom = m_oldWndRect.top + m_ClientRect.Height;    
 }

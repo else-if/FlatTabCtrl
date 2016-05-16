@@ -17,6 +17,7 @@ protected:
 
     bool m_bUseBaseMessageHandlers;
     bool m_bNcSizeIsCalculated;
+    bool m_bPainted;
 
     Gdiplus::Rect m_ClientRect;
 
@@ -39,6 +40,8 @@ protected:
     int m_OffsetY;
     UINT uiCX, uiCY;
 
+    CRect m_oldWndRect;
+
     void SetPosition(int x, int y);
     void Trace(CString cMsg);
 
@@ -57,6 +60,8 @@ public:
     afx_msg void OnKillFocus(CWnd* pNewWnd);
     afx_msg void OnSetFocus(CWnd* pOldWnd);
     afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
+    afx_msg void OnSize(UINT nType, int cx, int cy);
+    afx_msg void OnMove(int x, int y);
 };
 
 
