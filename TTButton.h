@@ -11,6 +11,21 @@ public:
 
     void SetDrawingProperties(int borderPenWidth, int cornerRadius);
 
+    static void DrawButtonControl(CDC* pDC, CRect* pRect, CRect* pClipRect, int nStyle, ControlState buttonState = Normal,
+        CString buttonText = _T(""), CFont* pFont = NULL, int cornerRadius = 5, int borderWidth = 1,
+        ControlsColorMap* pColorMap = NULL, COLORREF captionTextColor = COLOR_BTNTEXT, bool bIsDefalut = false);
+
+    static void DrawPushButton(CDC* pDC, CRect* pRect, CRect* pClipRect, ControlState buttonState = Normal,
+        CString buttonText = _T(""), CFont* pFont = NULL, int cornerRadius = 5, int borderWidth = 1,
+        ControlsColorMap* pColorMap = NULL, COLORREF captionTextColor = COLOR_BTNTEXT, bool bIsDefalut = false);
+
+    static void DrawCheckBox(CDC* pDC, CRect* pRect, CRect* pClipRect, ControlState buttonState = Normal,
+        CString buttonText = _T(""), CFont* pFont = NULL, int cornerRadius = 5, int borderWidth = 1,
+        ControlsColorMap* pColorMap = NULL, COLORREF captionTextColor = COLOR_BTNTEXT);
+
+    static void DrawCaptionText(CDC* pDC, CRect* pRect, CRect* pClipRect, CString buttonText = _T(""), int nFormat = -1,
+        CFont * pFont = NULL, COLORREF textColor = COLOR_BTNTEXT);
+
 protected:
 
     ControlState m_ButtonState;
@@ -23,10 +38,6 @@ protected:
     bool m_bTracking;
 
     void UpdateButtonState(UINT state);
-
-    void DrawPushButton(LPDRAWITEMSTRUCT lpDrawItemStruct);
-    void DrawCheckBox(LPDRAWITEMSTRUCT lpDrawItemStruct);
-	void DrawCaptionText(CMemDC &memDC, CRect clientRect);
 
 public:
 

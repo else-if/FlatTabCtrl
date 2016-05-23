@@ -213,9 +213,9 @@ BOOL CFlatTabCtrlDlg::OnInitDialog()
 	FillCombo(m_DropDownComboBox);
 	FillCombo(m_DropDownListComboBox);	
 
-	m_SimpleComboBox.SetDrawingProperties(2, 10);
-	m_DropDownComboBox.SetDrawingProperties(2, 10);
-	m_DropDownListComboBox.SetDrawingProperties(2, 10);
+	//m_SimpleComboBox.SetDrawingProperties(2, 10);
+	//m_DropDownComboBox.SetDrawingProperties(2, 10);
+	//m_DropDownListComboBox.SetDrawingProperties(2, 10);
 
 	FillCombo(m_SimpleComboBox2);
 	FillCombo(m_DropDownComboBox2);
@@ -271,6 +271,9 @@ void CFlatTabCtrlDlg::FillCombo(CComboBox &Combo)
 
 		Combo.AddString(string);
 	}
+
+    Combo.AddString(_T("And here is an item with a large amount of text only for test reason"));
+
 }
 
 void CFlatTabCtrlDlg::OnSysCommand(UINT nID, LPARAM lParam)

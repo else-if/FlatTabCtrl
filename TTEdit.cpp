@@ -55,7 +55,6 @@ void CTTEdit::UpdateControlState()
     else
         m_ControlState = Normal;
 
-    m_bStateChanged = oldCtrlStrate != m_ControlState;
     m_bUseBitmap = (m_bUseBitmap && oldCtrlStrate == m_ControlState);
 }
 
@@ -68,7 +67,6 @@ void CTTEdit::Paint(CDC* pDC)
 
     if (m_bUseBitmap)
     {
-       
         pDC->BitBlt(m_ClientRect.X,
             m_ClientRect.Y,
             m_ClientRect.Width,
@@ -110,6 +108,8 @@ void CTTEdit::Paint(CDC* pDC)
     m_dc.SelectObject(&bmp);
     m_dc.BitBlt(0, 0, width, height, pDC, x, y, SRCCOPY);
     bmp.DeleteObject();
+
+    m_bPainted = true;
 }
 
 BEGIN_MESSAGE_MAP(CTTEdit, CEdit)
@@ -152,7 +152,6 @@ void CTTEdit::OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS* lpncsp)
 
     m_bUseBitmap = false;
 
-        
     CRect rc;
     GetWindowRect(rc);
     rc.OffsetRect(-rc.left, -rc.top);
@@ -171,7 +170,7 @@ void CTTEdit::OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS* lpncsp)
     GetClientRect(rectClient);
 
     ClientToScreen(rectClient);
-    
+
     rectClient.top += m_OffsetY;
     rectClient.bottom -= m_OffsetY;
     rectClient.left -= uiCX + m_borderPenWidth;
@@ -201,7 +200,7 @@ void CTTEdit::OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS* lpncsp)
             uiCY = max(rectWnd.Height() - rectClient.Height(), 0) / 2;
             uiCX = max(rectWnd.Width() - rectClient.Width(), 0) / 2;
         }
-    } 
+    }
     else
     {
         uiCenterOffset = m_borderPenWidth;
@@ -225,7 +224,7 @@ BOOL CTTEdit::OnChildNotify(UINT message, WPARAM wParam, LPARAM lParam, LRESULT*
 
     if (!m_bNcSizeIsCalculated)
     {
-        SetWindowPos(NULL, 0, 0, 0, 0, SWP_NOOWNERZORDER | SWP_NOSIZE | SWP_NOMOVE | SWP_FRAMECHANGED);        
+        SetWindowPos(NULL, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER);
     }
 
     return CEdit::OnChildNotify(message, wParam, lParam, pLResult);
@@ -252,9 +251,8 @@ void CTTEdit::OnNcPaint()
     Paint(&dc);
 
     m_bUseBitmap = true;
-    m_bPainted = true;
 
-    Invalidate();    
+    Invalidate();
 }
 
 BOOL CTTEdit::OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message)
@@ -275,7 +273,7 @@ void CTTEdit::OnEnUpdate()
     {
         return;
     }
-    
+
     Invalidate();
 }
 
@@ -310,7 +308,13 @@ void CTTEdit::PreSubclassWindow()
 
 void CTTEdit::OnPaint()
 {
-    if (!m_bUseBaseMessageHandlers && !m_bNcSizeIsCalculated)
+    if (m_bUseBaseMessageHandlers)
+    {
+        CEdit::OnPaint();
+        return;
+    }
+
+    if (!m_bNcSizeIsCalculated)
     {
         // still no NcCalcSize
         CRect cRect;
@@ -323,12 +327,8 @@ void CTTEdit::OnPaint()
 
         return;
     }
-    
-    CEdit::OnPaint();   
-    if (!m_bPainted)
-    {
-        OnNcPaint();
-    }
+
+    CEdit::OnPaint();
 }
 
 void CTTEdit::OnKillFocus(CWnd* pNewWnd)
@@ -357,29 +357,39 @@ HBRUSH CTTEdit::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 }
 
 void CTTEdit::OnSize(UINT nType, int cx, int cy)
-{   
-    if (m_bPainted)
+{
+    if (m_bUseBaseMessageHandlers)
+    {
+        CEdit::OnSize(nType, cx, cy);
+        return;
+    }
+
+    m_ClientRect.Width = cx + 2 * m_borderPenWidth;
+
+    if (!m_bUseBaseMessageHandlers && m_bPainted)
     {
         GetParent()->InvalidateRect(&m_oldWndRect);
         GetParent()->UpdateWindow();
 
-        m_ClientRect.Width = cx + 2 * m_borderPenWidth;
-
         m_bUseBitmap = false;
+
         OnNcPaint();
-    }    
+    }
 
     m_oldWndRect.right = m_oldWndRect.left + m_ClientRect.Width;
     m_oldWndRect.bottom = m_oldWndRect.top + m_ClientRect.Height;
 
-    CEdit::OnSize(nType, cx, cy);    
+    CEdit::OnSize(nType, cx, cy);
 }
 
 void CTTEdit::OnMove(int x, int y)
 {
     CEdit::OnMove(x, y);
 
-    if (m_bPainted)
+    if (m_bUseBaseMessageHandlers)
+        return;
+
+    if (!m_bUseBaseMessageHandlers && m_bPainted)
     {
         GetParent()->InvalidateRect(&m_oldWndRect);
         GetParent()->UpdateWindow();
@@ -392,5 +402,5 @@ void CTTEdit::OnMove(int x, int y)
     m_oldWndRect.left = x - m_borderPenWidth;
     m_oldWndRect.top = y + m_OffsetY;
     m_oldWndRect.right = m_oldWndRect.left + m_ClientRect.Width;
-    m_oldWndRect.bottom = m_oldWndRect.top + m_ClientRect.Height;    
+    m_oldWndRect.bottom = m_oldWndRect.top + m_ClientRect.Height;
 }

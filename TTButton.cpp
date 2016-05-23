@@ -46,164 +46,29 @@ void CTTButton::UpdateButtonState(UINT state)
         m_ButtonState = Normal;
 }
 
-void CTTButton::DrawPushButton(LPDRAWITEMSTRUCT lpDrawItemStruct)
+void CTTButton::DrawButtonControl(CDC* pDC, CRect* pRect, CRect* pClipRect, int nStyle, ControlState buttonState,
+    CString buttonText, CFont* pFont, int cornerRadius, int borderWidth, ControlsColorMap* pColorMap, COLORREF captionTextColor,
+    bool bIsDefault)
 {
-    CDC xdc;
-    xdc.Attach(lpDrawItemStruct->hDC);
+    if (pDC == NULL)
+        return;
 
-    CRect cRect(lpDrawItemStruct->rcItem);
+    if (pRect == NULL || pClipRect == NULL)
+        return;
 
-    CMemDC memDC(xdc, cRect);
-
-    Graphics graphics(memDC.GetDC().GetSafeHdc());
-    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
-    graphics.SetInterpolationMode(InterpolationModeHighQualityBicubic);
-    graphics.SetTextRenderingHint(TextRenderingHintSingleBitPerPixel);
-
-    DrawThemeParentBackground(GetSafeHwnd(), memDC.GetDC().GetSafeHdc(), cRect);
-    cRect.DeflateRect(1, 1);
-
-    UpdateButtonState(lpDrawItemStruct->itemState);
-
-    Gdiplus::Rect BorderRect(cRect.left, cRect.top, cRect.Width(), cRect.Height());
-
-    Gdiplus::Rect LightRect(cRect.left, cRect.top, cRect.Width(), cRect.Height());
-    LightRect.Inflate(-1, -1);
-
-    cRect.DeflateRect(1, 1, 1, 1);
-
-    int lightPenWidth = (m_ButtonState == Press || m_ButtonState == Focus) ? 2 : 1;
-
-    // Background
-    Draw4ColorsGradientRect(cRect, memDC,
-        m_ColorMap.GetColor(m_ButtonState, BackgroundTopGradientStart),
-        m_ColorMap.GetColor(m_ButtonState, BackgroundTopGradientFinish),
-        m_ColorMap.GetColor(m_ButtonState, BackgroundBottomGradientStart),
-        m_ColorMap.GetColor(m_ButtonState, BackgroundBottomGradientFinish),
-        m_CornerRadius);
-
-    // Highlight area
-    DrawRectArea(LightRect, graphics, m_ColorMap.GetColor(m_ButtonState, BorderLight),
-        m_CornerRadius, lightPenWidth);
-
-    // Border
-    COLORREF borderColor = m_ColorMap.GetColor(m_ButtonState, Border);
-    if (IsDefault() && (m_ButtonState == Normal || m_ButtonState == Focus))
-        borderColor = m_ColorMap.GetColor(Mouseover, Border);
-
-    DrawRectArea(BorderRect, graphics, borderColor, m_CornerRadius, m_BorderPenWidth);
-
-    // Button text
-	DrawCaptionText(memDC, cRect);
-}
-
-void CTTButton::DrawCheckBox(LPDRAWITEMSTRUCT lpDrawItemStruct)
-{
-    UINT btnStyle = GetButtonStyle();
-
-    // for now support only Pushlike checkboxes
-    ASSERT(btnStyle & BS_PUSHLIKE);
-
-    CDC xdc;
-    xdc.Attach(lpDrawItemStruct->hDC);
-    CRect cRect(lpDrawItemStruct->rcItem);
-    CMemDC memDC(xdc, cRect);
-
-    Graphics graphics(memDC.GetDC().GetSafeHdc());
-    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
-    graphics.SetInterpolationMode(InterpolationModeHighQualityBicubic);
-    graphics.SetTextRenderingHint(TextRenderingHintSingleBitPerPixel);
-
-    DrawThemeParentBackground(GetSafeHwnd(), memDC.GetDC().GetSafeHdc(), cRect);
-    cRect.DeflateRect(1, 1);
-
-    UpdateButtonState(lpDrawItemStruct->itemState);
-
-    Gdiplus::Rect BorderRect(cRect.left, cRect.top, cRect.Width(), cRect.Height());
-
-    Gdiplus::Rect LightRect(cRect.left, cRect.top, cRect.Width(), cRect.Height());
-    LightRect.Inflate(-1, -1);
-
-    cRect.DeflateRect(1, 1, 1, 1);
-
-    int lightPenWidth = (m_ButtonState == Press || m_ButtonState == Focus) ? 2 : 1;
-
-    // Background
-    Draw4ColorsGradientRect(cRect, memDC,
-        m_ColorMap.GetColor(m_ButtonState, BackgroundTopGradientStart),
-        m_ColorMap.GetColor(m_ButtonState, BackgroundTopGradientFinish),
-        m_ColorMap.GetColor(m_ButtonState, BackgroundBottomGradientStart),
-        m_ColorMap.GetColor(m_ButtonState, BackgroundBottomGradientFinish),
-        m_CornerRadius);
-
-    // Highlight area
-    DrawRectArea(LightRect, graphics, m_ColorMap.GetColor(m_ButtonState, BorderLight),
-        m_CornerRadius, lightPenWidth);
-
-    // Border
-    COLORREF borderColor = m_ColorMap.GetColor(m_ButtonState, Border);
-    if (IsDefault() && (m_ButtonState == Normal || m_ButtonState == Focus))
-        borderColor = m_ColorMap.GetColor(Mouseover, Border);
-
-    DrawRectArea(BorderRect, graphics, borderColor, m_CornerRadius, m_BorderPenWidth);
-
-    // Button text
-	DrawCaptionText(memDC, cRect);
-}
-
-void CTTButton::DrawCaptionText(CMemDC &memDC, CRect clientRect)
-{
-	CString buttonText;
-	GetWindowText(buttonText);
-	COLORREF textColor = m_ButtonState == Disable ? GetSysColor(COLOR_GRAYTEXT) : m_CaptionTextColor;
-
-	LOGFONT logFont;
-	GetFont()->GetLogFont(&logFont);
-	CFont font;
-	font.CreateFontIndirectW(&logFont);
-
-	memDC.GetDC().SelectObject(font);
-
-	CRect captionRect;
-	captionRect.SetRectEmpty();
-	memDC.GetDC().DrawText(buttonText, captionRect, DT_CALCRECT | DT_CENTER);
-
-	int iHeight = captionRect.Height();
-	int iWidth = captionRect.Width();
-
-	captionRect.left = clientRect.left + (clientRect.Width() - captionRect.Width()) / 2;
-	captionRect.right = captionRect.left + iWidth;
-	captionRect.top = clientRect.top + (clientRect.Height() - captionRect.Height()) / 2;
-	captionRect.bottom = captionRect.top + iHeight;
-
-	CRgn rgn;
-	rgn.CreateRectRgnIndirect(clientRect);
-	memDC.GetDC().SelectClipRgn(&rgn);
-
-	DrawText(captionRect, memDC, font, textColor, buttonText, DT_CENTER);
-}
-
-BEGIN_MESSAGE_MAP(CTTButton, CTTBaseButton)
-    ON_WM_ERASEBKGND()
-    ON_WM_LBUTTONUP()
-    ON_WM_MOUSEMOVE()
-    ON_WM_MOUSELEAVE()
-    ON_WM_CTLCOLOR()
-END_MESSAGE_MAP()
-
-void CTTButton::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
-{
-    UINT btnStyle = GetControlType();
-
-    switch (btnStyle)
+    switch (nStyle)
     {
     case BS_PUSHBUTTON:
     case BS_DEFPUSHBUTTON:
-        DrawPushButton(lpDrawItemStruct);
+        DrawPushButton(pDC, pRect, pClipRect, buttonState, buttonText, pFont, cornerRadius,
+            borderWidth, pColorMap, captionTextColor, bIsDefault);
         break;
     case BS_CHECKBOX:
+        // no support yet...
+        break;
     case BS_AUTOCHECKBOX:
-        DrawCheckBox(lpDrawItemStruct);
+        DrawCheckBox(pDC, pRect, pClipRect, buttonState, buttonText, pFont, cornerRadius,
+            borderWidth, pColorMap, captionTextColor);
         break;
     case BS_RADIOBUTTON:
     case BS_3STATE:
@@ -218,6 +83,237 @@ void CTTButton::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
         break;
     }
 
+}
+
+void CTTButton::DrawPushButton(CDC* pDC, CRect* pRect, CRect* pClipRect, ControlState buttonState, CString buttonText,
+    CFont* pFont, int cornerRadius, int borderWidth, ControlsColorMap* pColorMap, COLORREF captionTextColor, bool bIsDefault)
+{
+    if (pDC == NULL)
+        return;
+
+    if (pRect == NULL || pClipRect == NULL)
+        return;
+
+    int nSave = pDC->SaveDC();
+
+    Graphics graphics(pDC->GetSafeHdc());
+    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
+    graphics.SetInterpolationMode(InterpolationModeHighQualityBicubic);
+    graphics.SetTextRenderingHint(TextRenderingHintSingleBitPerPixel);
+
+    bool bDeleteColorMap = false;
+    if (pColorMap == NULL)
+    {
+        pColorMap = new ControlsColorMap();
+        bDeleteColorMap = true;
+    }
+
+    CRgn clipRgn;
+    CreateRectRgnInDevicePoints(pDC, &clipRgn, *pClipRect);
+
+    pDC->SelectClipRgn(&clipRgn);
+
+    CRect cRect(pRect);
+    cRect.DeflateRect(1, 1);
+
+    Gdiplus::Rect BorderRect(cRect.left, cRect.top, cRect.Width(), cRect.Height());
+
+    Gdiplus::Rect LightRect(cRect.left, cRect.top, cRect.Width(), cRect.Height());
+    LightRect.Inflate(-1, -1);
+
+    cRect.DeflateRect(1, 1, 1, 1);
+
+    int lightPenWidth = (buttonState == Press || buttonState == Focus) ? 2 : 1;
+
+    // Background
+    Draw4ColorsGradientRect(cRect, *pDC,
+        pColorMap->GetColor(buttonState, BackgroundTopGradientStart),
+        pColorMap->GetColor(buttonState, BackgroundTopGradientFinish),
+        pColorMap->GetColor(buttonState, BackgroundBottomGradientStart),
+        pColorMap->GetColor(buttonState, BackgroundBottomGradientFinish),
+        cornerRadius);
+
+    // Highlight area
+    DrawRectArea(LightRect, graphics, pColorMap->GetColor(buttonState, BorderLight),
+        cornerRadius, lightPenWidth);
+
+    // Border
+    COLORREF borderColor = pColorMap->GetColor(buttonState, Border);
+    if (bIsDefault && (buttonState == Normal || buttonState == Focus))
+        borderColor = pColorMap->GetColor(Mouseover, Border);
+
+    DrawRectArea(BorderRect, graphics, borderColor, cornerRadius, borderWidth);
+
+    pDC->RestoreDC(nSave);
+
+    // Button text
+    COLORREF textColor = buttonState == Disable ? GetSysColor(COLOR_GRAYTEXT) : captionTextColor;
+    DrawCaptionText(pDC, &cRect, pClipRect, buttonText, -1, pFont, textColor);
+
+    if (bDeleteColorMap && pColorMap != NULL)
+    {
+        delete pColorMap;
+        pColorMap = NULL;
+    }
+}
+
+void CTTButton::DrawCheckBox(CDC* pDC, CRect* pRect, CRect* pClipRect, ControlState buttonState, CString buttonText,
+    CFont* pFont, int cornerRadius, int borderWidth, ControlsColorMap* pColorMap, COLORREF captionTextColor)
+{
+    if (pDC == NULL)
+        return;
+
+    if (pRect == NULL || pClipRect == NULL)
+        return;
+
+    int nSave = pDC->SaveDC();
+
+    Graphics graphics(pDC->GetSafeHdc());
+    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
+    graphics.SetInterpolationMode(InterpolationModeHighQualityBicubic);
+    graphics.SetTextRenderingHint(TextRenderingHintSingleBitPerPixel);
+
+    bool bDeleteColorMap = false;
+    if (pColorMap == NULL)
+    {
+        pColorMap = new ControlsColorMap();
+        bDeleteColorMap = true;
+    }
+
+    CRgn clipRgn;
+    CreateRectRgnInDevicePoints(pDC, &clipRgn, *pClipRect);
+
+    pDC->SelectClipRgn(&clipRgn);
+
+    CRect cRect(pRect);
+    cRect.DeflateRect(1, 1);
+
+    Gdiplus::Rect BorderRect(cRect.left, cRect.top, cRect.Width(), cRect.Height());
+
+    Gdiplus::Rect LightRect(cRect.left, cRect.top, cRect.Width(), cRect.Height());
+    LightRect.Inflate(-1, -1);
+
+    cRect.DeflateRect(1, 1, 1, 1);
+
+    int lightPenWidth = (buttonState == Press || buttonState == Focus) ? 2 : 1;
+
+    // Background
+    Draw4ColorsGradientRect(cRect, *pDC,
+        pColorMap->GetColor(buttonState, BackgroundTopGradientStart),
+        pColorMap->GetColor(buttonState, BackgroundTopGradientFinish),
+        pColorMap->GetColor(buttonState, BackgroundBottomGradientStart),
+        pColorMap->GetColor(buttonState, BackgroundBottomGradientFinish),
+        cornerRadius);
+
+    // Highlight area
+    DrawRectArea(LightRect, graphics, pColorMap->GetColor(buttonState, BorderLight),
+        cornerRadius, lightPenWidth);
+
+    // Border
+    COLORREF borderColor = pColorMap->GetColor(buttonState, Border);
+
+    DrawRectArea(BorderRect, graphics, borderColor, cornerRadius, borderWidth);
+
+    pDC->RestoreDC(nSave);
+
+    // Button text
+    COLORREF textColor = buttonState == Disable ? GetSysColor(COLOR_GRAYTEXT) : captionTextColor;
+    DrawCaptionText(pDC, &cRect, pClipRect, buttonText, -1, pFont, textColor);
+
+    if (bDeleteColorMap && pColorMap != NULL)
+    {
+        delete pColorMap;
+        pColorMap = NULL;
+    }
+
+}
+
+void CTTButton::DrawCaptionText(CDC* pDC, CRect* pRect, CRect* pClipRect, CString buttonText, int nFormat,
+    CFont* pFont, COLORREF textColor)
+{
+    if (pDC == NULL)
+        return;
+
+    if (pRect == NULL || pClipRect == NULL)
+        return;
+
+    if (buttonText.IsEmpty())
+        return;
+
+    int nSave = pDC->SaveDC();
+
+    CRgn clipRgn;
+    CreateRectRgnInDevicePoints(pDC, &clipRgn, *pClipRect);
+
+    pDC->SelectClipRgn(&clipRgn);
+
+    if (pFont != NULL)
+        pDC->SelectObject(pFont);
+
+    CRect captionRect(pRect);
+    captionRect.DeflateRect(1, 1);
+
+    if (nFormat == -1)
+        nFormat = DT_WORDBREAK | DT_CENTER | DT_EDITCONTROL;
+
+    pDC->DrawText(buttonText, buttonText.GetLength(), captionRect, nFormat | DT_CALCRECT);
+
+    int iHeight = captionRect.Height();
+    int iWidth = captionRect.Width();
+
+    captionRect.left = pRect->left + (pRect->Width() - captionRect.Width()) / 2;
+    captionRect.right = captionRect.left + iWidth;
+    captionRect.top = pRect->top + (pRect->Height() - captionRect.Height()) / 2;
+    captionRect.bottom = captionRect.top + iHeight;
+
+    CRgn rgn;
+    CreateRectRgnInDevicePoints(pDC, &rgn, *pRect);
+    rgn.CombineRgn(&rgn, &clipRgn, RGN_AND);
+
+    pDC->SelectClipRgn(&rgn);
+
+    CFont* font = pDC->GetCurrentFont();
+
+    nFormat &= ~DT_CALCRECT;
+
+    DrawText(captionRect, *pDC, *font, textColor, buttonText, nFormat);
+
+    pDC->RestoreDC(nSave);
+
+}
+
+BEGIN_MESSAGE_MAP(CTTButton, CTTBaseButton)
+    ON_WM_ERASEBKGND()
+    ON_WM_LBUTTONUP()
+    ON_WM_MOUSEMOVE()
+    ON_WM_MOUSELEAVE()
+    ON_WM_CTLCOLOR()
+END_MESSAGE_MAP()
+
+void CTTButton::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
+{
+    CDC xdc;
+    xdc.Attach(lpDrawItemStruct->hDC);
+
+    CRect cRect(lpDrawItemStruct->rcItem);
+    CMemDC memDC(xdc, cRect);
+
+    CString buttonText;
+    GetWindowText(buttonText);
+
+    UINT btnStyle = GetControlType();
+
+    UpdateButtonState(lpDrawItemStruct->itemState);
+
+    LOGFONT logFont;
+    GetFont()->GetLogFont(&logFont);
+    CFont font;
+    font.CreateFontIndirectW(&logFont);
+
+    DrawThemeParentBackground(GetSafeHwnd(), memDC.GetDC().GetSafeHdc(), cRect);
+
+    DrawButtonControl(&memDC.GetDC(), &cRect, &cRect, btnStyle, m_ButtonState, buttonText, &font,
+        m_CornerRadius, m_BorderPenWidth, &m_ColorMap, m_CaptionTextColor, IsDefault());
 
 }
 

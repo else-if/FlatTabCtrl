@@ -194,12 +194,12 @@ void CTTBaseButton::SetDefID(CDialog* pDialog, const UINT nID)
     const DWORD dwPrevDefID = pDialog->GetDefID();
     const UINT nPrevID = (HIWORD(dwPrevDefID) == DC_HASDEFID) ? LOWORD(dwPrevDefID) : 0;
 
-    
+
     // Set the new default ID in the dialog
     pDialog->SetDefID(nID);
 
     // Make sure the previous default button doesn't have the default state anymore
-    
+
     // check previous ID is a default-compatible button
     // and it has the default state
     LRESULT lRes = (nPrevID == 0) ? 0 : pDialog->SendDlgItemMessage(nPrevID, WM_GETDLGCODE);
@@ -211,7 +211,7 @@ void CTTBaseButton::SetDefID(CDialog* pDialog, const UINT nID)
     }
 
     //	Make sure the new default button receives the default state
-    
+
     // check new ID is a button
     lRes = (nID == 0) ? 0 : pDialog->SendDlgItemMessage(nID, WM_GETDLGCODE);
     if (lRes & DLGC_BUTTON)
@@ -273,6 +273,6 @@ void CTTBaseButton::OnLButtonUp(UINT nFlags, CPoint point)
 {
     BOOL buttonPressed = GetState() & 4;
     if (buttonPressed) m_iCheckState = (GetStyle() & BS_PUSHLIKE) ? !m_iCheckState : 0;
-    
+
     CButton::OnLButtonUp(nFlags, point);
 }

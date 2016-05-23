@@ -73,13 +73,13 @@ public:
 	CTTButton m_TTButton1;
 	CTTButton2 m_TTButton2;
 
-	CTTComboBox m_SimpleComboBox;
-	CTTComboBox m_DropDownComboBox;
-	CTTComboBox m_DropDownListComboBox;
+	/*CComboBox*/ CTTComboBox m_SimpleComboBox;
+    /*CComboBox*/ CTTComboBox m_DropDownComboBox;
+    /*CComboBox*/ CTTComboBox m_DropDownListComboBox;
 
-	CTTComboBox m_SimpleComboBox2;
-	CTTComboBox m_DropDownComboBox2;
-	CTTComboBox m_DropDownListComboBox2;
+    /*CComboBox*/ CTTComboBox m_SimpleComboBox2;
+    /*CComboBox*/ CTTComboBox m_DropDownComboBox2;
+    /*CComboBox*/ CTTComboBox m_DropDownListComboBox2;
 
 	CComboBox m_CommonCombo;
 

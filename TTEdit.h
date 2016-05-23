@@ -31,7 +31,6 @@ protected:
     bool m_bFocused;
 
     CDC m_dc;
-    bool m_bStateChanged;
     bool m_bUseBitmap;
 
     void UpdateControlState();

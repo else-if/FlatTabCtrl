@@ -10,13 +10,13 @@ IMPLEMENT_DYNAMIC(CTTTabCtrl, CTabCtrl)
 
 CTTTabCtrl::CTTTabCtrl()
 {
-	m_backgroundColor = ::GetSysColor(COLOR_3DFACE);
-	m_bTracking = false;
-	m_iMouseOverTab = -1;
+    m_backgroundColor = ::GetSysColor(COLOR_3DFACE);
+    m_bTracking = false;
+    m_iMouseOverTab = -1;
 
     SetDrawingProperties(1, 5);
 
-	m_ColorMap.SetDefaultColors();
+    m_ColorMap.SetDefaultColors();
 }
 
 CTTTabCtrl::~CTTTabCtrl()
@@ -25,31 +25,31 @@ CTTTabCtrl::~CTTTabCtrl()
 
 void CTTTabCtrl::SetDrawingProperties(int borderPenWidth, int cornerRadius)
 {
-	m_borderWidth = borderPenWidth;
-	m_cornerRadius = cornerRadius;
+    m_borderWidth = borderPenWidth;
+    m_cornerRadius = cornerRadius;
 }
 
 COLORREF CTTTabCtrl::BackgroundColor()
 {
-	return m_backgroundColor;
+    return m_backgroundColor;
 }
 
 void CTTTabCtrl::BackgroundColor(COLORREF backgroundColor)
 {
-	m_backgroundColor = backgroundColor;
-	RedrawWindow();
-	UpdateWindow();
+    m_backgroundColor = backgroundColor;
+    RedrawWindow();
+    UpdateWindow();
 }
 
 void CTTTabCtrl::GetTabControlPath(GraphicsPath *pPath, Rect tab, Rect tabView, int dia)
 {
-	// diameter can't exceed width or height
-	if (dia > tab.Width)	dia = tab.Width;
-	if (dia > tab.Height)	dia = tab.Height;
+    // diameter can't exceed width or height
+    if (dia > tab.Width)	dia = tab.Width;
+    if (dia > tab.Height)	dia = tab.Height;
 
-	Rect Corner(tab.X, tab.Y, dia, dia);
+    Rect Corner(tab.X, tab.Y, dia, dia);
 
-	pPath->Reset();
+    pPath->Reset();
 
     if (abs(tab.X - tabView.X) < 2 * dia)
         Corner.X -= tab.X;
@@ -59,62 +59,62 @@ void CTTTabCtrl::GetTabControlPath(GraphicsPath *pPath, Rect tab, Rect tabView, 
     if (abs(tab.X - tabView.X) < 2 * dia)
         Corner.X += tab.X;
 
-	Corner.X += (tab.Width - dia);
-	pPath->AddArc(Corner, 270, 90);
+    Corner.X += (tab.Width - dia);
+    pPath->AddArc(Corner, 270, 90);
 
-	Corner.X += dia;
-	Corner.Y += (tab.Height - dia);
-	pPath->AddArc(Corner, 180, -90);
+    Corner.X += dia;
+    Corner.Y += (tab.Height - dia);
+    pPath->AddArc(Corner, 180, -90);
 
-	Corner.Y = tabView.Y;
-	Corner.X = (tabView.X + tabView.Width - dia);
-	pPath->AddArc(Corner, -90, 90);
+    Corner.Y = tabView.Y;
+    Corner.X = (tabView.X + tabView.Width - dia);
+    pPath->AddArc(Corner, -90, 90);
 
-	Corner.Y = (tabView.Y + tabView.Height - dia);
-	pPath->AddArc(Corner, 0, 90);
+    Corner.Y = (tabView.Y + tabView.Height - dia);
+    pPath->AddArc(Corner, 0, 90);
 
-	Corner.X -= (tabView.Width - dia);
-	pPath->AddArc(Corner, 90, 90);
+    Corner.X -= (tabView.Width - dia);
+    pPath->AddArc(Corner, 90, 90);
 
     if (abs(tab.X - tabView.X) < 2 * dia)
-	{
-		Corner.Y = (tab.Y - dia);
-		pPath->AddLine(tabView.X, tabView.Y - dia, tabView.X, tab.Y + dia);
-	}    
-	else
-	{
-		Corner.Y = tabView.Y;
-		pPath->AddArc(Corner, 180, 90);
+    {
+        Corner.Y = (tab.Y - dia);
+        pPath->AddLine(tabView.X, tabView.Y - dia, tabView.X, tab.Y + dia);
+    }
+    else
+    {
+        Corner.Y = tabView.Y;
+        pPath->AddArc(Corner, 180, 90);
 
-		Corner.Y -= dia;
-		Corner.X = tab.X - dia;
-		pPath->AddArc(Corner, 90, -90);
-	}
+        Corner.Y -= dia;
+        Corner.X = tab.X - dia;
+        pPath->AddArc(Corner, 90, -90);
+    }
 
-	pPath->CloseFigure();
+    pPath->CloseFigure();
 }
 
 void CTTTabCtrl::GetInteriorRect(CRect& rect)
 {
-	CRect cRect;
-	GetClientRect(&cRect);
-	AdjustRect(FALSE, &cRect);
-	CRect r2;
-	VERIFY(GetItemRect(0, &r2));
-	cRect.top = r2.bottom;
-	cRect.left = r2.left;
-	int lengthToPerimeter = (int)ceil((m_cornerRadius)*sin(45.0));
-	cRect.DeflateRect(lengthToPerimeter, lengthToPerimeter, lengthToPerimeter - 1, lengthToPerimeter - 1);
-	rect = cRect;
+    CRect cRect;
+    GetClientRect(&cRect);
+    AdjustRect(FALSE, &cRect);
+    CRect r2;
+    VERIFY(GetItemRect(0, &r2));
+    cRect.top = r2.bottom;
+    cRect.left = r2.left;
+    int lengthToPerimeter = (int)ceil((m_cornerRadius)*sin(45.0));
+    cRect.DeflateRect(lengthToPerimeter, lengthToPerimeter, lengthToPerimeter - 1, lengthToPerimeter - 1);
+    rect = cRect;
 }
 
 BEGIN_MESSAGE_MAP(CTTTabCtrl, CTabCtrl)
-	ON_WM_DRAWITEM()
-	ON_WM_CREATE()
-	ON_WM_ERASEBKGND()
-	ON_WM_PAINT()
-	ON_WM_MOUSELEAVE()
-	ON_WM_MOUSEMOVE()
+    ON_WM_DRAWITEM()
+    ON_WM_CREATE()
+    ON_WM_ERASEBKGND()
+    ON_WM_PAINT()
+    ON_WM_MOUSELEAVE()
+    ON_WM_MOUSEMOVE()
     ON_WM_SETFOCUS()
     ON_WM_KILLFOCUS()
 END_MESSAGE_MAP()
@@ -123,29 +123,29 @@ END_MESSAGE_MAP()
 
 void CTTTabCtrl::OnDrawItem(int nIDCtl, LPDRAWITEMSTRUCT lpDrawItemStruct)
 {
-	CTabCtrl::OnDrawItem(nIDCtl, lpDrawItemStruct);
+    CTabCtrl::OnDrawItem(nIDCtl, lpDrawItemStruct);
 }
 
 int CTTTabCtrl::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
-	lpCreateStruct->style |= TCS_OWNERDRAWFIXED;
+    lpCreateStruct->style |= TCS_OWNERDRAWFIXED;
 
-	if (CTabCtrl::OnCreate(lpCreateStruct) == -1)
-		return -1;
+    if (CTabCtrl::OnCreate(lpCreateStruct) == -1)
+        return -1;
 
-	return 0;
+    return 0;
 }
 
 void CTTTabCtrl::PreSubclassWindow()
 {
-	ModifyStyle(0, TCS_OWNERDRAWFIXED);
-	
-	CTabCtrl::PreSubclassWindow();
+    ModifyStyle(0, TCS_OWNERDRAWFIXED);
+
+    CTabCtrl::PreSubclassWindow();
 }
 
 BOOL CTTTabCtrl::OnEraseBkgnd(CDC* pDC)
 {
-	return TRUE;	
+    return TRUE;
 }
 
 void CTTTabCtrl::OnPaint()
@@ -262,48 +262,48 @@ void CTTTabCtrl::OnPaint()
 
 void CTTTabCtrl::OnMouseLeave()
 {
-	m_bTracking = false;
-    
+    m_bTracking = false;
+
     if (m_iMouseOverTab >= 0)
     {
         if (m_iMouseOverTab != GetCurSel())
         {
-            
+
             //If we are here,then mouse leaved the raised item, so
             //we have to redraw it as normal (unraised).
 
             CRect rectItem;
             GetItemRect(m_iMouseOverTab, &rectItem);
-            
+
             m_iMouseOverTab = -1;
 
             InvalidateRect(&rectItem);
-            UpdateWindow();                
-        }   
+            UpdateWindow();
+        }
         m_iMouseOverTab = -1;
-    }    
+    }
 
-	CTabCtrl::OnMouseLeave();
+    CTabCtrl::OnMouseLeave();
 }
 
 void CTTTabCtrl::OnMouseMove(UINT nFlags, CPoint point)
 {
-	if (!m_bTracking)
-	{
-		TRACKMOUSEEVENT tme;
-		tme.cbSize = sizeof(TRACKMOUSEEVENT);
-		tme.dwFlags = TME_LEAVE;
-		tme.hwndTrack = GetSafeHwnd();
-		m_bTracking = ::_TrackMouseEvent(&tme) ? true : false;
-	}
+    if (!m_bTracking)
+    {
+        TRACKMOUSEEVENT tme;
+        tme.cbSize = sizeof(TRACKMOUSEEVENT);
+        tme.dwFlags = TME_LEAVE;
+        tme.hwndTrack = GetSafeHwnd();
+        m_bTracking = ::_TrackMouseEvent(&tme) ? true : false;
+    }
 
-	TCHITTESTINFO info;
-	info.pt = point;
-	info.flags = TCHT_ONITEM;
-	int hit = HitTest(&info);
-	
+    TCHITTESTINFO info;
+    info.pt = point;
+    info.flags = TCHT_ONITEM;
+    int hit = HitTest(&info);
+
     if (m_iMouseOverTab != hit)
-	{
+    {
         CRect rectItem(0, 0, 0, 0);
 
         //	Mouse is over new inactive item.
@@ -313,7 +313,7 @@ void CTTTabCtrl::OnMouseMove(UINT nFlags, CPoint point)
             //	We redraw it as normal (unraised).
 
             GetItemRect(m_iMouseOverTab, &rectItem);
-            
+
             m_iMouseOverTab = hit;
 
             InvalidateRect(&rectItem);
@@ -329,13 +329,13 @@ void CTTTabCtrl::OnMouseMove(UINT nFlags, CPoint point)
             GetClientRect(&rectItem);
             ValidateRect(&rectItem);
             GetItemRect(hit, &rectItem);
-            
+
             InvalidateRect(&rectItem);
             UpdateWindow();
-        }        
-	}   
+        }
+    }
 
-	CTabCtrl::OnMouseMove(nFlags, point);
+    CTabCtrl::OnMouseMove(nFlags, point);
 }
 
 void CTTTabCtrl::OnSetFocus(CWnd* pOldWnd)

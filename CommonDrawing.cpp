@@ -3,136 +3,153 @@
 
 void GetRoundRectPath(GraphicsPath *pPath, Rect r, int dia)
 {
-	// diameter can't exceed width or height
-	if (dia > r.Width)	dia = r.Width;
-	if (dia > r.Height)	dia = r.Height;
+    // diameter can't exceed width or height
+    if (dia > r.Width)	dia = r.Width;
+    if (dia > r.Height)	dia = r.Height;
 
-	// define a corner 
-	Rect Corner(r.X, r.Y, dia, dia);
+    // define a corner 
+    Rect Corner(r.X, r.Y, dia, dia);
 
-	// begin path
-	pPath->Reset();
+    // begin path
+    pPath->Reset();
 
-	// top left
-	pPath->AddArc(Corner, 180, 90);
+    // top left
+    pPath->AddArc(Corner, 180, 90);
 
-	// tweak needed for radius of 10 (dia of 20)
-	if (dia == 20)
-	{
-		Corner.Width += 1;
-		Corner.Height += 1;
-		r.Width -= 1;
-		r.Height -= 1;
-	}
+    // tweak needed for radius of 10 (dia of 20)
+    if (dia == 20)
+    {
+        Corner.Width += 1;
+        Corner.Height += 1;
+        r.Width -= 1;
+        r.Height -= 1;
+    }
 
-	// top right
-	Corner.X += (r.Width - dia - 1);
-	pPath->AddArc(Corner, 270, 90);
+    // top right
+    Corner.X += (r.Width - dia - 1);
+    pPath->AddArc(Corner, 270, 90);
 
-	// bottom right
-	Corner.Y += (r.Height - dia - 1);
-	pPath->AddArc(Corner, 0, 90);
+    // bottom right
+    Corner.Y += (r.Height - dia - 1);
+    pPath->AddArc(Corner, 0, 90);
 
-	// bottom left
-	Corner.X -= (r.Width - dia - 1);
-	pPath->AddArc(Corner, 90, 90);
+    // bottom left
+    Corner.X -= (r.Width - dia - 1);
+    pPath->AddArc(Corner, 90, 90);
 
-	// end path
-	pPath->CloseFigure();
+    // end path
+    pPath->CloseFigure();
 }
 
 void GetRoundRectPath(GraphicsPath *pPath, Rect rBounds, int dia, int borderSize)
 {
-	Rect r(rBounds);
+    Rect r(rBounds);
 
-	r.Inflate(-borderSize/2, -borderSize/2);
+    r.Inflate(-borderSize / 2, -borderSize / 2);
 
-	// diameter can't exceed width or height
-	if (dia > r.Width)	dia = r.Width;
-	if (dia > r.Height)	dia = r.Height;
+    // diameter can't exceed width or height
+    if (dia > r.Width)	dia = r.Width;
+    if (dia > r.Height)	dia = r.Height;
 
-	// define a corner 
-	Rect Corner(r.X, r.Y, dia, dia);
+    // define a corner 
+    Rect Corner(r.X, r.Y, dia, dia);
 
-	// begin path
-	pPath->Reset();
+    // begin path
+    pPath->Reset();
 
-	// top left
-	pPath->AddArc(Corner, 180, 90);
+    // top left
+    pPath->AddArc(Corner, 180, 90);
 
-	// tweak needed for radius of 10 (dia of 20)
-	if (dia == 20)
-	{
-		Corner.Width += 1;
-		Corner.Height += 1;
-		r.Width -= 1;
-		r.Height -= 1;
-	}
+    // tweak needed for radius of 10 (dia of 20)
+    if (dia == 20)
+    {
+        Corner.Width += 1;
+        Corner.Height += 1;
+        r.Width -= 1;
+        r.Height -= 1;
+    }
 
-	// top right
-	Corner.X += (r.Width - dia - 1);
-	pPath->AddArc(Corner, 270, 90);
+    // top right
+    Corner.X += (r.Width - dia - 1);
+    pPath->AddArc(Corner, 270, 90);
 
-	// bottom right
-	Corner.Y += (r.Height - dia - 1);
-	pPath->AddArc(Corner, 0, 90);
+    // bottom right
+    Corner.Y += (r.Height - dia - 1);
+    pPath->AddArc(Corner, 0, 90);
 
-	// bottom left
-	Corner.X -= (r.Width - dia - 1);
-	pPath->AddArc(Corner, 90, 90);
+    // bottom left
+    Corner.X -= (r.Width - dia - 1);
+    pPath->AddArc(Corner, 90, 90);
 
-	// end path
-	pPath->CloseFigure();
+    // end path
+    pPath->CloseFigure();
 }
 
 void Draw4ColorsGradientRect(CRect &rc, CMemDC &dc,
-	COLORREF colorStart1, COLORREF colorFinish1,
-	COLORREF colorStart2, COLORREF colorFinish2,
-	int cornerRadius, BOOL drawOnCurrentRgn)
+    COLORREF colorStart1, COLORREF colorFinish1,
+    COLORREF colorStart2, COLORREF colorFinish2,
+    int cornerRadius, BOOL drawOnCurrentRgn)
 {
-	CRect oldRect;
-	dc.GetDC().GetClipBox(&oldRect);
-	CRgn oldRgn;
-	oldRgn.CreateRectRgn(oldRect.left, oldRect.top, oldRect.right, oldRect.bottom);
+    Draw4ColorsGradientRect(rc, dc.GetDC(), colorStart1, colorFinish1,
+        colorStart2, colorFinish2, cornerRadius, drawOnCurrentRgn);
+}
 
-	CDrawingManager drawingManager(dc.GetDC());
+void Draw4ColorsGradientRect(CRect &rc, CDC &dc,
+    COLORREF colorStart1, COLORREF colorFinish1,
+    COLORREF colorStart2, COLORREF colorFinish2,
+    int cornerRadius, BOOL drawOnCurrentRgn)
+{
+    CRect oldRect;
+    dc.GetClipBox(&oldRect);
+    CRgn oldRgn;
+    CreateRectRgnInDevicePoints(&dc, &oldRgn, oldRect.left, oldRect.top, oldRect.right, oldRect.bottom);
 
-	if (!drawOnCurrentRgn)
-	{
-		CRgn rgn;
-		rgn.CreateRoundRectRgn(rc.left, rc.top, rc.right, rc.bottom, cornerRadius, cornerRadius);
-		dc.GetDC().SelectClipRgn(&rgn);
-	}
+    CDrawingManager drawingManager(dc);
 
-	drawingManager.Fill4ColorsGradient(rc, colorStart1, colorFinish1,
-		colorStart2, colorFinish2);
+    if (!drawOnCurrentRgn)
+    {
+        CRgn rgn;
+        CreateRectRgnInDevicePoints(&dc, &rgn, rc.left, rc.top, rc.right, rc.bottom, cornerRadius);
+        dc.SelectClipRgn(&rgn);
+    }
 
-	if (!drawOnCurrentRgn)
-		dc.GetDC().SelectClipRgn(&oldRgn);
+    drawingManager.Fill4ColorsGradient(rc, colorStart1, colorFinish1,
+        colorStart2, colorFinish2);
+
+    if (!drawOnCurrentRgn)
+        dc.SelectClipRgn(&oldRgn);
 }
 
 void Draw2ColorsGradientRect(CRect &rc, CMemDC &dc,
-	COLORREF colorStart, COLORREF colorFinish,
-	int cornerRadius, BOOL drawOnCurrentRgn)
+    COLORREF colorStart, COLORREF colorFinish,
+    int cornerRadius, BOOL drawOnCurrentRgn)
 {
-	CRect oldRect;
-	dc.GetDC().GetClipBox(&oldRect);
-	CRgn oldRgn;
-	oldRgn.CreateRectRgn(oldRect.left, oldRect.top, oldRect.right, oldRect.bottom);
+    Draw2ColorsGradientRect(rc, dc.GetDC(), colorStart, colorFinish,
+        cornerRadius, drawOnCurrentRgn);
+}
 
-	CDrawingManager drawingManager(dc.GetDC());
+void Draw2ColorsGradientRect(CRect &rc, CDC &dc,
+    COLORREF colorStart, COLORREF colorFinish,
+    int cornerRadius, BOOL drawOnCurrentRgn)
+{
+    CRect oldRect;
+    dc.GetClipBox(&oldRect);
+    CRgn oldRgn;
+    CreateRectRgnInDevicePoints(&dc, &oldRgn, oldRect.left, oldRect.top, oldRect.right, oldRect.bottom);
 
-	if (!drawOnCurrentRgn)
-	{
-		CRgn rgn;
-		rgn.CreateRoundRectRgn(rc.left, rc.top, rc.right, rc.bottom, cornerRadius, cornerRadius);
-		dc.GetDC().SelectClipRgn(&rgn);
-	}
+    CDrawingManager drawingManager(dc);
 
-	drawingManager.FillGradient(rc, colorStart, colorFinish);
+    if (!drawOnCurrentRgn)
+    {
+        CRgn rgn;
+        CreateRectRgnInDevicePoints(&dc, &rgn, rc.left, rc.top, rc.right, rc.bottom, cornerRadius);
+        dc.SelectClipRgn(&rgn);
+    }
 
-	if (!drawOnCurrentRgn)
-		dc.GetDC().SelectClipRgn(&oldRgn);
+    drawingManager.FillGradient(rc, colorStart, colorFinish);
+
+    if (!drawOnCurrentRgn)
+        dc.SelectClipRgn(&oldRgn);
 }
 
 void FillRectRegion(CRect &rc, CMemDC &dc, COLORREF backgroundColor, int cornerRadius, BOOL drawOnCurrentRgn)
@@ -145,12 +162,12 @@ void FillRectRegion(CRect &rc, CDC &dc, COLORREF backgroundColor, int cornerRadi
     CRect oldRect;
     dc.GetClipBox(&oldRect);
     CRgn oldRgn;
-    oldRgn.CreateRectRgn(oldRect.left, oldRect.top, oldRect.right, oldRect.bottom);
+    CreateRectRgnInDevicePoints(&dc, &oldRgn, oldRect.left, oldRect.top, oldRect.right, oldRect.bottom);
 
     if (!drawOnCurrentRgn)
     {
         CRgn rgn;
-        rgn.CreateRoundRectRgn(rc.left, rc.top, rc.right, rc.bottom, cornerRadius, cornerRadius);
+        CreateRectRgnInDevicePoints(&dc, &rgn, rc.left, rc.top, rc.right, rc.bottom, cornerRadius);
         dc.SelectClipRgn(&rgn);
     }
 
@@ -162,29 +179,64 @@ void FillRectRegion(CRect &rc, CDC &dc, COLORREF backgroundColor, int cornerRadi
 
 void DrawRectArea(Gdiplus::Rect &rc, Gdiplus::Graphics &graphics, COLORREF color, int cornerRadius, int penWidth)
 {
-	Gdiplus::Color penColor(0, 0, 0);
-	penColor.SetFromCOLORREF(color);
+    Gdiplus::Color penColor(0, 0, 0);
+    penColor.SetFromCOLORREF(color);
 
-	GraphicsPath path;
-	GetRoundRectPath(&path, rc, cornerRadius);
+    GraphicsPath path;
+    GetRoundRectPath(&path, rc, cornerRadius);
 
-	Gdiplus::Pen pen(penColor, (REAL)penWidth);
-	pen.SetLineJoin(LineJoinRound);
-	graphics.DrawPath(&pen, &path);
+    Gdiplus::Pen pen(penColor, (REAL)penWidth);
+    pen.SetLineJoin(LineJoinRound);
+    graphics.DrawPath(&pen, &path);
 }
 
 void DrawText(CRect &rc, CMemDC &dc, CFont &font, COLORREF textColor, CString text, UINT nFormat)
 {
-	int oldBkMode = dc.GetDC().GetBkMode();
-	COLORREF oldColor = dc.GetDC().GetTextColor();
-	CFont* pOldFont = dc.GetDC().SelectObject(&font);
+    DrawText(rc, dc.GetDC(), font, textColor, text, nFormat);
+}
 
-	dc.GetDC().SetBkMode(TRANSPARENT);
-	dc.GetDC().SetTextColor(textColor);		
+void DrawText(CRect &rc, CDC &dc, CFont &font, COLORREF textColor, CString text, UINT nFormat)
+{
+    int oldBkMode = dc.GetBkMode();
+    COLORREF oldColor = dc.GetTextColor();
+    CFont* pOldFont = dc.SelectObject(&font);
 
-	dc.GetDC().DrawText(text, rc, nFormat);
+    dc.SetBkMode(TRANSPARENT);
+    dc.SetTextColor(textColor);
 
-	dc.GetDC().SetBkMode(oldBkMode);
-	dc.GetDC().SetTextColor(oldColor);
-	dc.GetDC().SelectObject(&pOldFont);
+    dc.DrawText(text, rc, nFormat);
+
+    dc.SetBkMode(oldBkMode);
+    dc.SetTextColor(oldColor);
+    dc.SelectObject(&pOldFont);
+}
+
+void CreateRectRgnInDevicePoints(CDC *pDC, CRgn *rgn, CRect &rc, int cornerRadius)
+{
+    CRect cDevPtsRect(rc);
+    pDC->LPtoDP(&cDevPtsRect);
+
+    if (cornerRadius == 0)
+        rgn->CreateRectRgnIndirect(&cDevPtsRect);
+    else
+        rgn->CreateRoundRectRgn(cDevPtsRect.left, cDevPtsRect.top, cDevPtsRect.right, cDevPtsRect.bottom,
+        cornerRadius, cornerRadius);
+}
+
+void CreateRectRgnInDevicePoints(CDC *pDC, CRgn *rgn, int left, int top, int right, int bottom, int cornerRadius)
+{
+    CRect cLogPtsRect(left, top, right, bottom);
+    CreateRectRgnInDevicePoints(pDC, rgn, cLogPtsRect, cornerRadius);
+}
+
+void CreatePolygonRgnInDevicePoints(CDC *pDC, CRgn *rgn, CPoint points[], int nCount, int nMode)
+{
+    CPoint* devPts = new CPoint[nCount];
+    for (int i = 0; i < nCount; i++)
+        devPts[i] = CPoint(points[i]);
+
+    pDC->LPtoDP(devPts, nCount);
+    rgn->CreatePolygonRgn(devPts, nCount, nMode);
+
+    delete devPts;
 }

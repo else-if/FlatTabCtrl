@@ -3,7 +3,7 @@
 #include "CommonDrawing.h"
 
 CTTGroupBox::CTTGroupBox()
-	:m_CaptionRect(0,0,0,0)
+    :m_CaptionRect(0, 0, 0, 0)
 {
     SetDrawingProperties(1, 5);
 
@@ -12,7 +12,7 @@ CTTGroupBox::CTTGroupBox()
     m_ControlState = Normal;
     m_ColorMap.SetColor(Normal, Border, RGB(168, 167, 174));
 
-	m_bUseBmp = false;
+    m_bUseBmp = false;
 }
 
 CTTGroupBox::~CTTGroupBox()
@@ -50,7 +50,7 @@ void CTTGroupBox::OnPaint()
 
     UpdateControlState();
 
-	// exclude modal frame borders
+    // exclude modal frame borders
     if (GetExStyle() & WS_EX_DLGMODALFRAME)
     {
         cRect.left += OFS_MODALFRAME;
@@ -68,13 +68,23 @@ void CTTGroupBox::OnPaint()
 
     CString captionText;
     GetWindowText(captionText);
+
+    CSize captionSize(0, 0);
+    int iTopOffset = 0;
+
     if (!captionText.IsEmpty())
+    {
         captionText = _T(" ") + captionText + _T(" ");
-    CSize captionSize = dc.GetTextExtent(captionText);
+        captionSize = dc.GetTextExtent(captionText);
 
-    captionSize.cy += 2;
-
-    int iTopOffset = (captionSize.cy / 2);
+        captionSize.cy += 2;
+        iTopOffset = (captionSize.cy / 2);
+    }
+    else
+    {
+        CSize testSize = dc.GetTextExtent(_T("Test"));
+        iTopOffset = (testSize.cy / 2);
+    }
 
     // Calcilate caption rect position
     DWORD dwStyle = GetStyle();
@@ -83,14 +93,17 @@ void CTTGroupBox::OnPaint()
     ptStart.y = cRect.top;// + iTopOffset;
     ptEnd.y = cRect.top + captionSize.cy;
 
+    int sizeDiff = max((cRect.Width() - captionSize.cx) / 2, 0); // to prevent diff below zero
+    int Offset = min(sizeDiff, OFS_LEFT); // offset may be lower than predefined default OFS_LEFT
+
     if ((dwStyle & BS_CENTER) == BS_RIGHT) // right aligned
     {
-        ptEnd.x = cRect.right - OFS_LEFT;
+        ptEnd.x = cRect.right - Offset;
         ptStart.x = ptEnd.x - captionSize.cx;
     }
     else if ((!(dwStyle & BS_CENTER)) || ((dwStyle & BS_CENTER) == BS_LEFT)) // left aligned	/ default
     {
-        ptStart.x = cRect.left + OFS_LEFT;
+        ptStart.x = cRect.left + Offset;
         ptEnd.x = ptStart.x + captionSize.cx;
     }
     else if ((dwStyle & BS_CENTER) == BS_CENTER) // text centered
@@ -99,9 +112,9 @@ void CTTGroupBox::OnPaint()
         ptEnd.x = ptStart.x + captionSize.cx;
     }
 
-	m_CaptionRect.CopyRect(CRect(ptStart, ptEnd));
+    m_CaptionRect.CopyRect(CRect(ptStart, ptEnd));
     CRgn captionRgn;
-	captionRgn.CreateRectRgnIndirect(&m_CaptionRect);
+    captionRgn.CreateRectRgnIndirect(&m_CaptionRect);
 
     CRect bordRect(cRect.left, cRect.top + iTopOffset, cRect.right + 1, cRect.bottom + 1);
     CRgn borderRgn;
@@ -125,7 +138,7 @@ void CTTGroupBox::OnPaint()
 
     // Caption
 
-	dc.SelectClipRgn(&captionRgn);
+    dc.SelectClipRgn(&captionRgn);
 
     dc.SetBkMode(TRANSPARENT);
     (CBrush*)dc.SelectStockObject(NULL_BRUSH);
@@ -133,7 +146,7 @@ void CTTGroupBox::OnPaint()
     COLORREF textColor = m_ControlState == Disable ? GetSysColor(COLOR_GRAYTEXT) : m_CaptionTextColor;
     dc.SetTextColor(textColor);
 
-	dc.DrawText(captionText, m_CaptionRect, DT_VCENTER | DT_CENTER | DT_SINGLELINE | DT_NOCLIP);
+    dc.DrawText(captionText, m_CaptionRect, DT_VCENTER | DT_CENTER | DT_SINGLELINE | DT_NOCLIP);
 }
 
 void CTTGroupBox::OnEnable(BOOL bEnable)
@@ -159,37 +172,37 @@ HBRUSH CTTGroupBox::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 
 BOOL CTTGroupBox::OnEraseBkgnd(CDC* pDC)
 {
-	if (m_bUseBmp)
-	{
-		if (!m_CaptionRect.IsRectEmpty())
-		{
-			int iTopOffset = GetExStyle() & WS_EX_DLGMODALFRAME ? OFS_MODALFRAME : 0;
-			
-			pDC->BitBlt(m_CaptionRect.left, m_CaptionRect.top, m_CaptionRect.Width(), m_CaptionRect.Height(),
-				&m_dc, m_CaptionRect.left, m_CaptionRect.top + iTopOffset, SRCCOPY);
-		}
-	}
-	else
-	{
-		CRect Rect;
-		GetWindowRect(&Rect);
-		CWnd *pParent = GetParent();
-		pParent->ScreenToClient(&Rect);
-		CDC *pParentDC = pParent->GetDC();
+    if (m_bUseBmp)
+    {
+        if (!m_CaptionRect.IsRectEmpty())
+        {
+            int iTopOffset = GetExStyle() & WS_EX_DLGMODALFRAME ? OFS_MODALFRAME : 0;
 
-		m_dc.DeleteDC();
-		// store into m_dc
-		CBitmap bmp;
-		m_dc.CreateCompatibleDC(pParentDC);
-		bmp.CreateCompatibleBitmap(pParentDC, Rect.Width(), Rect.Height());
-		m_dc.SelectObject(&bmp);
-		m_dc.BitBlt(0, 0, Rect.Width(), Rect.Height(), pParentDC, Rect.left, Rect.top, SRCCOPY);
-		bmp.DeleteObject();
+            pDC->BitBlt(m_CaptionRect.left, m_CaptionRect.top, m_CaptionRect.Width(), m_CaptionRect.Height(),
+                &m_dc, m_CaptionRect.left, m_CaptionRect.top + iTopOffset, SRCCOPY);
+        }
+    }
+    else
+    {
+        CRect Rect;
+        GetWindowRect(&Rect);
+        CWnd *pParent = GetParent();
+        pParent->ScreenToClient(&Rect);
+        CDC *pParentDC = pParent->GetDC();
 
-		m_bUseBmp = true;
+        m_dc.DeleteDC();
+        // store into m_dc
+        CBitmap bmp;
+        m_dc.CreateCompatibleDC(pParentDC);
+        bmp.CreateCompatibleBitmap(pParentDC, Rect.Width(), Rect.Height());
+        m_dc.SelectObject(&bmp);
+        m_dc.BitBlt(0, 0, Rect.Width(), Rect.Height(), pParentDC, Rect.left, Rect.top, SRCCOPY);
+        bmp.DeleteObject();
 
-		pParent->ReleaseDC(pParentDC);
-	}
+        m_bUseBmp = true;
+
+        pParent->ReleaseDC(pParentDC);
+    }
 
     return TRUE;
 }

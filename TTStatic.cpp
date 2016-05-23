@@ -9,70 +9,70 @@ using namespace Gdiplus;
 IMPLEMENT_DYNAMIC(CTTStatic, CStatic)
 
 CTTStatic::CTTStatic()
-{	
-	SetBackgroundColor(GetSysColor(COLOR_3DFACE));
-	SetTextColor(GetSysColor(COLOR_CAPTIONTEXT));
-	SetDrawingProperties(1, 5, false, false);
-	
-	m_ControlState = Normal;    
+{
+    SetBackgroundColor(GetSysColor(COLOR_3DFACE));
+    SetTextColor(GetSysColor(COLOR_CAPTIONTEXT));
+    SetDrawingProperties(1, 5, false, false);
+
+    m_ControlState = Normal;
     m_borderColor = 0;
 
-	m_bUseBmp = false;
+    m_bUseBmp = false;
 }
 
 CTTStatic::~CTTStatic()
-{	
+{
 }
 
 void CTTStatic::UpdateControlState()
 {
-	if (!IsWindowEnabled())
-		m_ControlState = Disable;
-	else
-		m_ControlState = Normal;
+    if (!IsWindowEnabled())
+        m_ControlState = Disable;
+    else
+        m_ControlState = Normal;
 }
 
 COLORREF CTTStatic::GetBackgroundColor()
 {
-	return m_backgroundColor;
+    return m_backgroundColor;
 }
 
 void CTTStatic::SetBackgroundColor(COLORREF backgroundColor)
 {
-	m_backgroundColor = backgroundColor;
+    m_backgroundColor = backgroundColor;
 }
 
 COLORREF CTTStatic::GetTextColor()
 {
-	return m_textColor;
+    return m_textColor;
 }
 
 void CTTStatic::SetTextColor(COLORREF textColor)
 {
-	m_textColor = textColor;
+    m_textColor = textColor;
 }
 
 void CTTStatic::SetDrawingProperties(int borderPenWidth, int cornerRadius, bool drawBorders, bool drawBackground)
 {
-	m_borderPenWidth = borderPenWidth;
-	m_iCornerRadius = cornerRadius;
-	m_bDrawBorders = drawBorders;
+    m_borderPenWidth = borderPenWidth;
+    m_iCornerRadius = cornerRadius;
+    m_bDrawBorders = drawBorders;
     m_bDrawBackground = drawBackground;
 }
 
 COLORREF CTTStatic::GetBorderColor()
 {
-	return m_borderColor;
+    return m_borderColor;
 }
 
 void CTTStatic::SetBorderColor(COLORREF borderColor)
 {
-	m_borderColor = borderColor;
+    m_borderColor = borderColor;
 }
 
 void CTTStatic::DrawBorders(bool drawBorders)
 {
-	m_bDrawBorders = drawBorders;
+    m_bDrawBorders = drawBorders;
 }
 
 void CTTStatic::DrawBackground(bool drawBackground)
@@ -82,59 +82,66 @@ void CTTStatic::DrawBackground(bool drawBackground)
 
 void CTTStatic::SetColorProperties(COLORREF backgroundColor, COLORREF textColor, COLORREF borderColor)
 {
-	SetBackgroundColor(backgroundColor);
-	SetTextColor(textColor);
-	SetBorderColor(borderColor);
+    SetBackgroundColor(backgroundColor);
+    SetTextColor(textColor);
+    SetBorderColor(borderColor);
 }
 
 void CTTStatic::UpdateTextFont()
 {
-	LOGFONT m_lf;
-	CFont* curFont = GetFont();
-	curFont->GetLogFont(&m_lf);
+    m_TextFont.Detach();
 
-	m_TextFont.Detach();
-	m_TextFont.CreateFontIndirect(&m_lf);
+    LOGFONT m_lf;
+    CFont* curFont = GetFont();
+    if ((HFONT)curFont == NULL)
+        curFont = GetParent()->GetFont();
+
+    if ((HFONT)curFont == NULL)
+        return;
+
+    curFont->GetLogFont(&m_lf);
+    m_TextFont.CreateFontIndirect(&m_lf);
+
 }
 
 BEGIN_MESSAGE_MAP(CTTStatic, CStatic)
-	ON_WM_ERASEBKGND()
-	ON_WM_PAINT()
-	ON_WM_ENABLE()
-    ON_WM_CTLCOLOR()    
+    ON_WM_ERASEBKGND()
+    ON_WM_PAINT()
+    ON_WM_ENABLE()
+    ON_WM_CTLCOLOR()
     ON_MESSAGE(WM_SETTEXT, &CTTStatic::OnSetText)
     ON_MESSAGE(WM_SETFONT, &CTTStatic::OnSetFont)
 END_MESSAGE_MAP()
 
 BOOL CTTStatic::OnEraseBkgnd(CDC* pDC)
 {
-	if (!m_bUseBmp){
-		CRect Rect;
-		GetWindowRect(&Rect);
-		CWnd *pParent = GetParent();
-		pParent->ScreenToClient(&Rect);
-		CDC *pParentDC = pParent->GetDC();
-		
-		m_dc.DeleteDC();
-		// store into m_dc
-		CBitmap bmp;
-		m_dc.CreateCompatibleDC(pParentDC);
-		bmp.CreateCompatibleBitmap(pParentDC, Rect.Width(), Rect.Height());
-		m_dc.SelectObject(&bmp);
-		m_dc.BitBlt(0, 0, Rect.Width(), Rect.Height(), pParentDC, Rect.left, Rect.top, SRCCOPY);
-		bmp.DeleteObject();
+    if (!m_bUseBmp){
+        CRect Rect;
+        GetWindowRect(&Rect);
+        CWnd *pParent = GetParent();
+        pParent->ScreenToClient(&Rect);
+        CDC *pParentDC = pParent->GetDC();
 
-		m_bUseBmp = true;
+        m_dc.DeleteDC();
+        // store into m_dc
+        CBitmap bmp;
+        m_dc.CreateCompatibleDC(pParentDC);
+        bmp.CreateCompatibleBitmap(pParentDC, Rect.Width(), Rect.Height());
+        m_dc.SelectObject(&bmp);
+        m_dc.BitBlt(0, 0, Rect.Width(), Rect.Height(), pParentDC, Rect.left, Rect.top, SRCCOPY);
+        bmp.DeleteObject();
 
-		pParent->ReleaseDC(pParentDC);
-	}
-	
+        m_bUseBmp = true;
+
+        pParent->ReleaseDC(pParentDC);
+    }
+
     return TRUE;
 }
 
 void CTTStatic::OnPaint()
 {
-	CRect cRect;
+    CRect cRect;
     GetClientRect(&cRect);
     CPaintDC dc(this);
 
@@ -144,11 +151,11 @@ void CTTStatic::OnPaint()
 
     UpdateControlState();
 
-	if (m_bUseBmp)
-	{
-		dc.BitBlt(cRect.left, cRect.top, cRect.Width(), cRect.Height(),
-			&m_dc, 0, 0, SRCCOPY);
-	}
+    if (m_bUseBmp)
+    {
+        dc.BitBlt(cRect.left, cRect.top, cRect.Width(), cRect.Height(),
+            &m_dc, 0, 0, SRCCOPY);
+    }
 
     dc.SetBkMode(TRANSPARENT);
 
@@ -176,7 +183,8 @@ void CTTStatic::OnPaint()
     CString strText = _T("");
     GetWindowText(strText);
 
-    dc.SelectObject(m_TextFont);
+    if ((HFONT)m_TextFont != NULL)
+        dc.SelectObject(m_TextFont);
 
     DWORD ExStyle = GetExStyle();
     DWORD Style = GetStyle();
@@ -207,11 +215,14 @@ void CTTStatic::OnPaint()
 
 void CTTStatic::OnEnable(BOOL bEnable)
 {
-	Invalidate();
+    Invalidate();
 }
 
 HBRUSH CTTStatic::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 {
+    if ((HFONT)m_TextFont == NULL)
+        UpdateTextFont();
+
     pDC->SetBkMode(TRANSPARENT);
     return (HBRUSH)GetStockObject(NULL_BRUSH);
 }
@@ -239,7 +250,7 @@ void CTTStatic::PreSubclassWindow()
         SetWindowPos(NULL, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER);
     }
 
-	UpdateTextFont();
+    UpdateTextFont();
 
     CStatic::PreSubclassWindow();
 }
@@ -258,13 +269,13 @@ afx_msg LRESULT CTTStatic::OnSetText(WPARAM wParam, LPARAM lParam)
 afx_msg LRESULT CTTStatic::OnSetFont(WPARAM wParam, LPARAM lParam)
 {
     LRESULT Result = Default();
-	
-	UpdateTextFont();
+
+    UpdateTextFont();
 
     CRect Rect;
     GetWindowRect(&Rect);
     GetParent()->ScreenToClient(&Rect);
     GetParent()->InvalidateRect(&Rect);
     GetParent()->UpdateWindow();
-	return Result;
+    return Result;
 }

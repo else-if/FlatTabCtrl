@@ -3,15 +3,15 @@
 class CTTComboListBox : public CListBox
 {
 public:
-	CTTComboListBox();
-	virtual ~CTTComboListBox();
-	bool IsMouseover() { return m_bTracking; }
-	
+    CTTComboListBox();
+    virtual ~CTTComboListBox();
+    bool IsMouseover() { return m_bTracking; }
+
 protected:
-	bool m_bTracking;
-	
-	DECLARE_MESSAGE_MAP()
+    bool m_bTracking;
+
+    DECLARE_MESSAGE_MAP()
 public:
-	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
-	afx_msg void OnMouseLeave();
+    afx_msg void OnMouseMove(UINT nFlags, CPoint point);
+    afx_msg void OnMouseLeave();
 };
