@@ -75,41 +75,80 @@ void CTTEdit::Paint(CDC* pDC)
 
         return;
     }
+    else
+    {
+        CRect cClientRect(m_ClientRect.X, m_ClientRect.Y, m_ClientRect.X + m_ClientRect.Width, m_ClientRect.Y + m_ClientRect.Height);
 
-    Gdiplus::Graphics graphics(pDC->m_hDC);
-    graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
-    graphics.SetInterpolationMode(Gdiplus::InterpolationModeHighQualityBicubic);
+        DrawEditControlFrame(pDC, &cClientRect, &cClientRect, m_ControlState, m_CornerRadius,
+            m_borderPenWidth, &m_ColorMap);
+
+        int x = m_ClientRect.X;
+        int y = m_ClientRect.Y;
+        int width = m_ClientRect.Width;
+        int height = m_ClientRect.Height;
+
+        m_dc.DeleteDC();
+
+        // store into m_dc
+        CBitmap bmp;
+        m_dc.CreateCompatibleDC(pDC);
+        bmp.CreateCompatibleBitmap(pDC, width, height);
+        m_dc.SelectObject(&bmp);
+        m_dc.BitBlt(0, 0, width, height, pDC, x, y, SRCCOPY);
+        bmp.DeleteObject();
+
+        m_bPainted = true;
+    }
+}
+
+void CTTEdit::DrawEditControlFrame(CDC* pDC, CRect* pRect, CRect* pClipRect, ControlState controlState,
+    int cornerRadius, int borderWidth, ControlsColorMap* pColorMap)
+{
+    if (pDC == NULL)
+        return;
+
+    if (pRect == NULL || pClipRect == NULL)
+        return;
+
+    int nSave = pDC->SaveDC();
+
+    Graphics graphics(pDC->GetSafeHdc());
+    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
+    graphics.SetInterpolationMode(InterpolationModeHighQualityBicubic);
     graphics.SetTextRenderingHint(TextRenderingHintClearTypeGridFit);
 
-    // Borders
-    Gdiplus::Rect BorderRect(m_ClientRect.X, m_ClientRect.Y, m_ClientRect.X + m_ClientRect.Width, m_ClientRect.Y + m_ClientRect.Height);
+    bool bDeleteColorMap = false;
+    if (pColorMap == NULL)
+    {
+        pColorMap = new ControlsColorMap();
+        bDeleteColorMap = true;
+    }
+
+    CRgn clipRgn;
+    CreateRectRgnInDevicePoints(pDC, &clipRgn, *pClipRect);
+
+    pDC->SelectClipRgn(&clipRgn);
+
+    Gdiplus::Rect BorderRect(pRect->left, pRect->top, pRect->Width(), pRect->Height());
 
     // Clear background
-    COLORREF backgroundColor = m_ColorMap.GetColor(m_ControlState, BackgroundTopGradientFinish);;
+    COLORREF backgroundColor = pColorMap->GetColor(controlState, BackgroundTopGradientFinish);;
     Color cl(0, 0, 0);
     cl.SetFromCOLORREF(backgroundColor);
     Gdiplus::SolidBrush brush(cl);
     graphics.FillRectangle(&brush, BorderRect);
 
-    DrawRectArea(BorderRect, graphics, m_ColorMap.GetColor(m_ControlState, Border),
-        m_CornerRadius, m_borderPenWidth);
+    DrawRectArea(BorderRect, graphics, pColorMap->GetColor(controlState, Border),
+        cornerRadius, borderWidth);
 
-    m_dc.DeleteDC();
+    pDC->RestoreDC(nSave);
 
-    int x = m_ClientRect.X;
-    int y = m_ClientRect.Y;
-    int width = m_ClientRect.Width;
-    int height = m_ClientRect.Height;
+    if (bDeleteColorMap && pColorMap != NULL)
+    {
+        delete pColorMap;
+        pColorMap = NULL;
+    }
 
-    // store into m_dc
-    CBitmap bmp;
-    m_dc.CreateCompatibleDC(pDC);
-    bmp.CreateCompatibleBitmap(pDC, width, height);
-    m_dc.SelectObject(&bmp);
-    m_dc.BitBlt(0, 0, width, height, pDC, x, y, SRCCOPY);
-    bmp.DeleteObject();
-
-    m_bPainted = true;
 }
 
 BEGIN_MESSAGE_MAP(CTTEdit, CEdit)

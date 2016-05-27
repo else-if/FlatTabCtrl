@@ -13,6 +13,9 @@ public:
 
     void SetDrawingProperties(int borderPenWidth, int cornerRadius);
 
+    static void DrawEditControlFrame(CDC* pDC, CRect* pRect, CRect* pClipRect, ControlState controlState = Normal,
+        int cornerRadius = 5, int borderWidth = 1, ControlsColorMap* pColorMap = NULL);
+
 protected:
 
     bool m_bUseBaseMessageHandlers;
@@ -62,5 +65,3 @@ public:
     afx_msg void OnSize(UINT nType, int cx, int cy);
     afx_msg void OnMove(int x, int y);
 };
-
-

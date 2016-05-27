@@ -14,6 +14,8 @@ CTTComboBox::CTTComboBox()
     m_bHasFocus = false;
     m_bOnButton = false;
 
+    m_bUseBmp = false;
+
     m_iComboBoxStyle = 0;
 
     SetDrawingProperties(1, 5);
@@ -62,144 +64,210 @@ void CTTComboBox::UpdateControlState()
         m_ArrowButtonState = Normal;
 }
 
-void CTTComboBox::DrawSimple()
+void CTTComboBox::DrawComboBoxControl(CDC* pDC, CRect* pRect, CRect* pClipRect, int nStyle, ControlState controlState,
+    ControlState backgrougState, ControlState arrowButtonState, const CString& itemText, CFont* pFont, int cornerRadius,
+    int borderWidth, ControlsColorMap* pColorMap)
 {
-    CRect cRect;
-    GetClientRect(&cRect);
-    CPaintDC dc(this);
+    switch (nStyle)
+    {
+    case CBS_DROPDOWN:
+        DrawDropDown(pDC, pRect, pClipRect, controlState,
+            arrowButtonState, cornerRadius, borderWidth, pColorMap);
+        break;
+    case CBS_DROPDOWNLIST:
+        DrawDropDownList(pDC, pRect, pClipRect, controlState, backgrougState,
+            arrowButtonState, itemText, pFont, cornerRadius, borderWidth, pColorMap);
+        break;
+    case CBS_SIMPLE:
+        DrawSimple(pDC, pRect, pClipRect, controlState, cornerRadius, borderWidth, pColorMap);
+        break;
+    }
+}
 
-    // Calculate borders rect
-    if (!m_edit)
+void CTTComboBox::DrawSimple(CDC* pDC, CRect* pRect, CRect* pClipRect, ControlState controlState,
+    int cornerRadius, int borderWidth, ControlsColorMap* pColorMap)
+{
+    if (pDC == NULL)
         return;
 
-    CRect cEditRect;
-    m_edit.GetWindowRect(&cEditRect);
-    ScreenToClient(&cEditRect);
+    if (pRect == NULL || pClipRect == NULL)
+        return;
 
-    cRect.bottom = cEditRect.bottom + cEditRect.top;
+    int nSave = pDC->SaveDC();
 
-    CMemDC memDC(dc, cRect);
-
-    Graphics graphics(memDC.GetDC().GetSafeHdc());
+    Graphics graphics(pDC->GetSafeHdc());
     graphics.SetSmoothingMode(SmoothingModeAntiAlias);
     graphics.SetInterpolationMode(InterpolationModeHighQualityBicubic);
 
-    DrawThemeParentBackground(GetSafeHwnd(), memDC.GetDC().GetSafeHdc(), cRect);
+    bool bDeleteColorMap = false;
+    if (pColorMap == NULL)
+    {
+        pColorMap = new ControlsColorMap();
+        bDeleteColorMap = true;
+    }
+
+    CRgn clipRgn;
+    CreateRectRgnInDevicePoints(pDC, &clipRgn, *pClipRect);
+
+    pDC->SelectClipRgn(&clipRgn);
+    
+    CRect cRect(pRect);
 
     // Clear background
-    FillRectRegion(cRect, memDC, RGB(255, 255, 255), m_CornerRadius);
+    FillRectRegion(cRect, *pDC, RGB(255, 255, 255), cornerRadius);
 
     // Borders
-    Gdiplus::Rect BorderRect(cRect.left, cRect.top, cRect.right, cRect.bottom);
+    Gdiplus::Rect BorderRect(cRect.left, cRect.top, cRect.Width(), cRect.Height());
 
-    DrawRectArea(BorderRect, graphics, m_ColorMap.GetColor(m_ControlState, Border),
-        m_CornerRadius, m_borderPenWidth);
+    DrawRectArea(BorderRect, graphics, pColorMap->GetColor(controlState, Border),
+        cornerRadius, borderWidth);
 
+    pDC->RestoreDC(nSave);
+
+    if (bDeleteColorMap && pColorMap != NULL)
+    {
+        delete pColorMap;
+        pColorMap = NULL;
+    }
 }
 
-void CTTComboBox::DrawDropDown()
+void CTTComboBox::DrawDropDown(CDC* pDC, CRect* pRect, CRect* pClipRect, ControlState controlState,
+    ControlState arrowButtonState, int cornerRadius, int borderWidth, ControlsColorMap* pColorMap)
 {
-    CRect cRect;
-    GetClientRect(&cRect);
-    CPaintDC dc(this);
-    CMemDC memDC(dc, cRect);
+    if (pDC == NULL)
+        return;
 
-    Graphics graphics(memDC.GetDC().GetSafeHdc());
+    if (pRect == NULL || pClipRect == NULL)
+        return;
+
+    int nSave = pDC->SaveDC();
+
+    Graphics graphics(pDC->GetSafeHdc());
     graphics.SetSmoothingMode(SmoothingModeAntiAlias);
     graphics.SetInterpolationMode(InterpolationModeHighQualityBicubic);
+    
+    bool bDeleteColorMap = false;
+    if (pColorMap == NULL)
+    {
+        pColorMap = new ControlsColorMap();
+        bDeleteColorMap = true;
+    }
 
-    DrawThemeParentBackground(GetSafeHwnd(), memDC.GetDC().GetSafeHdc(), cRect);
+    CRgn clipRgn;
+    CreateRectRgnInDevicePoints(pDC, &clipRgn, *pClipRect);
+
+    pDC->SelectClipRgn(&clipRgn);
+
+    CRect cRect(pRect);
 
     // Clear background
-    FillRectRegion(cRect, memDC, RGB(255, 255, 255), m_CornerRadius);
+    FillRectRegion(cRect, *pDC, RGB(255, 255, 255), cornerRadius);
 
     // Borders
-    Gdiplus::Rect BorderRect(cRect.left, cRect.top, cRect.right, cRect.bottom);
+    Gdiplus::Rect BorderRect(cRect.left, cRect.top, cRect.Width(), cRect.Height());
 
-    DrawRectArea(BorderRect, graphics, m_ColorMap.GetColor(m_ControlState, Border),
-        m_CornerRadius, m_borderPenWidth);
+    DrawRectArea(BorderRect, graphics, pColorMap->GetColor(controlState, Border),
+        cornerRadius, borderWidth);
 
-    // Arrow button region
-    DrawArrowButton(cRect, memDC, graphics);
+    pDC->RestoreDC(nSave);
+
+    CRect btnRect = GetArrowButtonRect(&cRect);
+    CTTComboBox::DrawArrowButon(pDC, &btnRect, &btnRect, arrowButtonState, controlState,
+        cornerRadius, borderWidth, pColorMap, FALSE);
+
+    if (bDeleteColorMap && pColorMap != NULL)
+    {
+        delete pColorMap;
+        pColorMap = NULL;
+    }
 }
 
-void CTTComboBox::DrawDropDownList()
+void CTTComboBox::DrawDropDownList(CDC* pDC, CRect* pRect, CRect* pClipRect, ControlState controlState,
+    ControlState backgrougState, ControlState arrowButtonState, const CString& itemText, CFont* pFont,
+    int cornerRadius, int borderWidth, ControlsColorMap* pColorMap)
 {
-    CRect cRect;
-    GetClientRect(&cRect);
-    CPaintDC dc(this);
-    CMemDC memDC(dc, cRect);
+    if (pDC == NULL)
+        return;
 
-    Graphics graphics(memDC.GetDC().GetSafeHdc());
+    if (pRect == NULL || pClipRect == NULL)
+        return;
+
+    int nSave = pDC->SaveDC();
+
+    Graphics graphics(pDC->GetSafeHdc());
     graphics.SetSmoothingMode(SmoothingModeAntiAlias);
     graphics.SetInterpolationMode(InterpolationModeHighQualityBicubic);
 
-    DrawThemeParentBackground(GetSafeHwnd(), memDC.GetDC().GetSafeHdc(), cRect);
+    bool bDeleteColorMap = false;
+    if (pColorMap == NULL)
+    {
+        pColorMap = new ControlsColorMap();
+        bDeleteColorMap = true;
+    }
 
-    ControlState backgrougControlState = m_ControlState;
-    if (m_ControlState != Disable && (!m_bTracking || m_bOnButton))
-        backgrougControlState = Normal;
+    CRgn clipRgn;
+    CreateRectRgnInDevicePoints(pDC, &clipRgn, *pClipRect);
+
+    pDC->SelectClipRgn(&clipRgn);
+
+    CRect cRect(pRect);
 
     // Draw background
-    Draw4ColorsGradientRect(cRect, memDC,
-        m_ColorMap.GetColor(backgrougControlState, BackgroundTopGradientStart),
-        m_ColorMap.GetColor(backgrougControlState, BackgroundTopGradientFinish),
-        m_ColorMap.GetColor(backgrougControlState, BackgroundBottomGradientStart),
-        m_ColorMap.GetColor(backgrougControlState, BackgroundBottomGradientFinish),
-        m_CornerRadius);
+    Draw4ColorsGradientRect(cRect, *pDC,
+        pColorMap->GetColor(backgrougState, BackgroundTopGradientStart),
+        pColorMap->GetColor(backgrougState, BackgroundTopGradientFinish),
+        pColorMap->GetColor(backgrougState, BackgroundBottomGradientStart),
+        pColorMap->GetColor(backgrougState, BackgroundBottomGradientFinish),
+        cornerRadius);
 
     // Borders
-    Gdiplus::Rect BorderRect(cRect.left, cRect.top, cRect.right, cRect.bottom);
+    Gdiplus::Rect BorderRect(cRect.left, cRect.top, cRect.Width(), cRect.Height());
 
-    DrawRectArea(BorderRect, graphics, m_ColorMap.GetColor(m_ControlState, Border),
-        m_CornerRadius, m_borderPenWidth);
+    DrawRectArea(BorderRect, graphics, pColorMap->GetColor(controlState, Border),
+        cornerRadius, borderWidth);
 
     // Selected item text
-    DrawSelectedItemText(cRect, memDC, graphics);
+    DrawSelectedItemText(pDC, &cRect, itemText, controlState, borderWidth, pFont);
 
-    // Arrow button region
-    DrawArrowButton(cRect, memDC, graphics);
+    pDC->RestoreDC(nSave);
 
+    CRect btnRect = GetArrowButtonRect(&cRect);
+    CTTComboBox::DrawArrowButon(pDC, &btnRect, &btnRect, arrowButtonState, controlState,
+        cornerRadius, borderWidth, pColorMap, FALSE);
+
+    if (bDeleteColorMap && pColorMap != NULL)
+    {
+        delete pColorMap;
+        pColorMap = NULL;
+    }
 }
 
-void CTTComboBox::DrawArrowButton(CRect &cRect, CMemDC &memDC, Gdiplus::Graphics &graphics)
+void CTTComboBox::DrawSelectedItemText(CDC* pDC, CRect* pRect, const CString& itemText, ControlState controlState,
+    int borderWidth, CFont* pFont)
 {
-    CRect btnRect = GetArrowButtonRect();
-    CTTComboBox::DrawArrowButon(&memDC.GetDC(), &btnRect, &btnRect,
-        m_ArrowButtonState, m_ControlState, m_CornerRadius, m_borderPenWidth, &m_ColorMap, FALSE);
-}
-
-void CTTComboBox::DrawSelectedItemText(CRect &cRect, CMemDC &memDC, Gdiplus::Graphics &graphics)
-{
-    int	nSel = GetCurSel();
-    if (nSel == -1)
+    if (pDC == NULL)
         return;
 
-    CString cSelText;
-    int iLen = GetLBTextLen(nSel);
-    GetLBText(nSel, cSelText.GetBuffer(iLen));
-    cSelText.ReleaseBuffer();
+    if (pRect == NULL)
+        return;
 
-    LOGFONT logFont;
-    GetFont()->GetLogFont(&logFont);
-    CFont font;
-    font.CreateFontIndirect(&logFont);
+    if (itemText.IsEmpty())
+        return;
+    
+    COLORREF textColor = controlState == Disable ? GetSysColor(COLOR_GRAYTEXT) : GetSysColor(COLOR_CAPTIONTEXT);
 
-    COLORREF textColor = m_ControlState == Disable ? GetSysColor(COLOR_GRAYTEXT) : GetSysColor(COLOR_CAPTIONTEXT);
-
-    CRect cTextRect(cRect);
-    CRect btnRect = GetArrowButtonRect();
+    CRect cTextRect(pRect);
+    CRect btnRect = GetArrowButtonRect(pRect);
     cTextRect.right -= btnRect.Width();
-    cTextRect.DeflateRect(m_borderPenWidth + 2, 0);
-    DrawText(cTextRect, memDC, font, textColor, cSelText, DT_LEFT | DT_VCENTER | DT_SINGLELINE | DT_END_ELLIPSIS);
+    cTextRect.DeflateRect(borderWidth + 2, 0);
+    DrawText(cTextRect, *pDC, *pFont, textColor, itemText, DT_LEFT | DT_VCENTER | DT_SINGLELINE | DT_END_ELLIPSIS);
 }
 
-CRect CTTComboBox::GetArrowButtonRect()
+CRect CTTComboBox::GetArrowButtonRect(CRect* clientRect)
 {
     int buttonWidth = GetSystemMetrics(SM_CXVSCROLL);
 
-    CRect btnRect;
-    GetClientRect(&btnRect);
+    CRect btnRect(clientRect);
     btnRect.left = btnRect.right - buttonWidth;
 
     return btnRect;
@@ -366,10 +434,34 @@ BEGIN_MESSAGE_MAP(CTTComboBox, CComboBox)
     ON_CONTROL_REFLECT(CBN_KILLFOCUS, &CTTComboBox::OnCbnKillfocus)
     ON_CONTROL_REFLECT(CBN_SETFOCUS, &CTTComboBox::OnCbnSetfocus)
     ON_MESSAGE(CB_SETCURSEL, &CTTComboBox::OnCbSetcursel)
+    ON_WM_MOVE()
+    ON_WM_SETFOCUS()
+    ON_WM_KILLFOCUS()
 END_MESSAGE_MAP()
 
 BOOL CTTComboBox::OnEraseBkgnd(CDC* pDC)
 {
+    if (!m_bUseBmp){
+        CRect Rect;
+        GetWindowRect(&Rect);
+        CWnd *pParent = GetParent();
+        pParent->ScreenToClient(&Rect);
+        CDC *pParentDC = pParent->GetDC();
+
+        m_dc.DeleteDC();
+        // store into m_dc
+        CBitmap bmp;
+        m_dc.CreateCompatibleDC(pParentDC);
+        bmp.CreateCompatibleBitmap(pParentDC, Rect.Width(), Rect.Height());
+        m_dc.SelectObject(&bmp);
+        m_dc.BitBlt(0, 0, Rect.Width(), Rect.Height(), pParentDC, Rect.left, Rect.top, SRCCOPY);
+        bmp.DeleteObject();
+
+        m_bUseBmp = true;
+
+        pParent->ReleaseDC(pParentDC);
+    }
+
     return TRUE;
 }
 
@@ -384,7 +476,9 @@ void CTTComboBox::OnMouseMove(UINT nFlags, CPoint point)
         m_bTracking = ::_TrackMouseEvent(&tme) ? true : false;
     }
 
-    if (GetArrowButtonRect().PtInRect(point))
+    CRect clientRect;
+    GetClientRect(&clientRect);
+    if (GetArrowButtonRect(&clientRect).PtInRect(point))
     {
         m_bOnButton = true;
     }
@@ -407,21 +501,54 @@ void CTTComboBox::OnMouseLeave()
 
 void CTTComboBox::OnPaint()
 {
+    CRect cRect;
+    GetClientRect(&cRect);
+
+    if (m_iComboBoxStyle == CBS_SIMPLE)
+    {
+        // Calculate borders rect
+        if (!m_edit)
+            return;
+
+        CRect cEditRect;
+        m_edit.GetWindowRect(&cEditRect);
+        ScreenToClient(&cEditRect);
+
+        cRect.bottom = cEditRect.bottom + cEditRect.top;
+    }
+
+    CPaintDC dc(this);
+    CMemDC memDC(dc, cRect);
 
     UpdateControlState();
 
-    switch (m_iComboBoxStyle)
+    if (m_bUseBmp)
     {
-    case CBS_DROPDOWN:
-        DrawDropDown();
-        break;
-    case CBS_DROPDOWNLIST:
-        DrawDropDownList();
-        break;
-    case CBS_SIMPLE:
-        DrawSimple();
-        break;
+        memDC.GetDC().BitBlt(cRect.left, cRect.top, cRect.Width(), cRect.Height(),
+            &m_dc, 0, 0, SRCCOPY);
     }
+
+    ControlState backgrougState = m_ControlState;
+    if (m_ControlState != Disable && (!m_bTracking || m_bOnButton))
+        backgrougState = Normal;
+
+    CString cSelText = _T("");
+    int	nSel = GetCurSel();    
+    if (nSel != -1)
+    {
+        int iLen = GetLBTextLen(nSel);
+        GetLBText(nSel, cSelText.GetBuffer(iLen));
+        cSelText.ReleaseBuffer();
+    }
+        
+    LOGFONT logFont;
+    GetFont()->GetLogFont(&logFont);
+    CFont font;
+    font.CreateFontIndirect(&logFont);
+
+    DrawComboBoxControl(&memDC.GetDC(), &cRect, &cRect, m_iComboBoxStyle, m_ControlState, backgrougState,
+        m_ArrowButtonState, cSelText, &font, m_CornerRadius, m_borderPenWidth, &m_ColorMap);
+
 }
 
 HBRUSH CTTComboBox::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
@@ -478,9 +605,14 @@ HBRUSH CTTComboBox::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
             ::MoveWindow(hWnd, cNewRect.left, cNewRect.top, cNewRect.Width(), cNewRect.Height(), TRUE);
 
     }
+    else
+    {
+        pDC->SetBkMode(TRANSPARENT);
+        return (HBRUSH)GetStockObject(NULL_BRUSH);
+    }
 
     HBRUSH hbr = CComboBox::OnCtlColor(pDC, pWnd, nCtlColor);
-    return hbr;
+    return hbr;    
 }
 
 void CTTComboBox::OnDestroy()
@@ -522,6 +654,7 @@ void CTTComboBox::OnCbnKillfocus()
 
 void CTTComboBox::OnCbnSetfocus()
 {
+    TRACE(CString("Combo SetFocus\n"));
     m_bHasFocus = true;
     Invalidate();
 }
@@ -539,4 +672,34 @@ afx_msg LRESULT CTTComboBox::OnCbSetcursel(WPARAM wParam, LPARAM lParam)
     Invalidate(FALSE);
 
     return Result;
+}
+
+void CTTComboBox::OnMove(int x, int y)
+{
+    CComboBox::OnMove(x, y);
+
+    m_bUseBmp = false;
+    Invalidate(TRUE);
+}
+
+void CTTComboBox::OnSetFocus(CWnd* pOldWnd)
+{
+    TRACE(CString("Combo WM_SETFOCUS\n"));
+    CComboBox::OnSetFocus(pOldWnd);
+
+    m_bHasFocus = true;
+    Invalidate();
+}
+
+
+void CTTComboBox::OnKillFocus(CWnd* pNewWnd)
+{
+    TRACE(CString("Combo WM_KILLFOCUS\n"));
+    CComboBox::OnKillFocus(pNewWnd);
+
+    m_bHasFocus = false;
+    //m_bTracking = false;
+    //m_bOnButton = false;
+    m_bButtonPress = false;
+    Invalidate();
 }

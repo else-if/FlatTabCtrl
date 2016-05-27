@@ -23,6 +23,7 @@
 #include "TTStatic2.h"
 #include <vector>
 #include "anchor.h"
+#include "TTListCtrl.h"
 
 using namespace System;
 using namespace System::ComponentModel;
@@ -107,7 +108,12 @@ public:
 
     CTTButton m_TTPushButton;
 
+    CListCtrl /*CTTListCtrl*/ m_TTListCtrl;
+    /*CListCtrl*/ CTTListCtrl m_TTListCtrl2;
+    CListCtrl /*CTTListCtrl*/ m_TTListCtrl3;
+
 	void FillCombo(CComboBox &Combo);
+    void FillList(CListCtrl &list, int colCount, int rowcount);
 
 	BoringEditCtrl2 m_EditCtrl;
 	BoringStaticCtrl m_boringStatic;

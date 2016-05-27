@@ -108,6 +108,9 @@ void CFlatTabCtrlDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_TTGROUPBOX3, m_GrBox3);
 	DDX_Control(pDX, IDC_EDIT8, m_MultiLineEdit);
     DDX_Control(pDX, IDC_CHECK1, m_TTPushButton);
+    DDX_Control(pDX, IDC_LIST1, m_TTListCtrl);
+    DDX_Control(pDX, IDC_LIST2, m_TTListCtrl2);
+    DDX_Control(pDX, IDC_LIST3, m_TTListCtrl3);
 }
 
 BEGIN_MESSAGE_MAP(CFlatTabCtrlDlg, CDialogEx)
@@ -254,19 +257,59 @@ BOOL CFlatTabCtrlDlg::OnInitDialog()
 
     m_lf.lfWeight = -1;
 
-    
+    FillList(m_TTListCtrl, 10, 100);
+    FillList(m_TTListCtrl2, 1, 8);
+    FillList(m_TTListCtrl3, 5, 6);
+
+    CWnd* pWnd = GetDlgItem(IDC_LIST3);
+    CRect cRect;
+    pWnd->GetWindowRect(&cRect);
+
+    ScreenToClient(&cRect);
+    ::MoveWindow(pWnd->GetSafeHwnd(), cRect.left, cRect.top, 300, cRect.Height(), TRUE);
 
     m_dlgAnchor.Init(GetSafeHwnd());
-    m_dlgAnchor.Add(m_Edit2.GetSafeHwnd(), ANCHOR_BOTTOMLEFT | ANCHOR_BOTTOMRIGHT);
+    //m_dlgAnchor.Add(m_Edit2.GetSafeHwnd(), ANCHOR_BOTTOMRIGHT | ANCHOR_BOTTOMRIGHT);
+    m_dlgAnchor.Add(m_TTListCtrl.GetSafeHwnd(), ANCHOR_TOPLEFT | ANCHOR_BOTTOMRIGHT);
+    m_dlgAnchor.Add(m_TTListCtrl3.GetSafeHwnd(), ANCHOR_TOPLEFT | ANCHOR_RIGHT);
 
-	return TRUE;  // return TRUE  unless you set the focus to a control
+    return TRUE;  // return TRUE  unless you set the focus to a control
+}
+
+void CFlatTabCtrlDlg::FillList(CListCtrl &list, int colCount, int rowcount)
+{
+    for (int i = 0; i < colCount; i++)
+    {
+        list.InsertColumn(i, CString("Col" + i));
+        list.SetColumnWidth(i, 60);
+    }
+
+    list.SendMessage(LVM_SETEXTENDEDLISTVIEWSTYLE, 0,
+        LVS_EX_FULLROWSELECT);
+
+    for (int i = 0; i < rowcount; i++)
+        for (int j = 0; j < colCount; j++)
+        {
+            CString text;
+            text.Format(_T("item %d"), (i*colCount + j));
+
+            LVITEM lv;
+            lv.iItem = i;
+            lv.iSubItem = j;
+            lv.pszText = text.GetBuffer(text.GetLength());
+            lv.mask = LVIF_TEXT;
+            if (j == 0)
+                list.InsertItem(&lv);
+            else
+                list.SetItem(&lv);
+        }
 }
 
 void CFlatTabCtrlDlg::FillCombo(CComboBox &Combo)
 {
 	for (int i = 0; i < 10; i++)
 	{
-		CString string;
+        CString string;
 		string.Format(_T("Item %d"), i);
 
 		Combo.AddString(string);
@@ -319,9 +362,6 @@ void CFlatTabCtrlDlg::OnPaint()
 		CDialogEx::OnPaint();
 	}
 
-	
-
-
 	m_CancelButton.LoadBitmaps(IDB_BITMAP1, 4, 10, 10, 20, 20);
 
 }
@@ -369,6 +409,15 @@ void CFlatTabCtrlDlg::OnBnClickedOk()
 
 void CFlatTabCtrlDlg::OnBnClickedButton2()
 {
+    /*TRACE("-----------------------------------------------------------------------------------\n");
+    CWnd* pWnd = GetDlgItem(IDC_LIST3);
+    CRect cRect;
+    pWnd->GetWindowRect(&cRect);
+    
+    ScreenToClient(&cRect);
+    ::MoveWindow(pWnd->GetSafeHwnd(), cRect.left, cRect.top, cRect.Width()+1, cRect.Height(), TRUE);
+    return;*/
+
 	Invalidate(TRUE);
 
 	return;
@@ -393,6 +442,10 @@ void CFlatTabCtrlDlg::OnBnClickedButton2()
 		GetDlgItem(IDC_EDIT5)->EnableWindow(FALSE);
 		GetDlgItem(IDC_EDIT7)->EnableWindow(FALSE);		
 		GetDlgItem(IDC_TTGROUPBOX3)->EnableWindow(FALSE);
+
+        GetDlgItem(IDC_LIST1)->EnableWindow(FALSE);
+        GetDlgItem(IDC_LIST2)->EnableWindow(FALSE);
+        GetDlgItem(IDC_LIST3)->EnableWindow(FALSE);
 	}
 	else
 	{
@@ -411,12 +464,25 @@ void CFlatTabCtrlDlg::OnBnClickedButton2()
 		GetDlgItem(IDC_EDIT5)->EnableWindow(TRUE);
 		GetDlgItem(IDC_EDIT7)->EnableWindow(TRUE);		
 		GetDlgItem(IDC_TTGROUPBOX3)->EnableWindow(TRUE);
+
+        GetDlgItem(IDC_LIST1)->EnableWindow(TRUE);
+        GetDlgItem(IDC_LIST2)->EnableWindow(TRUE);
+        GetDlgItem(IDC_LIST3)->EnableWindow(TRUE);
 	}
 }
 
 
 void CFlatTabCtrlDlg::OnBnClickedButton3()
 {
+    /*TRACE("-----------------------------------------------------------------------------------\n");
+    CWnd* pWnd = GetDlgItem(IDC_LIST3);
+    CRect cRect;
+    pWnd->GetWindowRect(&cRect);
+
+    ScreenToClient(&cRect);
+    ::MoveWindow(pWnd->GetSafeHwnd(), cRect.left, cRect.top, cRect.Width() - 1, cRect.Height(), TRUE);
+    return;*/
+
 	Invalidate(FALSE);
 	
 	return;
