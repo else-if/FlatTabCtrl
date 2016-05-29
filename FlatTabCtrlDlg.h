@@ -108,9 +108,9 @@ public:
 
     CTTButton m_TTPushButton;
 
-    CListCtrl /*CTTListCtrl*/ m_TTListCtrl;
+    /*CListCtrl*/ CTTListCtrl m_TTListCtrl;
     /*CListCtrl*/ CTTListCtrl m_TTListCtrl2;
-    CListCtrl /*CTTListCtrl*/ m_TTListCtrl3;
+    /*CListCtrl */CTTListCtrl m_TTListCtrl3;
 
 	void FillCombo(CComboBox &Combo);
     void FillList(CListCtrl &list, int colCount, int rowcount);
