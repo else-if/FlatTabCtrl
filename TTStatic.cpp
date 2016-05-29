@@ -8,7 +8,8 @@ using namespace Gdiplus;
 
 IMPLEMENT_DYNAMIC(CTTStatic, CStatic)
 
-CTTStatic::CTTStatic()
+CTTStatic::CTTStatic() :
+	m_oldWndRect(0, 0, 0, 0)
 {
     SetBackgroundColor(GetSysColor(COLOR_3DFACE));
     SetTextColor(GetSysColor(COLOR_CAPTIONTEXT));
@@ -111,6 +112,8 @@ BEGIN_MESSAGE_MAP(CTTStatic, CStatic)
     ON_WM_CTLCOLOR()
     ON_MESSAGE(WM_SETTEXT, &CTTStatic::OnSetText)
     ON_MESSAGE(WM_SETFONT, &CTTStatic::OnSetFont)
+	ON_WM_MOVE()
+	ON_WM_SIZE()
 END_MESSAGE_MAP()
 
 BOOL CTTStatic::OnEraseBkgnd(CDC* pDC)
@@ -144,8 +147,11 @@ void CTTStatic::OnPaint()
     CRect cRect;
     GetClientRect(&cRect);
     CPaintDC dc(this);
+	CMemDC memDC(dc, cRect);
 
-    Graphics graphics(dc.GetSafeHdc());
+	CDC* pDC = &memDC.GetDC();
+
+	Graphics graphics(pDC->GetSafeHdc());
     graphics.SetSmoothingMode(SmoothingModeAntiAlias);
     graphics.SetInterpolationMode(InterpolationModeHighQualityBicubic);
 
@@ -153,15 +159,15 @@ void CTTStatic::OnPaint()
 
     if (m_bUseBmp)
     {
-        dc.BitBlt(cRect.left, cRect.top, cRect.Width(), cRect.Height(),
+		pDC->BitBlt(cRect.left, cRect.top, cRect.Width(), cRect.Height(),
             &m_dc, 0, 0, SRCCOPY);
     }
 
-    dc.SetBkMode(TRANSPARENT);
+	pDC->SetBkMode(TRANSPARENT);
 
     //Background
     if (m_bDrawBackground)
-        FillRectRegion(cRect, dc, m_backgroundColor, m_iCornerRadius);
+		FillRectRegion(cRect, *pDC, m_backgroundColor, m_iCornerRadius);
 
     // Borders
     if (m_bDrawBorders)
@@ -178,13 +184,13 @@ void CTTStatic::OnPaint()
     if (m_ControlState == Disable)
         textColor = GetSysColor(COLOR_GRAYTEXT);
 
-    dc.SetTextColor(textColor);
+	pDC->SetTextColor(textColor);
 
     CString strText = _T("");
     GetWindowText(strText);
 
     if ((HFONT)m_TextFont != NULL)
-        dc.SelectObject(m_TextFont);
+		pDC->SelectObject(m_TextFont);
 
     DWORD ExStyle = GetExStyle();
     DWORD Style = GetStyle();
@@ -210,7 +216,7 @@ void CTTStatic::OnPaint()
         textOffset += m_borderPenWidth + (m_borderPenWidth > 1 ? 0 : 1);
 
     cRect.DeflateRect(textOffset, textOffset, textOffset, textOffset);
-    dc.DrawText(strText, cRect, nFormat);
+	pDC->DrawText(strText, cRect, nFormat);
 }
 
 void CTTStatic::OnEnable(BOOL bEnable)
@@ -278,4 +284,52 @@ afx_msg LRESULT CTTStatic::OnSetFont(WPARAM wParam, LPARAM lParam)
     GetParent()->InvalidateRect(&Rect);
     GetParent()->UpdateWindow();
     return Result;
+}
+
+
+void CTTStatic::OnMove(int x, int y)
+{
+	CStatic::OnMove(x, y);
+
+	CWnd *pWnd = GetParent();
+	if (pWnd != NULL)
+	{
+		CRect oldWindowRect, curWindowRect;
+
+		oldWindowRect.CopyRect(m_oldWndRect);
+		GetWindowRect(curWindowRect);
+
+		m_oldWndRect.CopyRect(curWindowRect);
+
+		::MapWindowPoints(HWND_DESKTOP, pWnd->GetSafeHwnd(), (LPPOINT)&oldWindowRect, 2);
+		::MapWindowPoints(HWND_DESKTOP, pWnd->GetSafeHwnd(), (LPPOINT)&curWindowRect, 2);
+
+		InvalidateRectRegions(pWnd, oldWindowRect, curWindowRect, RGN_XOR);
+	}
+}
+
+
+void CTTStatic::OnSize(UINT nType, int cx, int cy)
+{
+	CStatic::OnSize(nType, cx, cy);
+
+	// invalidate current client region
+	Invalidate();
+
+	// invalidate changed parent region
+	CWnd *pWnd = GetParent();
+	if (pWnd != NULL)
+	{
+		CRect oldWindowRect, curWindowRect;
+
+		oldWindowRect.CopyRect(m_oldWndRect);
+		GetWindowRect(curWindowRect);
+
+		m_oldWndRect.CopyRect(curWindowRect);
+
+		::MapWindowPoints(HWND_DESKTOP, pWnd->GetSafeHwnd(), (LPPOINT)&oldWindowRect, 2);
+		::MapWindowPoints(HWND_DESKTOP, pWnd->GetSafeHwnd(), (LPPOINT)&curWindowRect, 2);
+
+		InvalidateRectRegions(pWnd, oldWindowRect, curWindowRect, RGN_XOR);
+	}
 }

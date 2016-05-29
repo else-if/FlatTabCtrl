@@ -37,6 +37,8 @@ protected:
     int m_CornerRadius;
     bool m_bTracking;
 
+	CRect m_oldWndRect;
+
     void UpdateButtonState(UINT state);
 
 public:
@@ -56,4 +58,6 @@ public:
     afx_msg void OnMouseLeave();
     virtual void PreSubclassWindow();
     afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
+	afx_msg void OnMove(int x, int y);
+	afx_msg void OnSize(UINT nType, int cx, int cy);
 };

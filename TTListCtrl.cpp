@@ -486,5 +486,8 @@ void CTTListCtrl::OnSize(UINT nType, int cx, int cy)
 
     GetParent()->InvalidateRgn(&invalidRgn);
 
+	/*CDC* parDC=GetParent()->GetDC();
+	parDC->FillSolidRect(m_oldWndRect, RGB(255, 0, 0));*/
+
     m_Sized = true;
 }

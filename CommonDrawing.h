@@ -38,3 +38,5 @@ void FillRectRegion(CRect &rc, CMemDC &dc, COLORREF backgroundColor, int cornerR
 void CreateRectRgnInDevicePoints(CDC *pDC, CRgn *rgn, CRect &rc, int cornerRadius = 0);
 void CreateRectRgnInDevicePoints(CDC *pDC, CRgn *rgn, int left, int top, int right, int bottom, int cornerRadius = 0);
 void CreatePolygonRgnInDevicePoints(CDC *pDC, CRgn *rgn, CPoint points[], int nCount, int nMode);
+
+void InvalidateRectRegions(CWnd* pWnd, CRect &rect1, CRect &rect2, int nCombineMode);

@@ -40,6 +40,8 @@ protected:
 
     CFont m_TextFont;
 
+	CRect m_oldWndRect;
+
     bool m_bDrawBorders;
     bool m_bDrawBackground;
     int m_borderPenWidth;
@@ -58,4 +60,7 @@ protected:
     afx_msg LRESULT OnSetText(WPARAM wParam, LPARAM lParam);
     virtual void PreSubclassWindow();
     afx_msg LRESULT OnSetFont(WPARAM wParam, LPARAM lParam);
+public:
+	afx_msg void OnMove(int x, int y);
+	afx_msg void OnSize(UINT nType, int cx, int cy);
 };

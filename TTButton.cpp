@@ -1,5 +1,3 @@
-#pragma once
-
 #include "stdafx.h"
 #include "TTButton.h"
 #include "CommonDrawing.h"
@@ -7,16 +5,17 @@
 
 using namespace Gdiplus;
 
-CTTButton::CTTButton()
+CTTButton::CTTButton() :
+	m_oldWndRect(0, 0, 0, 0)
 {
-    m_bTracking = false;
+	m_bTracking = false;
 
-    SetDrawingProperties(1, 5);
+	SetDrawingProperties(1, 5);
 
-    UpdateButtonState(0);
+	UpdateButtonState(0);
 
-    m_ColorMap.SetDefaultColors();
-    m_CaptionTextColor = GetSysColor(COLOR_BTNTEXT);
+	m_ColorMap.SetDefaultColors();
+	m_CaptionTextColor = GetSysColor(COLOR_BTNTEXT);
 }
 
 CTTButton::~CTTButton()
@@ -288,6 +287,8 @@ BEGIN_MESSAGE_MAP(CTTButton, CTTBaseButton)
     ON_WM_MOUSEMOVE()
     ON_WM_MOUSELEAVE()
     ON_WM_CTLCOLOR()
+	ON_WM_MOVE()
+	ON_WM_SIZE()
 END_MESSAGE_MAP()
 
 void CTTButton::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
@@ -370,4 +371,52 @@ HBRUSH CTTButton::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 {
     pDC->SetBkMode(TRANSPARENT);
     return (HBRUSH)GetStockObject(NULL_BRUSH);
+}
+
+
+void CTTButton::OnMove(int x, int y)
+{
+	CTTBaseButton::OnMove(x, y);
+	
+	CWnd *pWnd = GetParent();
+	if (pWnd != NULL)
+	{
+		CRect oldWindowRect, curWindowRect;
+
+		oldWindowRect.CopyRect(m_oldWndRect);
+		GetWindowRect(curWindowRect);
+
+		m_oldWndRect.CopyRect(curWindowRect);
+
+		::MapWindowPoints(HWND_DESKTOP, pWnd->GetSafeHwnd(), (LPPOINT)&oldWindowRect, 2);
+		::MapWindowPoints(HWND_DESKTOP, pWnd->GetSafeHwnd(), (LPPOINT)&curWindowRect, 2);
+
+		InvalidateRectRegions(pWnd, oldWindowRect, curWindowRect, RGN_XOR);
+	}
+}
+
+
+void CTTButton::OnSize(UINT nType, int cx, int cy)
+{
+	CTTBaseButton::OnSize(nType, cx, cy);
+
+	// invalidate current client region
+	Invalidate();
+
+	// invalidate changed parent region
+	CWnd *pWnd = GetParent();
+	if (pWnd != NULL)
+	{
+		CRect oldWindowRect, curWindowRect;
+
+		oldWindowRect.CopyRect(m_oldWndRect);
+		GetWindowRect(curWindowRect);
+
+		m_oldWndRect.CopyRect(curWindowRect);
+
+		::MapWindowPoints(HWND_DESKTOP, pWnd->GetSafeHwnd(), (LPPOINT)&oldWindowRect, 2);
+		::MapWindowPoints(HWND_DESKTOP, pWnd->GetSafeHwnd(), (LPPOINT)&curWindowRect, 2);
+
+		InvalidateRectRegions(pWnd, oldWindowRect, curWindowRect, RGN_XOR);
+	}
 }

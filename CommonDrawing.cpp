@@ -240,3 +240,19 @@ void CreatePolygonRgnInDevicePoints(CDC *pDC, CRgn *rgn, CPoint points[], int nC
 
     delete devPts;
 }
+
+void InvalidateRectRegions(CWnd* pWnd, CRect &rect1, CRect &rect2, int nCombineMode)
+{
+	if (pWnd == NULL)
+		return;
+
+	CRgn invalidRgn;
+	invalidRgn.CreateRectRgnIndirect(&rect1);
+
+	CRgn rgn2;
+	rgn2.CreateRectRgnIndirect(&rect2);
+
+	invalidRgn.CombineRgn(&invalidRgn, &rgn2, nCombineMode);
+	
+	pWnd->InvalidateRgn(&invalidRgn);
+}
