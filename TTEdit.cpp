@@ -369,22 +369,23 @@ void CTTEdit::OnPaint()
 
 	SetPosition(-m_borderPenWidth, m_OffsetY);
 
-	CRect clientRect(m_ClientRect.X,
-		m_ClientRect.Y,
-		m_ClientRect.GetRight(),
-		m_ClientRect.GetBottom());
+    int offset = 2;
+    CRect clientRect(m_ClientRect.X + 1,
+        m_ClientRect.Y + offset,
+        m_ClientRect.GetRight() - 1,
+        m_ClientRect.GetBottom() - offset);
 
 	if (clientRect.Width() <= 0 || clientRect.Height() <= 0)
 		return;
 
-    TRACE("OnPaint\n");
+    //TRACE("OnPaint\n");
 
 	CPaintDC dc(this);
 	CMemDC memDC(dc, &clientRect);
 
-	/*UpdateControlState();
+	UpdateControlState();
 	COLORREF backgroundColor = m_ColorMap.GetColor(m_ControlState, BackgroundTopGradientFinish);
-	memDC.GetDC().FillSolidRect(&clientRect, backgroundColor);*/
+	memDC.GetDC().FillSolidRect(&clientRect, backgroundColor);
 
 	DefWindowProc(WM_PAINT, (WPARAM)memDC.GetDC().m_hDC, (LPARAM)0);
 
@@ -427,7 +428,7 @@ void CTTEdit::OnSize(UINT nType, int cx, int cy)
     }
 
     m_ClientRect.Width = cx + 2 * m_borderPenWidth;
-	
+    
     if (!m_bUseBaseMessageHandlers && m_bPainted)
     {
         GetParent()->InvalidateRect(&m_oldWndRect);

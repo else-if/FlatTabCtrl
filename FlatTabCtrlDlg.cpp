@@ -280,7 +280,7 @@ BOOL CFlatTabCtrlDlg::OnInitDialog()
 
     m_dlgAnchor.Init(GetSafeHwnd());
 	m_dlgAnchor.Add(m_Edit2.GetSafeHwnd(), ANCHOR_TOPLEFT | ANCHOR_BOTTOMRIGHT);
-	m_dlgAnchor.Add(m_TTListCtrl.GetSafeHwnd(), ANCHOR_TOPLEFT | ANCHOR_BOTTOMRIGHT);
+	//m_dlgAnchor.Add(m_TTListCtrl.GetSafeHwnd(), ANCHOR_TOPLEFT | ANCHOR_BOTTOMRIGHT);
     m_dlgAnchor.Add(m_TTListCtrl3.GetSafeHwnd(), ANCHOR_BOTTOMRIGHT);
     m_dlgAnchor.Add(m_TTButton1.GetSafeHwnd(), ANCHOR_TOPLEFT | ANCHOR_BOTTOMRIGHT);
     m_dlgAnchor.Add(m_TTButton2.GetSafeHwnd(), ANCHOR_BOTTOMRIGHT);

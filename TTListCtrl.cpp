@@ -82,6 +82,9 @@ void CTTListCtrl::PreSubclassWindow()
     }
 
     GetWindowRect(m_oldWndRect);
+    CRect temp(m_oldWndRect);
+    ::MapWindowPoints(HWND_DESKTOP, GetParent()->GetSafeHwnd(), (LPPOINT)&temp, 2);
+    TRACE("PreSubclass: [%d %d] [%d %d]\n", temp.left, temp.top, temp.Width(), temp.Height());
 
     CListCtrl::PreSubclassWindow();
 }
@@ -361,14 +364,8 @@ void CTTListCtrl::OnMove(int x, int y)
 {
     CListCtrl::OnMove(x, y);
 
-    if (m_bPainted)
-    {
-        if (m_bDrawBorders)
-        {
-            m_bUseBitmap = false;
-            this->SendMessage(WM_NCPAINT);
-        }
-    }
+    if (!::IsWindow(GetSafeHwnd()))
+        return;
 
     CWnd *pWnd = GetParent();
     if (pWnd != NULL)
@@ -384,11 +381,19 @@ void CTTListCtrl::OnMove(int x, int y)
         ::MapWindowPoints(HWND_DESKTOP, pWnd->GetSafeHwnd(), (LPPOINT)&curWindowRect, 2);
 
         InvalidateRectRegions(pWnd, oldWindowRect, curWindowRect, RGN_OR);
+
+        TRACE("OnMove OR [%d %d][%d %d] + [%d %d][%d %d]\n", oldWindowRect.left, oldWindowRect.top, oldWindowRect.Width(), oldWindowRect.Height(),
+            curWindowRect.left, curWindowRect.top, curWindowRect.Width(), curWindowRect.Height());
     }
 }
 
 void CTTListCtrl::OnSize(UINT nType, int cx, int cy)
 {
+    CListCtrl::OnSize(nType, cx, cy);
+
+    if (!::IsWindow(GetSafeHwnd()))
+        return;
+
     DWORD lStyle = GetStyle();
 
     bool ScrollBarsVisChanged = (m_bHScroll != (bool)(lStyle & WS_HSCROLL)) || (m_bVScroll != (bool)(lStyle & WS_VSCROLL));
@@ -409,8 +414,6 @@ void CTTListCtrl::OnSize(UINT nType, int cx, int cy)
         Invalidate();
     }
 
-    CListCtrl::OnSize(nType, cx, cy);
-
     // invalidate changed parent region
     CWnd *pWnd = GetParent();
     if (pWnd != NULL)
@@ -421,8 +424,11 @@ void CTTListCtrl::OnSize(UINT nType, int cx, int cy)
         GetWindowRect(curWindowRect);
 
         oldWindowRect.CopyRect(curWindowRect);
-        oldWindowRect.right -= iOffWidth;
-        oldWindowRect.bottom -= iOffHeight;
+        if (m_Sized)
+        {
+            oldWindowRect.right -= iOffWidth;
+            oldWindowRect.bottom -= iOffHeight;
+        }
 
         if (m_bHScroll != (bool)(lStyle & WS_HSCROLL))
             oldWindowRect.bottom += ::GetSystemMetrics(SM_CXVSCROLL);
@@ -436,6 +442,9 @@ void CTTListCtrl::OnSize(UINT nType, int cx, int cy)
         ::MapWindowPoints(HWND_DESKTOP, pWnd->GetSafeHwnd(), (LPPOINT)&curWindowRect, 2);
 
         InvalidateRectRegions(pWnd, oldWindowRect, curWindowRect, RGN_XOR);
+
+        TRACE("OnSize XOR type:%d [%d %d][%d %d] + [%d %d][%d %d]\n", nType, oldWindowRect.left, oldWindowRect.top, oldWindowRect.Width(), oldWindowRect.Height(),
+            curWindowRect.left, curWindowRect.top, curWindowRect.Width(), curWindowRect.Height());
     }
 
     m_bHScroll = (lStyle & WS_HSCROLL);
