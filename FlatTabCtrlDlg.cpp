@@ -11,6 +11,7 @@
 #include <Gdiplus.h>
 #include "TabSheet1.h"
 #include "TabSheet2.h"
+#include "TabSheet3.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -62,9 +63,11 @@ CFlatTabCtrlDlg::~CFlatTabCtrlDlg()
 {
     m_vPages[0]->DestroyWindow();
     m_vPages[1]->DestroyWindow();
+    m_vPages[2]->DestroyWindow();
 
     delete m_vPages[0];
     delete m_vPages[1];
+    delete m_vPages[2];
 
     m_vPages.clear();
 }
@@ -188,12 +191,15 @@ BOOL CFlatTabCtrlDlg::OnInitDialog()
 
     m_vPages.push_back(new CTabSheet1(this));
     m_vPages.push_back(new CTabSheet2(this));
+    m_vPages.push_back(new CTabSheet3(this));
     
     m_vPages[0]->Create(CTabSheet1::IDD, &m_FlatTabCtrl);
     m_vPages[1]->Create(CTabSheet2::IDD, &m_FlatTabCtrl);
+    m_vPages[2]->Create(CTabSheet3::IDD, &m_FlatTabCtrl);
 
     ::EnableThemeDialogTexture(m_vPages[0]->GetSafeHwnd(), ETDT_ENABLETAB);
     ::EnableThemeDialogTexture(m_vPages[1]->GetSafeHwnd(), ETDT_ENABLETAB);
+    ::EnableThemeDialogTexture(m_vPages[2]->GetSafeHwnd(), ETDT_ENABLETAB);
 
 	RECT r;
     TCITEM tci;
@@ -206,6 +212,8 @@ BOOL CFlatTabCtrlDlg::OnInitDialog()
     m_FlatTabCtrl.InsertItem(0, &tci);
     tci.pszText = L"Page Two";
     m_FlatTabCtrl.InsertItem(1, &tci);    
+    tci.pszText = L"Page Three";
+    m_FlatTabCtrl.InsertItem(2, &tci);
 
     OnTabChanged(NULL, NULL);
 
@@ -273,8 +281,9 @@ BOOL CFlatTabCtrlDlg::OnInitDialog()
     m_dlgAnchor.Init(GetSafeHwnd());
 	m_dlgAnchor.Add(m_Edit2.GetSafeHwnd(), ANCHOR_TOPLEFT | ANCHOR_BOTTOMRIGHT);
 	m_dlgAnchor.Add(m_TTListCtrl.GetSafeHwnd(), ANCHOR_TOPLEFT | ANCHOR_BOTTOMRIGHT);
-    m_dlgAnchor.Add(m_TTListCtrl3.GetSafeHwnd(), ANCHOR_TOPLEFT | ANCHOR_RIGHT);
-	m_dlgAnchor.Add(m_TTButton1.GetSafeHwnd(), ANCHOR_TOPLEFT | ANCHOR_BOTTOMRIGHT);
+    m_dlgAnchor.Add(m_TTListCtrl3.GetSafeHwnd(), ANCHOR_BOTTOMRIGHT);
+    m_dlgAnchor.Add(m_TTButton1.GetSafeHwnd(), ANCHOR_TOPLEFT | ANCHOR_BOTTOMRIGHT);
+    m_dlgAnchor.Add(m_TTButton2.GetSafeHwnd(), ANCHOR_BOTTOMRIGHT);
 	m_dlgAnchor.Add(m_TTStatic1.GetSafeHwnd(), ANCHOR_TOPLEFT | ANCHOR_BOTTOMRIGHT);
 	
 
@@ -290,7 +299,7 @@ void CFlatTabCtrlDlg::FillList(CListCtrl &list, int colCount, int rowcount)
     }
 
     list.SendMessage(LVM_SETEXTENDEDLISTVIEWSTYLE, 0,
-        LVS_EX_FULLROWSELECT);
+        LVS_EX_SIMPLESELECT);
 
     for (int i = 0; i < rowcount; i++)
         for (int j = 0; j < colCount; j++)
@@ -423,9 +432,9 @@ void CFlatTabCtrlDlg::OnBnClickedButton2()
     ::MoveWindow(pWnd->GetSafeHwnd(), cRect.left, cRect.top, cRect.Width()+1, cRect.Height(), TRUE);
     return;*/
 
-	Invalidate(TRUE);
+	/*Invalidate(TRUE);
 
-	return;
+	return;*/
 
 	// TODO: Add your control notification handler code here
     CButton* pBtnWnd = (CButton*)GetDlgItem(IDC_BUTTON3);
@@ -488,9 +497,9 @@ void CFlatTabCtrlDlg::OnBnClickedButton3()
     ::MoveWindow(pWnd->GetSafeHwnd(), cRect.left, cRect.top, cRect.Width() - 1, cRect.Height(), TRUE);
     return;*/
 
-	Invalidate(FALSE);
+	/*Invalidate(FALSE);
 	
-	return;
+	return;*/
 
 	// TODO: Add your control notification handler code here
 	CWnd* pBtnWnd = GetDlgItem(IDC_BUTTON2);

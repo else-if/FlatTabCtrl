@@ -377,7 +377,7 @@ void CTTEdit::OnPaint()
 	if (clientRect.Width() <= 0 || clientRect.Height() <= 0)
 		return;
 
-	TRACE("OnPaint\n");
+    TRACE("OnPaint\n");
 
 	CPaintDC dc(this);
 	CMemDC memDC(dc, &clientRect);

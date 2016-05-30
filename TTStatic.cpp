@@ -147,6 +147,10 @@ void CTTStatic::OnPaint()
     CRect cRect;
     GetClientRect(&cRect);
     CPaintDC dc(this);
+
+    if (cRect.Width() <= 0 || cRect.Height() <= 0)
+        return;
+
 	CMemDC memDC(dc, cRect);
 
 	CDC* pDC = &memDC.GetDC();

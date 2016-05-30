@@ -605,7 +605,7 @@ HBRUSH CTTComboBox::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
             ::MoveWindow(hWnd, cNewRect.left, cNewRect.top, cNewRect.Width(), cNewRect.Height(), TRUE);
 
     }
-    else
+    else if (IsWindowEnabled())
     {
         pDC->SetBkMode(TRANSPARENT);
         return (HBRUSH)GetStockObject(NULL_BRUSH);

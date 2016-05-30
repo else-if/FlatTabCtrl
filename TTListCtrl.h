@@ -1,6 +1,5 @@
 #pragma once
 
-#include "afxcmn.h"
 #include "ControlsColorMap.h"
 
 class CTTListCtrl : public CListCtrl
@@ -13,6 +12,7 @@ public:
     bool m_bUseBitmap;
     bool m_bPainted;
     bool m_Sized;
+    bool m_bDrawBorders;
 
     ControlState m_ControlState;
     ControlsColorMap m_ColorMap;
@@ -37,7 +37,7 @@ public:
     void SetPosition(int x, int y);
 
     void SetDrawingProperties(int borderPenWidth, int cornerRadius);
-    
+
     virtual void PreSubclassWindow();
     DECLARE_MESSAGE_MAP()
     afx_msg void OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS* lpncsp);
@@ -47,5 +47,8 @@ public:
     afx_msg void OnPaint();
     afx_msg void OnMove(int x, int y);
     afx_msg void OnSize(UINT nType, int cx, int cy);
+    afx_msg void OnEnable(BOOL bEnable);
+    afx_msg void OnSetFocus(CWnd* pOldWnd);
+    afx_msg void OnKillFocus(CWnd* pNewWnd);
 };
 

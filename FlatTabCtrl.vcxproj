@@ -110,6 +110,7 @@
     <ClInclude Include="BoringEditCtrl.h" />
     <ClInclude Include="BoringEditCtrl2.h" />
     <ClInclude Include="BoringStaticCtrl.h" />
+    <ClInclude Include="TabSheet3.h" />
     <ClInclude Include="TTBaseButton.h" />
     <ClInclude Include="TTEdit2.h" />
     <ClInclude Include="TTGroupBox.h" />
@@ -141,6 +142,7 @@
     <ClCompile Include="BoringEditCtrl.cpp" />
     <ClCompile Include="BoringEditCtrl2.cpp" />
     <ClCompile Include="BoringStaticCtrl.cpp" />
+    <ClCompile Include="TabSheet3.cpp" />
     <ClCompile Include="TTBaseButton.cpp" />
     <ClCompile Include="TTEdit2.cpp" />
     <ClCompile Include="TTGroupBox.cpp" />

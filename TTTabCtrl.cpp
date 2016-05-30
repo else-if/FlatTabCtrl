@@ -342,12 +342,30 @@ void CTTTabCtrl::OnSetFocus(CWnd* pOldWnd)
 {
     CTabCtrl::OnSetFocus(pOldWnd);
 
-    Invalidate();
+    int nTab = GetItemCount();
+    if (nTab > 0)
+    {
+        CRect cClientRect, cTabRect;
+        GetItemRect(0, &cTabRect);
+        GetClientRect(&cClientRect);
+        cTabRect.left = cClientRect.left;
+        cTabRect.right = cClientRect.right;
+        InvalidateRect(&cTabRect);
+    }
 }
 
 void CTTTabCtrl::OnKillFocus(CWnd* pNewWnd)
 {
     CTabCtrl::OnKillFocus(pNewWnd);
 
-    Invalidate();
+    int nTab = GetItemCount();
+    if (nTab > 0)
+    {
+        CRect cClientRect, cTabRect;
+        GetItemRect(0, &cTabRect);
+        GetClientRect(&cClientRect);
+        cTabRect.left = cClientRect.left;
+        cTabRect.right = cClientRect.right;
+        InvalidateRect(&cTabRect);
+    }
 }

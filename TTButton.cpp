@@ -297,6 +297,10 @@ void CTTButton::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
     xdc.Attach(lpDrawItemStruct->hDC);
 
     CRect cRect(lpDrawItemStruct->rcItem);
+
+    if (cRect.Width() <= 0 || cRect.Height() <= 0)
+        return;
+
     CMemDC memDC(xdc, cRect);
 
     CString buttonText;
@@ -391,7 +395,7 @@ void CTTButton::OnMove(int x, int y)
 		::MapWindowPoints(HWND_DESKTOP, pWnd->GetSafeHwnd(), (LPPOINT)&oldWindowRect, 2);
 		::MapWindowPoints(HWND_DESKTOP, pWnd->GetSafeHwnd(), (LPPOINT)&curWindowRect, 2);
 
-		InvalidateRectRegions(pWnd, oldWindowRect, curWindowRect, RGN_XOR);
+		InvalidateRectRegions(pWnd, oldWindowRect, curWindowRect, RGN_OR);
 	}
 }
 
