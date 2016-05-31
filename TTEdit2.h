@@ -2,55 +2,76 @@
 
 #include "ControlsColorMap.h"
 
-// CTTEdit
+// CTTEdit2
 
 class CTTEdit2 : public CEdit
 {
 
 public:
-	CTTEdit2();
-	virtual ~CTTEdit2();
+    CTTEdit2();
+    virtual ~CTTEdit2();
 
-	void SetDrawingProperties(int borderPenWidth, int cornerRadius);
+    void SetDrawingProperties(int borderPenWidth, int cornerRadius);
+
+    static void DrawEditControlFrame(CDC* pDC, CRect* pRect, CRect* pClientRect, CRect* pClipRect, ControlState controlState = Normal,
+        int cornerRadius = 5, int borderWidth = 1, ControlsColorMap* pColorMap = NULL);
 
 protected:
 
-	Gdiplus::Rect m_ClientRect;
+    bool m_bUseBaseMessageHandlers;
+    bool m_bNcSizeIsCalculated;
+    bool m_bPainted;
 
-	ControlState m_ControlState;
-	ControlsColorMap m_ColorMap;
+    Gdiplus::Rect m_ClientRect;
 
-	int m_borderPenWidth;
-	int m_CornerRadius;
-	
-	bool m_bHover;
+    Gdiplus::Rect m_BorderRect;
+    CRect m_OffsetRect;
 
-	CDC m_dc;
-	bool m_bStateChanged;
-	bool m_bUseBitmap;	
-	bool painted;
+    ControlState m_ControlState;
+    ControlsColorMap m_ColorMap;
 
-	void UpdateControlState();
-	void Paint(CDC* pDC);
+    int m_borderPenWidth;
+    int m_CornerRadius;
 
-	int m_OffsetY;
-	UINT uiCX, uiCY;
+    bool m_bHover;
+    bool m_bFocused;
 
-	void SetPosition(int x, int y);
+    bool m_bHScroll;
+    bool m_bVScroll;
 
-	DECLARE_MESSAGE_MAP()
+    int oldCX, oldCY, oldX, oldY;
+    bool m_bSized;
+
+    CDC m_dc;
+    bool m_bUseBitmap;
+
+    void UpdateControlState();
+    void Paint(CDC* pDC);
+
+    int m_OffsetY;
+    UINT uiCX, uiCY;
+
+    CRect m_oldWndRect;
+
+    void SetPosition(int x, int y);
+    void Trace(CString cMsg);
+    void UpdatePaintRects();
+
+    DECLARE_MESSAGE_MAP()
 public:
-	afx_msg HBRUSH CtlColor(CDC* pDC, UINT nCtlColor);
-	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
-	afx_msg void OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS* lpncsp);
-	virtual BOOL OnChildNotify(UINT message, WPARAM wParam, LPARAM lParam, LRESULT* pLResult);
-	afx_msg void OnNcPaint();
+    afx_msg BOOL OnEraseBkgnd(CDC* pDC);
+    afx_msg void OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS* lpncsp);
+    virtual BOOL OnChildNotify(UINT message, WPARAM wParam, LPARAM lParam, LRESULT* pLResult);
+    afx_msg void OnNcPaint();
 
-	afx_msg BOOL OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message);
-	afx_msg void OnMouseLeave();
-	afx_msg void OnEnUpdate();
-	virtual void PreSubclassWindow();
-	afx_msg void OnPaint();
+    afx_msg BOOL OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message);
+    afx_msg void OnMouseLeave();
+    
+    virtual void PreSubclassWindow();
+    afx_msg void OnPaint();
+    afx_msg void OnKillFocus(CWnd* pNewWnd);
+    afx_msg void OnSetFocus(CWnd* pOldWnd);
+    afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
+    afx_msg void OnSize(UINT nType, int cx, int cy);
+    afx_msg void OnMove(int x, int y);
 };
-
-

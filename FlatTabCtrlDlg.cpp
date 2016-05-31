@@ -280,7 +280,7 @@ BOOL CFlatTabCtrlDlg::OnInitDialog()
 
     m_dlgAnchor.Init(GetSafeHwnd());
 	m_dlgAnchor.Add(m_Edit2.GetSafeHwnd(), ANCHOR_TOPLEFT | ANCHOR_BOTTOMRIGHT);
-	//m_dlgAnchor.Add(m_TTListCtrl.GetSafeHwnd(), ANCHOR_TOPLEFT | ANCHOR_BOTTOMRIGHT);
+	m_dlgAnchor.Add(m_TTListCtrl.GetSafeHwnd(), ANCHOR_TOPLEFT | ANCHOR_BOTTOMRIGHT);
     m_dlgAnchor.Add(m_TTListCtrl3.GetSafeHwnd(), ANCHOR_BOTTOMRIGHT);
     m_dlgAnchor.Add(m_TTButton1.GetSafeHwnd(), ANCHOR_TOPLEFT | ANCHOR_BOTTOMRIGHT);
     m_dlgAnchor.Add(m_TTButton2.GetSafeHwnd(), ANCHOR_BOTTOMRIGHT);
@@ -423,14 +423,14 @@ void CFlatTabCtrlDlg::OnBnClickedOk()
 
 void CFlatTabCtrlDlg::OnBnClickedButton2()
 {
-    /*TRACE("-----------------------------------------------------------------------------------\n");
-    CWnd* pWnd = GetDlgItem(IDC_LIST3);
+    TRACE("-----------------------------------------------------------------------------------\n");
+    CWnd* pWnd = GetDlgItem(IDC_EDIT5);
     CRect cRect;
     pWnd->GetWindowRect(&cRect);
     
     ScreenToClient(&cRect);
-    ::MoveWindow(pWnd->GetSafeHwnd(), cRect.left, cRect.top, cRect.Width()+1, cRect.Height(), TRUE);
-    return;*/
+    ::MoveWindow(pWnd->GetSafeHwnd(), cRect.left, cRect.top, cRect.Width() + 2, cRect.Height() + 2, TRUE);
+    return;
 
 	/*Invalidate(TRUE);
 
@@ -488,14 +488,14 @@ void CFlatTabCtrlDlg::OnBnClickedButton2()
 
 void CFlatTabCtrlDlg::OnBnClickedButton3()
 {
-    /*TRACE("-----------------------------------------------------------------------------------\n");
-    CWnd* pWnd = GetDlgItem(IDC_LIST3);
+    TRACE("-----------------------------------------------------------------------------------\n");
+    CWnd* pWnd = GetDlgItem(IDC_EDIT5);
     CRect cRect;
     pWnd->GetWindowRect(&cRect);
 
     ScreenToClient(&cRect);
-    ::MoveWindow(pWnd->GetSafeHwnd(), cRect.left, cRect.top, cRect.Width() - 1, cRect.Height(), TRUE);
-    return;*/
+    ::MoveWindow(pWnd->GetSafeHwnd(), cRect.left, cRect.top, cRect.Width() - 2, cRect.Height() - 2, TRUE);
+    return;
 
 	/*Invalidate(FALSE);
 	

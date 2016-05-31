@@ -97,7 +97,7 @@ public:
 	/*CStatic*/ CTTStatic m_TTStatic9;
 
 	/*CEdit */CTTEdit m_Edit1;
-	/*CEdit*/ CTTEdit m_Edit2;
+	/*CEdit*/ CTTEdit2 m_Edit2;
 	/*CEdit*/ CTTEdit m_WideEdit1;
 	/*CEdit*/ CTTEdit m_WideEdit2;
 	/*CEdit*/ CTTEdit m_MultiLineEdit;
@@ -108,9 +108,9 @@ public:
 
     CTTButton m_TTPushButton;
 
-    CListCtrl /*CTTListCtrl */m_TTListCtrl;
-    CListCtrl /*CTTListCtrl*/ m_TTListCtrl2;
-    /*CListCtrl */CTTListCtrl m_TTListCtrl3;
+    /*CListCtrl*/ CTTListCtrl m_TTListCtrl;
+    /*CListCtrl*/ CTTListCtrl m_TTListCtrl2;
+    /*CListCtrl*/ CTTListCtrl m_TTListCtrl3;
 
 	void FillCombo(CComboBox &Combo);
     void FillList(CListCtrl &list, int colCount, int rowcount);

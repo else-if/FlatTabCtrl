@@ -8,11 +8,15 @@ public:
     CTTListCtrl();
     virtual ~CTTListCtrl();
 
+    void SetDrawingProperties(int borderPenWidth, int cornerRadius);
+
+protected:
+
     bool m_bNcSizeIsCalculated;
     bool m_bUseBitmap;
     bool m_bPainted;
-    bool m_Sized;
     bool m_bDrawBorders;
+    bool m_bSized;
 
     ControlState m_ControlState;
     ControlsColorMap m_ColorMap;
@@ -36,7 +40,7 @@ public:
     void Paint(CDC* pDC);
     void SetPosition(int x, int y);
 
-    void SetDrawingProperties(int borderPenWidth, int cornerRadius);
+public:
 
     virtual void PreSubclassWindow();
     DECLARE_MESSAGE_MAP()
