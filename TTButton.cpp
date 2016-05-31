@@ -6,7 +6,7 @@
 using namespace Gdiplus;
 
 CTTButton::CTTButton() :
-	m_oldWndRect(0, 0, 0, 0)
+	m_oldParentRect(0, 0, 0, 0)
 {
 	m_bTracking = false;
 
@@ -320,6 +320,13 @@ void CTTButton::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
     DrawButtonControl(&memDC.GetDC(), &cRect, &cRect, btnStyle, m_ButtonState, buttonText, &font,
         m_CornerRadius, m_BorderPenWidth, &m_ColorMap, m_CaptionTextColor, IsDefault());
 
+	CWnd *pWnd = GetParent();
+	if (pWnd != NULL)
+	{
+		GetWindowRect(m_oldParentRect);
+		::MapWindowPoints(HWND_DESKTOP, pWnd->GetSafeHwnd(), (LPPOINT)&m_oldParentRect, 2);
+	}
+
 }
 
 BOOL CTTButton::OnEraseBkgnd(CDC* pDC)
@@ -387,12 +394,9 @@ void CTTButton::OnMove(int x, int y)
 	{
 		CRect oldWindowRect, curWindowRect;
 
-		oldWindowRect.CopyRect(m_oldWndRect);
+		oldWindowRect.CopyRect(m_oldParentRect);
 		GetWindowRect(curWindowRect);
 
-		m_oldWndRect.CopyRect(curWindowRect);
-
-		::MapWindowPoints(HWND_DESKTOP, pWnd->GetSafeHwnd(), (LPPOINT)&oldWindowRect, 2);
 		::MapWindowPoints(HWND_DESKTOP, pWnd->GetSafeHwnd(), (LPPOINT)&curWindowRect, 2);
 
 		InvalidateRectRegions(pWnd, oldWindowRect, curWindowRect, RGN_OR);
@@ -413,12 +417,9 @@ void CTTButton::OnSize(UINT nType, int cx, int cy)
 	{
 		CRect oldWindowRect, curWindowRect;
 
-		oldWindowRect.CopyRect(m_oldWndRect);
+		oldWindowRect.CopyRect(m_oldParentRect);
 		GetWindowRect(curWindowRect);
 
-		m_oldWndRect.CopyRect(curWindowRect);
-
-		::MapWindowPoints(HWND_DESKTOP, pWnd->GetSafeHwnd(), (LPPOINT)&oldWindowRect, 2);
 		::MapWindowPoints(HWND_DESKTOP, pWnd->GetSafeHwnd(), (LPPOINT)&curWindowRect, 2);
 
 		InvalidateRectRegions(pWnd, oldWindowRect, curWindowRect, RGN_XOR);

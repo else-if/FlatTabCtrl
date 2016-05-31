@@ -279,12 +279,13 @@ BOOL CFlatTabCtrlDlg::OnInitDialog()
 	m_Edit2.SetWindowTextW(_T("Text for test"));
 
     m_dlgAnchor.Init(GetSafeHwnd());
-	m_dlgAnchor.Add(m_Edit2.GetSafeHwnd(), ANCHOR_TOPLEFT | ANCHOR_BOTTOMRIGHT);
+	m_dlgAnchor.Add(m_Edit2.GetSafeHwnd(), ANCHOR_BOTTOMRIGHT);
 	m_dlgAnchor.Add(m_TTListCtrl.GetSafeHwnd(), ANCHOR_TOPLEFT | ANCHOR_BOTTOMRIGHT);
     m_dlgAnchor.Add(m_TTListCtrl3.GetSafeHwnd(), ANCHOR_BOTTOMRIGHT);
     m_dlgAnchor.Add(m_TTButton1.GetSafeHwnd(), ANCHOR_TOPLEFT | ANCHOR_BOTTOMRIGHT);
     m_dlgAnchor.Add(m_TTButton2.GetSafeHwnd(), ANCHOR_BOTTOMRIGHT);
 	m_dlgAnchor.Add(m_TTStatic1.GetSafeHwnd(), ANCHOR_TOPLEFT | ANCHOR_BOTTOMRIGHT);
+	m_dlgAnchor.Add(m_MultiLineEdit.GetSafeHwnd(), ANCHOR_TOPLEFT | ANCHOR_BOTTOMRIGHT);
 	
 
     return TRUE;  // return TRUE  unless you set the focus to a control

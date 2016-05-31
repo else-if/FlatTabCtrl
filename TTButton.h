@@ -37,7 +37,7 @@ protected:
     int m_CornerRadius;
     bool m_bTracking;
 
-	CRect m_oldWndRect;
+	CRect m_oldParentRect;
 
     void UpdateButtonState(UINT state);
 

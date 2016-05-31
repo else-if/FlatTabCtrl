@@ -40,7 +40,7 @@ protected:
 
     CFont m_TextFont;
 
-	CRect m_oldWndRect;
+	CRect m_oldParentRect;
 
     bool m_bDrawBorders;
     bool m_bDrawBackground;

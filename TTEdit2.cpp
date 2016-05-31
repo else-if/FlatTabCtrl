@@ -45,14 +45,6 @@ void CTTEdit2::SetDrawingProperties(int borderPenWidth, int cornerRadius)
     m_CornerRadius = cornerRadius;
 }
 
-void CTTEdit2::SetPosition(int x, int y)
-{
-    m_BorderRect.X = x;
-    m_BorderRect.Y = y;
-    /*m_ClientRect.X = x;
-    m_ClientRect.Y = y;*/
-}
-
 void CTTEdit2::UpdateControlState()
 {
     ControlState oldCtrlStrate = m_ControlState;
@@ -71,12 +63,7 @@ void CTTEdit2::UpdateControlState()
 
 void CTTEdit2::Paint(CDC* pDC)
 {
-    TRACE("Paint Border [%d %d][%d %d]; Offset: [%d %d][%d %d]\n", m_BorderRect.X, m_BorderRect.Y, m_BorderRect.GetRight(), m_BorderRect.GetBottom(),
-        m_OffsetRect.left, m_OffsetRect.top, m_OffsetRect.right, m_OffsetRect.bottom);
-
     UpdateControlState();
-
-    int nSave = pDC->SaveDC();
 
     // Get only non-client region
     CRgn nonClientRgn;
@@ -161,10 +148,10 @@ void CTTEdit2::Paint(CDC* pDC)
             m_BorderRect.Height,
             &m_dc, 0, 0, SRCCOPY);
 
-        pDC->RestoreDC(nSave);
-
         return;
     }
+
+	// draw on current region
 
     CRect cBorderRect(m_BorderRect.X, m_BorderRect.Y, m_BorderRect.GetRight(), m_BorderRect.GetBottom());
     CRect cClientRect(m_BorderRect.X + m_borderPenWidth,
@@ -181,12 +168,8 @@ void CTTEdit2::Paint(CDC* pDC)
         else
             cClientRect.right -= nWid - 1;
 
-    //pDC->FillSolidRect(cBorderRect, RGB(255, 0, 0));
-    //pDC->FillSolidRect(cClientRect, RGB(0, 255, 0));
     DrawEditControlFrame(pDC, &cBorderRect, &cClientRect, NULL, m_ControlState, m_CornerRadius,
         m_borderPenWidth, &m_ColorMap);
-
-    pDC->RestoreDC(nSave);
 
     // store into m_dc
     int x = m_BorderRect.X;
@@ -203,47 +186,7 @@ void CTTEdit2::Paint(CDC* pDC)
     m_dc.BitBlt(0, 0, width, height, pDC, x, y, SRCCOPY);
     bmp.DeleteObject();
 
-    m_bPainted = true;
-
-    /*if (m_ClientRect.IsEmptyArea())
-        return;
-
-    UpdateControlState();
-
-    if (m_bUseBitmap)
-    {
-        pDC->BitBlt(m_ClientRect.X,
-            m_ClientRect.Y,
-            m_ClientRect.Width,
-            m_ClientRect.Height,
-            &m_dc, 0, 0, SRCCOPY);
-
-        return;
-    }
-    else
-    {
-        CRect cClientRect(m_ClientRect.X, m_ClientRect.Y, m_ClientRect.X + m_ClientRect.Width, m_ClientRect.Y + m_ClientRect.Height);
-
-        DrawEditControlFrame(pDC, &cClientRect, &cClientRect, m_ControlState, m_CornerRadius,
-            m_borderPenWidth, &m_ColorMap);
-
-        int x = m_ClientRect.X;
-        int y = m_ClientRect.Y;
-        int width = m_ClientRect.Width;
-        int height = m_ClientRect.Height;
-
-        m_dc.DeleteDC();
-
-        // store into m_dc
-        CBitmap bmp;
-        m_dc.CreateCompatibleDC(pDC);
-        bmp.CreateCompatibleBitmap(pDC, width, height);
-        m_dc.SelectObject(&bmp);
-        m_dc.BitBlt(0, 0, width, height, pDC, x, y, SRCCOPY);
-        bmp.DeleteObject();
-
-        m_bPainted = true;
-    }*/
+    m_bPainted = true;    
 }
 
 void CTTEdit2::DrawEditControlFrame(CDC* pDC, CRect* pBorderRect, CRect* pClientRect, CRect* pClipRect, ControlState controlState,
@@ -303,61 +246,6 @@ void CTTEdit2::DrawEditControlFrame(CDC* pDC, CRect* pBorderRect, CRect* pClient
 
 }
 
-void CTTEdit2::UpdatePaintRects()
-{
-    CRect cBorder;
-    GetWindowRect(cBorder);
-    cBorder.OffsetRect(-cBorder.left, -cBorder.top);
-
-    m_BorderRect.X = cBorder.left;
-    m_BorderRect.Y = cBorder.top;
-    m_BorderRect.Width = cBorder.Width();
-    m_BorderRect.Height = cBorder.Height();
-
-    m_OffsetRect.CopyRect(CRect(m_borderPenWidth + 1, m_borderPenWidth + 1, m_borderPenWidth + 1, m_borderPenWidth + 1));
-
-    HWND hwnd = GetSafeHwnd();
-    DWORD dwStyle = ::GetWindowLong(hwnd, GWL_STYLE);
-    DWORD dwExStyle = ::GetWindowLong(hwnd, GWL_EXSTYLE);
-    BOOL  bLeftScroll = dwExStyle & WS_EX_LEFTSCROLLBAR;
-
-    if (dwStyle & WS_VSCROLL)
-    {
-        if (bLeftScroll)
-            m_OffsetRect.left--;
-        else
-            m_OffsetRect.right--;
-    }
-
-    if (dwStyle & WS_HSCROLL)
-        m_OffsetRect.bottom--;
-
-    if (!(GetStyle() & ES_MULTILINE))  // multiline edit box shouldn't change NC area
-    {
-        //calculate client area height needed for a font
-        CFont *pFont = GetFont();
-        CRect rectText;
-        rectText.SetRectEmpty();
-
-        CDC *pDC = GetDC();
-
-        CFont *pOld = pDC->SelectObject(pFont);
-        pDC->DrawText(_T("Eb"), rectText, DT_CALCRECT | DT_LEFT);
-        UINT uiVClientHeight = rectText.Height();
-
-        pDC->SelectObject(pOld);
-        ReleaseDC(pDC);
-
-        //calculate NC area to center text.
-
-        if (!m_BorderRect.IsEmptyArea())
-        {
-            m_OffsetRect.top = max(m_BorderRect.Height - uiVClientHeight, m_OffsetRect.top) / 2;
-            m_OffsetRect.bottom = m_BorderRect.Height - uiVClientHeight - m_OffsetRect.top - 1;            
-        }
-    }
-}
-
 BEGIN_MESSAGE_MAP(CTTEdit2, CEdit)
     ON_WM_ERASEBKGND()
     ON_WM_NCCALCSIZE()
@@ -377,24 +265,69 @@ BOOL CTTEdit2::OnEraseBkgnd(CDC* pDC)
     if (m_bUseBaseMessageHandlers)
         return CEdit::OnEraseBkgnd(pDC);
     
-    /*SetPosition(-m_OffsetRect.left, -m_OffsetRect.top);
-    Paint(pDC);*/
-
-    return TRUE;
+   return TRUE;
 }
 
 void CTTEdit2::OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS* lpncsp)
 {
-    //CEdit::OnNcCalcSize(bCalcValidRects, lpncsp);
+    CEdit::OnNcCalcSize(bCalcValidRects, lpncsp);
 
     m_bNcSizeIsCalculated = true;
 
     if (m_bUseBaseMessageHandlers)
         return;
 
-    UpdatePaintRects();
+	CRect cBorder;
+	GetWindowRect(cBorder);
+	cBorder.OffsetRect(-cBorder.left, -cBorder.top);
 
-    TRACE("NcCalcSize [%d %d] [%d %d]\n", m_BorderRect.X, m_BorderRect.Y, m_BorderRect.Width, m_BorderRect.Height);
+	m_BorderRect.X = cBorder.left;
+	m_BorderRect.Y = cBorder.top;
+	m_BorderRect.Width = cBorder.Width();
+	m_BorderRect.Height = cBorder.Height();
+
+	m_OffsetRect.CopyRect(CRect(m_borderPenWidth + 1, m_borderPenWidth + 1, m_borderPenWidth + 1, m_borderPenWidth + 1));
+
+	HWND hwnd = GetSafeHwnd();
+	DWORD dwStyle = ::GetWindowLong(hwnd, GWL_STYLE);
+	DWORD dwExStyle = ::GetWindowLong(hwnd, GWL_EXSTYLE);
+	BOOL  bLeftScroll = dwExStyle & WS_EX_LEFTSCROLLBAR;
+
+	if (dwStyle & WS_VSCROLL)
+	{
+		if (bLeftScroll)
+			m_OffsetRect.left--;
+		else
+			m_OffsetRect.right--;
+	}
+
+	if (dwStyle & WS_HSCROLL)
+		m_OffsetRect.bottom--;
+
+	if (!(GetStyle() & ES_MULTILINE))  // multiline edit box shouldn't change NC area
+	{
+		//calculate client area height needed for a font
+		CFont *pFont = GetFont();
+		CRect rectText;
+		rectText.SetRectEmpty();
+
+		CDC *pDC = GetDC();
+
+		CFont *pOld = pDC->SelectObject(pFont);
+		pDC->DrawText(_T("Eb"), rectText, DT_CALCRECT | DT_LEFT);
+		UINT uiVClientHeight = rectText.Height();
+
+		pDC->SelectObject(pOld);
+		ReleaseDC(pDC);
+
+		//calculate NC area to center text.
+
+		if (!m_BorderRect.IsEmptyArea())
+		{
+			m_OffsetRect.top = max(m_BorderRect.Height - uiVClientHeight, m_OffsetRect.top) / 2;
+			m_OffsetRect.bottom = m_BorderRect.Height - uiVClientHeight - m_OffsetRect.top - 1;
+		}
+	}
 
     lpncsp->rgrc[0].top += m_OffsetRect.top;
     lpncsp->rgrc[0].bottom -= m_OffsetRect.bottom;
@@ -411,78 +344,6 @@ void CTTEdit2::OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS* lpncsp)
     m_ClientRect.Height = cClient.Height();
 
     m_bUseBitmap = false;
-
-    /*if (m_bUseBaseMessageHandlers)
-    {
-        CEdit::OnNcCalcSize(bCalcValidRects, lpncsp);
-        return;
-    }
-
-    m_bUseBitmap = false;
-
-    CRect rc;
-    GetWindowRect(rc);
-    rc.OffsetRect(-rc.left, -rc.top);
-    m_ClientRect.X = rc.left;
-    m_ClientRect.Y = rc.top;
-    m_ClientRect.Width = rc.Width();
-    m_ClientRect.Height = rc.Height();
-
-    UINT uiCenterOffset = 0;
-    uiCY = 0;
-    uiCX = 0;
-
-    CRect rectWnd, rectClient;
-
-    GetWindowRect(rectWnd);
-    GetClientRect(rectClient);
-
-    ClientToScreen(rectClient);
-
-    rectClient.top += m_OffsetY;
-    rectClient.bottom -= m_OffsetY;
-    rectClient.left -= uiCX + m_borderPenWidth;
-    rectClient.right += uiCY + m_borderPenWidth;
-
-    if (!(GetStyle() & ES_MULTILINE))  // multiline edit box shouldn't change NC area
-    {
-        //calculate client area height needed for a font
-        CFont *pFont = GetFont();
-        CRect rectText;
-        rectText.SetRectEmpty();
-
-        CDC *pDC = GetDC();
-
-        CFont *pOld = pDC->SelectObject(pFont);
-        pDC->DrawText(_T("Eb"), rectText, DT_CALCRECT | DT_LEFT);
-        UINT uiVClientHeight = rectText.Height();
-
-        pDC->SelectObject(pOld);
-        ReleaseDC(pDC);
-
-        //calculate NC area to center text.
-
-        if (!rectClient.IsRectEmpty())
-        {
-            uiCenterOffset = max(rectClient.Height() - uiVClientHeight, 0) / 2;
-            uiCY = max(rectWnd.Height() - rectClient.Height(), 0) / 2;
-            uiCX = max(rectWnd.Width() - rectClient.Width(), 0) / 2;
-        }
-    }
-    else
-    {
-        uiCenterOffset = m_borderPenWidth;
-    }
-
-    m_OffsetY = -(int)uiCenterOffset;
-
-    lpncsp->rgrc[0].top += uiCenterOffset;
-    lpncsp->rgrc[0].bottom -= uiCenterOffset;
-
-    lpncsp->rgrc[0].left += uiCX + m_borderPenWidth;
-    lpncsp->rgrc[0].right -= uiCY + m_borderPenWidth;
-
-    m_bNcSizeIsCalculated = true;*/
 }
 
 BOOL CTTEdit2::OnChildNotify(UINT message, WPARAM wParam, LPARAM lParam, LRESULT* pLResult)
@@ -501,11 +362,12 @@ void CTTEdit2::OnNcPaint()
         return;
     }
 
+	if (!m_bNcSizeIsCalculated)
+		return;
+
     Default();
 
-    CWindowDC dc(this);
-
-    SetPosition(0, 0);
+    CWindowDC dc(this);	
     Paint(&dc);
 
     m_bUseBitmap = true;
@@ -557,18 +419,6 @@ void CTTEdit2::PreSubclassWindow()
 
             SetWindowPos(NULL, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER);
         }
-
-        /*HWND hWnd = GetSafeHwnd();
-
-        LONG lStyle = GetWindowLong(hWnd, GWL_STYLE);
-        lStyle &= ~(WS_CAPTION | WS_THICKFRAME | WS_MINIMIZE | WS_MAXIMIZE | WS_SYSMENU);
-        SetWindowLong(hWnd, GWL_STYLE, lStyle);
-
-        LONG lExStyle = GetWindowLong(hWnd, GWL_EXSTYLE);
-        lExStyle &= ~(WS_EX_DLGMODALFRAME | WS_EX_CLIENTEDGE | WS_EX_STATICEDGE);
-        SetWindowLong(hWnd, GWL_EXSTYLE, lExStyle);
-
-        SetWindowPos(NULL, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER);*/
     }
 
     SetMargins(m_borderPenWidth, m_borderPenWidth);
@@ -578,107 +428,28 @@ void CTTEdit2::PreSubclassWindow()
 
 void CTTEdit2::OnPaint()
 {
-    if (m_bUseBaseMessageHandlers)
+	if (m_bUseBaseMessageHandlers)
     {
         CEdit::OnPaint();
         return;
     }
 
-    if (!m_bNcSizeIsCalculated)
+	// store parent rect for invalidation OnMove/OnSize
+	CWnd *pWnd = GetParent();
+	if (pWnd != NULL)
+	{
+		GetWindowRect(m_oldWndRect);
+		::MapWindowPoints(HWND_DESKTOP, pWnd->GetSafeHwnd(), (LPPOINT)&m_oldWndRect, 2);
+	}
+
+	if (!m_bNcSizeIsCalculated)
     {
         // force NCCalcSize
         SetWindowPos(NULL, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER);
         return;
     }
 
-    CEdit::OnPaint(); 
-
-    // save window rect where control was drawn
-    GetWindowRect(m_oldWndRect);
-
-    TRACE("OnPaint new wndRect: [%d %d] [%d %d]\n", m_oldWndRect.left, m_oldWndRect.top, m_oldWndRect.Width(), m_oldWndRect.Height());
-
-    return;
-
-    CRect clientRect(m_ClientRect.X - m_OffsetRect.left,
-        m_ClientRect.Y - m_OffsetRect.top,
-        m_ClientRect.GetRight() - 2 * m_OffsetRect.right,
-        m_ClientRect.GetBottom() - m_OffsetRect.bottom);
-
-    //CRect clientRect(-100, -100, 100, 100);
-
-    DWORD dwStyle = GetStyle();
-    DWORD dwExStyle = GetExStyle();
-    BOOL  bLeftScroll = dwExStyle & WS_EX_LEFTSCROLLBAR;
-
-    if ((dwStyle & WS_VSCROLL) && bLeftScroll)
-        clientRect.left -= ::GetSystemMetrics(SM_CXVSCROLL);
-
-    if (clientRect.Width() <= 0 || clientRect.Height() <= 0)
-        return;
-
-    CPaintDC dc(this);
-    CMemDC memDC(dc, &clientRect);
-
-    TRACE("OnPaint [%d %d] [%d %d]\n", clientRect.left, clientRect.top, clientRect.right, clientRect.bottom);
-
-    UpdateControlState();
-    COLORREF backgroundColor = m_ColorMap.GetColor(m_ControlState, BackgroundTopGradientFinish);
-    memDC.GetDC().FillSolidRect(&clientRect, backgroundColor);
-    //memDC.GetDC().FillSolidRect(&clientRect, RGB(255,0,0));
-
-    DefWindowProc(WM_PAINT, (WPARAM)memDC.GetDC().m_hDC, (LPARAM)0);
-
-    ReleaseDC(&memDC.GetDC());
-
-    // save window rect where control was drawn
-    GetWindowRect(m_oldWndRect);
-
-    /*if (m_bUseBaseMessageHandlers)
-    {
-        CEdit::OnPaint();
-        return;
-    }
-
-    if (!m_bNcSizeIsCalculated)
-    {
-        // still no NcCalcSize
-        CRect cRect;
-        GetClientRect(&cRect);
-        CPaintDC dc(this);
-        DrawThemeParentBackground(GetSafeHwnd(), dc.m_hDC, cRect);
-
-        // force NCCalcSize
-        SetWindowPos(NULL, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER);
-
-        return;
-    }
-
-    SetPosition(-m_borderPenWidth, m_OffsetY);
-
-    int offset = 2;
-    CRect clientRect(m_ClientRect.X + 1,
-        m_ClientRect.Y + offset,
-        m_ClientRect.GetRight() - 1,
-        m_ClientRect.GetBottom() - offset);
-
-    if (clientRect.Width() <= 0 || clientRect.Height() <= 0)
-        return;
-
-    //TRACE("OnPaint\n");
-
-    CPaintDC dc(this);
-    CMemDC memDC(dc, &clientRect);
-
-    UpdateControlState();
-    COLORREF backgroundColor = m_ColorMap.GetColor(m_ControlState, BackgroundTopGradientFinish);
-    memDC.GetDC().FillSolidRect(&clientRect, backgroundColor);
-
-    DefWindowProc(WM_PAINT, (WPARAM)memDC.GetDC().m_hDC, (LPARAM)0);
-
-    ReleaseDC(&memDC.GetDC());
-
-    //CEdit::OnPaint();*/
+	CEdit::OnPaint();     
 }
 
 void CTTEdit2::OnKillFocus(CWnd* pNewWnd)
@@ -697,102 +468,37 @@ HBRUSH CTTEdit2::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 {
     HBRUSH hbr = CEdit::OnCtlColor(pDC, pWnd, nCtlColor);
     return hbr;
-
-    /*if (m_bUseBaseMessageHandlers)
-    {
-        HBRUSH hbr = CEdit::OnCtlColor(pDC, pWnd, nCtlColor);
-        return hbr;
-    }
-    else
-    {
-        return NULL;
-    }*/
 }
 
 void CTTEdit2::OnSize(UINT nType, int cx, int cy)
 {
     CEdit::OnSize(nType, cx, cy);
 
+	if (m_bUseBaseMessageHandlers)
+		return;
+
     if (!::IsWindow(GetSafeHwnd()))
         return;
 
     // NcSize should be recalculated
-    m_bNcSizeIsCalculated = false;
     SetWindowPos(NULL, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER);
 
-    DWORD lStyle = GetStyle();
-
-    bool ScrollBarsVisChanged = (m_bHScroll != (bool)(lStyle & WS_HSCROLL)) || (m_bVScroll != (bool)(lStyle & WS_VSCROLL));
-
-    int iOffWidth = (cx - oldCX);
-    int iOffHeight = (cy - oldCY);
-
-    // Invalidate control's region
-
-    if (m_bSized && (cx != oldCX || cy != oldCY) &&
-        !ScrollBarsVisChanged)
-    {
-        //m_BorderRect.Width += iOffWidth;
-        /*if (iOffHeight < 0)
-            m_BorderRect.Height += iOffHeight;*/
-
-        /*m_OffsetRect.top = max(m_BorderRect.Height - cy, m_borderPenWidth + 1) / 2;
-        m_OffsetRect.bottom = m_BorderRect.Height - cy - m_OffsetRect.top - 1;*/
-
-        TRACE("Size applied cx cy [%d %d] - [%d %d][%d %d]\n", iOffWidth, iOffHeight, m_BorderRect.X, m_BorderRect.Y, m_BorderRect.GetRight(), m_BorderRect.GetBottom());
-
-        m_bUseBitmap = false;
-        /*if (m_bPainted)
-            this->SendMessage(WM_NCPAINT);*/
-
-        Invalidate();
-    }
-    else
-    {
-        TRACE("Size skipped cx cy [%d %d]\n", iOffWidth, iOffHeight);
-    }
-
+    Invalidate();
+    
     // Invalidate changed parent region
 
     CWnd *pWnd = GetParent();
-    if (/*m_bPainted &&*/ pWnd != NULL)
+    if (pWnd != NULL)
     {
         CRect oldWindowRect, curWindowRect;
 
-        /*oldWindowRect.CopyRect(m_oldWndRect);
-        GetWindowRect(curWindowRect);*/
-
         GetWindowRect(curWindowRect);
-        oldWindowRect.CopyRect(curWindowRect);
+        oldWindowRect.CopyRect(m_oldWndRect);
 
-        //oldWindowRect.CopyRect(curWindowRect);
-
-        oldWindowRect.top -= iOffHeight;
-        oldWindowRect.left -= iOffWidth;
-        oldWindowRect.right -= iOffWidth;
-        oldWindowRect.bottom -= iOffHeight;
-
-        /*if (m_bHScroll != (bool)(lStyle & WS_HSCROLL))
-            oldWindowRect.bottom += ::GetSystemMetrics(SM_CXVSCROLL);
-
-        if (m_bVScroll != (bool)(lStyle & WS_VSCROLL))
-            oldWindowRect.right += ::GetSystemMetrics(SM_CXVSCROLL);*/
-
-        //m_oldWndRect.CopyRect(curWindowRect);
-
-        ::MapWindowPoints(HWND_DESKTOP, pWnd->GetSafeHwnd(), (LPPOINT)&oldWindowRect, 2);
-        ::MapWindowPoints(HWND_DESKTOP, pWnd->GetSafeHwnd(), (LPPOINT)&curWindowRect, 2);
+		::MapWindowPoints(HWND_DESKTOP, pWnd->GetSafeHwnd(), (LPPOINT)&curWindowRect, 2);
 
         InvalidateRectRegions(pWnd, oldWindowRect, curWindowRect, RGN_XOR);
-    }
-
-    m_bHScroll = (lStyle & WS_HSCROLL);
-    m_bVScroll = (lStyle & WS_VSCROLL);
-
-    oldCX = cx;
-    oldCY = cy;
-
-    m_bSized = true;
+    }    
 }
 
 void CTTEdit2::OnMove(int x, int y)
@@ -806,61 +512,21 @@ void CTTEdit2::OnMove(int x, int y)
         return;
 
     // NcSize should be recalculated
-    m_bNcSizeIsCalculated = false;
     SetWindowPos(NULL, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER);
 
-    int iOffWidth = (x - oldX);
-    int iOffHeight = (y - oldY);
+	Invalidate();
 
-    TRACE("OnMove x y [%d %d] - [%d %d][%d %d]\n", iOffWidth, iOffHeight, m_BorderRect.X, m_BorderRect.Y, m_BorderRect.GetRight(), m_BorderRect.GetBottom());
-
+	// Invalidate changed parent regions
     CWnd *pWnd = GetParent();
     if (m_bPainted && pWnd != NULL)
     {
-        // Invalidate changed parent regions
-
-        CRect oldWindowRect, curWindowRect;
+		CRect oldWindowRect, curWindowRect;
 
         GetWindowRect(curWindowRect);
-        oldWindowRect.CopyRect(curWindowRect);
-        
+        oldWindowRect.CopyRect(m_oldWndRect);
 
-        oldWindowRect.top -= iOffHeight;
-        oldWindowRect.left -= iOffWidth;
-        oldWindowRect.right -= iOffWidth;
-        oldWindowRect.bottom -= iOffHeight;
-
-        //m_oldWndRect.CopyRect(curWindowRect);
-
-        ::MapWindowPoints(HWND_DESKTOP, pWnd->GetSafeHwnd(), (LPPOINT)&oldWindowRect, 2);
-        ::MapWindowPoints(HWND_DESKTOP, pWnd->GetSafeHwnd(), (LPPOINT)&curWindowRect, 2);
+		::MapWindowPoints(HWND_DESKTOP, pWnd->GetSafeHwnd(), (LPPOINT)&curWindowRect, 2);
 
         InvalidateRectRegions(pWnd, oldWindowRect, curWindowRect, RGN_XOR);
-    }
-
-    // invalidate new control's region
-
-    /*if (m_bPainted)
-        this->SendMessage(WM_NCPAINT);*/
-
-    Invalidate();
-
-    oldX = x;
-    oldY = y;
-
-    /*if (!m_bUseBaseMessageHandlers && m_bPainted)
-    {
-        GetParent()->InvalidateRect(&m_oldWndRect);
-
-        m_bUseBitmap = false;
-        OnNcPaint();
-        Invalidate();
-    }
-
-    
-
-    m_oldWndRect.left = x - m_borderPenWidth;
-    m_oldWndRect.top = y + m_OffsetY;
-    m_oldWndRect.right = m_oldWndRect.left + m_ClientRect.Width;
-    m_oldWndRect.bottom = m_oldWndRect.top + m_ClientRect.Height;*/
+    }    
 }

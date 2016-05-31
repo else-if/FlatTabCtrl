@@ -9,7 +9,7 @@ using namespace Gdiplus;
 IMPLEMENT_DYNAMIC(CTTStatic, CStatic)
 
 CTTStatic::CTTStatic() :
-	m_oldWndRect(0, 0, 0, 0)
+	m_oldParentRect(0, 0, 0, 0)
 {
     SetBackgroundColor(GetSysColor(COLOR_3DFACE));
     SetTextColor(GetSysColor(COLOR_CAPTIONTEXT));
@@ -221,6 +221,13 @@ void CTTStatic::OnPaint()
 
     cRect.DeflateRect(textOffset, textOffset, textOffset, textOffset);
 	pDC->DrawText(strText, cRect, nFormat);
+
+	CWnd *pWnd = GetParent();
+	if (pWnd != NULL)
+	{
+		GetWindowRect(m_oldParentRect);
+		::MapWindowPoints(HWND_DESKTOP, pWnd->GetSafeHwnd(), (LPPOINT)&m_oldParentRect, 2);
+	}
 }
 
 void CTTStatic::OnEnable(BOOL bEnable)
@@ -300,12 +307,12 @@ void CTTStatic::OnMove(int x, int y)
 	{
 		CRect oldWindowRect, curWindowRect;
 
-		oldWindowRect.CopyRect(m_oldWndRect);
+		oldWindowRect.CopyRect(m_oldParentRect);
 		GetWindowRect(curWindowRect);
 
-		m_oldWndRect.CopyRect(curWindowRect);
+		//m_oldWndRect.CopyRect(curWindowRect);
 
-		::MapWindowPoints(HWND_DESKTOP, pWnd->GetSafeHwnd(), (LPPOINT)&oldWindowRect, 2);
+		//::MapWindowPoints(HWND_DESKTOP, pWnd->GetSafeHwnd(), (LPPOINT)&oldWindowRect, 2);
 		::MapWindowPoints(HWND_DESKTOP, pWnd->GetSafeHwnd(), (LPPOINT)&curWindowRect, 2);
 
 		InvalidateRectRegions(pWnd, oldWindowRect, curWindowRect, RGN_XOR);
@@ -326,12 +333,12 @@ void CTTStatic::OnSize(UINT nType, int cx, int cy)
 	{
 		CRect oldWindowRect, curWindowRect;
 
-		oldWindowRect.CopyRect(m_oldWndRect);
+		oldWindowRect.CopyRect(m_oldParentRect);
 		GetWindowRect(curWindowRect);
 
-		m_oldWndRect.CopyRect(curWindowRect);
+		//m_oldWndRect.CopyRect(curWindowRect);
 
-		::MapWindowPoints(HWND_DESKTOP, pWnd->GetSafeHwnd(), (LPPOINT)&oldWindowRect, 2);
+		//::MapWindowPoints(HWND_DESKTOP, pWnd->GetSafeHwnd(), (LPPOINT)&oldWindowRect, 2);
 		::MapWindowPoints(HWND_DESKTOP, pWnd->GetSafeHwnd(), (LPPOINT)&curWindowRect, 2);
 
 		InvalidateRectRegions(pWnd, oldWindowRect, curWindowRect, RGN_XOR);

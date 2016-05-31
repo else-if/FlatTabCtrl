@@ -22,7 +22,7 @@ protected:
     ControlsColorMap m_ColorMap;
 
     CRect m_OffsetRect;
-    CRect m_oldWndRect;
+    CRect m_oldParentRect;
     Gdiplus::Rect m_BorderRect;
     Gdiplus::Rect m_ClientRect;
     CDC m_dc;

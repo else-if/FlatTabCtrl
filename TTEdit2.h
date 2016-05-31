@@ -53,10 +53,6 @@ protected:
 
     CRect m_oldWndRect;
 
-    void SetPosition(int x, int y);
-    void Trace(CString cMsg);
-    void UpdatePaintRects();
-
     DECLARE_MESSAGE_MAP()
 public:
     afx_msg BOOL OnEraseBkgnd(CDC* pDC);

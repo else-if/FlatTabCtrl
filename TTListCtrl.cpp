@@ -8,7 +8,7 @@ CTTListCtrl::CTTListCtrl() :
 m_BorderRect(0, 0, 0, 0),
 m_ClientRect(0, 0, 0, 0),
 m_OffsetRect(0, 0, 0, 0),
-m_oldWndRect(0, 0, 0, 0)
+m_oldParentRect(0, 0, 0, 0)
 {
     m_bNcSizeIsCalculated = false;
     m_bUseBitmap = false;
@@ -357,7 +357,12 @@ void CTTListCtrl::OnPaint()
         this->SendMessage(WM_NCPAINT);
 
     // save window rect where control was drawn
-    GetWindowRect(m_oldWndRect);
+	CWnd *pWnd = GetParent();
+	if (pWnd != NULL)
+	{
+		GetWindowRect(m_oldParentRect);
+		::MapWindowPoints(HWND_DESKTOP, pWnd->GetSafeHwnd(), (LPPOINT)&m_oldParentRect, 2);
+	}
 }
 
 void CTTListCtrl::OnMove(int x, int y)
@@ -374,12 +379,9 @@ void CTTListCtrl::OnMove(int x, int y)
 
         CRect oldWindowRect, curWindowRect;
 
-        oldWindowRect.CopyRect(m_oldWndRect);
+        oldWindowRect.CopyRect(m_oldParentRect);
         GetWindowRect(curWindowRect);
 
-        m_oldWndRect.CopyRect(curWindowRect);
-
-        ::MapWindowPoints(HWND_DESKTOP, pWnd->GetSafeHwnd(), (LPPOINT)&oldWindowRect, 2);
         ::MapWindowPoints(HWND_DESKTOP, pWnd->GetSafeHwnd(), (LPPOINT)&curWindowRect, 2);
 
         InvalidateRectRegions(pWnd, oldWindowRect, curWindowRect, RGN_DIFF);
@@ -429,24 +431,9 @@ void CTTListCtrl::OnSize(UINT nType, int cx, int cy)
     {
         CRect oldWindowRect, curWindowRect;
 
-        oldWindowRect.CopyRect(m_oldWndRect);
+		oldWindowRect.CopyRect(m_oldParentRect);
         GetWindowRect(curWindowRect);
 
-        oldWindowRect.CopyRect(curWindowRect);
-        
-        oldWindowRect.right -= iOffWidth;
-        oldWindowRect.bottom -= iOffHeight;
-        
-
-        if (m_bHScroll != (bool)(lStyle & WS_HSCROLL))
-            oldWindowRect.bottom += ::GetSystemMetrics(SM_CXVSCROLL);
-
-        if (m_bVScroll != (bool)(lStyle & WS_VSCROLL))
-            oldWindowRect.right += ::GetSystemMetrics(SM_CXVSCROLL);
-
-        m_oldWndRect.CopyRect(curWindowRect);
-
-        ::MapWindowPoints(HWND_DESKTOP, pWnd->GetSafeHwnd(), (LPPOINT)&oldWindowRect, 2);
         ::MapWindowPoints(HWND_DESKTOP, pWnd->GetSafeHwnd(), (LPPOINT)&curWindowRect, 2);
 
         InvalidateRectRegions(pWnd, oldWindowRect, curWindowRect, RGN_XOR);        

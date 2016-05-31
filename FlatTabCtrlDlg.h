@@ -96,11 +96,11 @@ public:
 	/*CStatic*/ CTTStatic m_TTStatic8;
 	/*CStatic*/ CTTStatic m_TTStatic9;
 
-	/*CEdit */CTTEdit m_Edit1;
+	/*CEdit */CTTEdit2 m_Edit1;
 	/*CEdit*/ CTTEdit2 m_Edit2;
-	/*CEdit*/ CTTEdit m_WideEdit1;
-	/*CEdit*/ CTTEdit m_WideEdit2;
-	/*CEdit*/ CTTEdit m_MultiLineEdit;
+	/*CEdit*/ CTTEdit2 m_WideEdit1;
+	/*CEdit*/ CTTEdit2 m_WideEdit2;
+	/*CEdit*/ CTTEdit2 m_MultiLineEdit;
 	
 	CStatic/*CTTGroupBox*/ m_GrBox1;
 	CTTGroupBox m_GrBox2;
