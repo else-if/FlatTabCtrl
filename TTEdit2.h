@@ -20,12 +20,12 @@ protected:
 
     bool m_bUseBaseMessageHandlers;
     bool m_bNcSizeIsCalculated;
-    bool m_bPainted;
-
+    
     Gdiplus::Rect m_ClientRect;
-
     Gdiplus::Rect m_BorderRect;
     CRect m_OffsetRect;
+
+    CRect m_oldParentRect;
 
     ControlState m_ControlState;
     ControlsColorMap m_ColorMap;
@@ -36,22 +36,11 @@ protected:
     bool m_bHover;
     bool m_bFocused;
 
-    bool m_bHScroll;
-    bool m_bVScroll;
-
-    int oldCX, oldCY, oldX, oldY;
-    bool m_bSized;
-
     CDC m_dc;
     bool m_bUseBitmap;
 
     void UpdateControlState();
-    void Paint(CDC* pDC);
-
-    int m_OffsetY;
-    UINT uiCX, uiCY;
-
-    CRect m_oldWndRect;
+    void Paint(CDC* pDC);   
 
     DECLARE_MESSAGE_MAP()
 public:

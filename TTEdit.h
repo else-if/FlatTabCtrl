@@ -13,16 +13,19 @@ public:
 
     void SetDrawingProperties(int borderPenWidth, int cornerRadius);
 
-    static void DrawEditControlFrame(CDC* pDC, CRect* pRect, CRect* pClipRect, ControlState controlState = Normal,
+    static void DrawEditControlFrame(CDC* pDC, CRect* pRect, CRect* pClipRect, ControlState controlState = Normal, CRect* pClientRect = NULL,
         int cornerRadius = 5, int borderWidth = 1, ControlsColorMap* pColorMap = NULL);
 
 protected:
 
     bool m_bUseBaseMessageHandlers;
     bool m_bNcSizeIsCalculated;
-    bool m_bPainted;
 
     Gdiplus::Rect m_ClientRect;
+    Gdiplus::Rect m_BorderRect;
+    CRect m_OffsetRect;
+
+    CRect m_oldParentRect;
 
     ControlState m_ControlState;
     ControlsColorMap m_ColorMap;
@@ -39,14 +42,6 @@ protected:
     void UpdateControlState();
     void Paint(CDC* pDC);
 
-    int m_OffsetY;
-    UINT uiCX, uiCY;
-
-    CRect m_oldWndRect;
-
-    void SetPosition(int x, int y);
-    void Trace(CString cMsg);
-
     DECLARE_MESSAGE_MAP()
 public:
     afx_msg BOOL OnEraseBkgnd(CDC* pDC);
@@ -56,7 +51,7 @@ public:
 
     afx_msg BOOL OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message);
     afx_msg void OnMouseLeave();
-    afx_msg void OnEnUpdate();
+
     virtual void PreSubclassWindow();
     afx_msg void OnPaint();
     afx_msg void OnKillFocus(CWnd* pNewWnd);

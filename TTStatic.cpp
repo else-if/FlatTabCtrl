@@ -1,6 +1,4 @@
-﻿#pragma once
-
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include "TTStatic.h"
 #include "CommonDrawing.h"
 
@@ -155,7 +153,7 @@ void CTTStatic::OnPaint()
 
 	CDC* pDC = &memDC.GetDC();
 
-	Graphics graphics(pDC->GetSafeHdc());
+    Graphics graphics(pDC->GetSafeHdc());
     graphics.SetSmoothingMode(SmoothingModeAntiAlias);
     graphics.SetInterpolationMode(InterpolationModeHighQualityBicubic);
 
@@ -163,15 +161,39 @@ void CTTStatic::OnPaint()
 
     if (m_bUseBmp)
     {
-		pDC->BitBlt(cRect.left, cRect.top, cRect.Width(), cRect.Height(),
+        pDC->BitBlt(cRect.left, cRect.top, cRect.Width(), cRect.Height(),
+            &m_dc, 0, 0, SRCCOPY);
+    }
+    else
+    {
+        CRect Rect;
+        GetWindowRect(&Rect);
+        CWnd *pParent = GetParent();
+        pParent->ScreenToClient(&Rect);
+        CDC *pParentDC = pParent->GetDC();
+
+        m_dc.DeleteDC();
+        // store into m_dc
+        CBitmap bmp;
+        m_dc.CreateCompatibleDC(pParentDC);
+        bmp.CreateCompatibleBitmap(pParentDC, Rect.Width(), Rect.Height());
+        m_dc.SelectObject(&bmp);
+        m_dc.BitBlt(0, 0, Rect.Width(), Rect.Height(), pParentDC, Rect.left, Rect.top, SRCCOPY);
+        bmp.DeleteObject();
+
+        m_bUseBmp = true;
+
+        pParent->ReleaseDC(pParentDC);
+
+        pDC->BitBlt(cRect.left, cRect.top, cRect.Width(), cRect.Height(),
             &m_dc, 0, 0, SRCCOPY);
     }
 
-	pDC->SetBkMode(TRANSPARENT);
+    pDC->SetBkMode(TRANSPARENT);
 
     //Background
     if (m_bDrawBackground)
-		FillRectRegion(cRect, *pDC, m_backgroundColor, m_iCornerRadius);
+        FillRectRegion(cRect, *pDC, m_backgroundColor, m_iCornerRadius);
 
     // Borders
     if (m_bDrawBorders)
@@ -188,13 +210,13 @@ void CTTStatic::OnPaint()
     if (m_ControlState == Disable)
         textColor = GetSysColor(COLOR_GRAYTEXT);
 
-	pDC->SetTextColor(textColor);
+    pDC->SetTextColor(textColor);
 
     CString strText = _T("");
     GetWindowText(strText);
 
     if ((HFONT)m_TextFont != NULL)
-		pDC->SelectObject(m_TextFont);
+        pDC->SelectObject(m_TextFont);
 
     DWORD ExStyle = GetExStyle();
     DWORD Style = GetStyle();
@@ -220,14 +242,15 @@ void CTTStatic::OnPaint()
         textOffset += m_borderPenWidth + (m_borderPenWidth > 1 ? 0 : 1);
 
     cRect.DeflateRect(textOffset, textOffset, textOffset, textOffset);
-	pDC->DrawText(strText, cRect, nFormat);
+    pDC->DrawText(strText, cRect, nFormat);
 
-	CWnd *pWnd = GetParent();
-	if (pWnd != NULL)
-	{
-		GetWindowRect(m_oldParentRect);
-		::MapWindowPoints(HWND_DESKTOP, pWnd->GetSafeHwnd(), (LPPOINT)&m_oldParentRect, 2);
-	}
+    CWnd *pWnd = GetParent();
+    if (pWnd != NULL)
+    {
+        GetWindowRect(m_oldParentRect);
+        ::MapWindowPoints(HWND_DESKTOP, pWnd->GetSafeHwnd(), (LPPOINT)&m_oldParentRect, 2);
+    }
+	
 }
 
 void CTTStatic::OnEnable(BOOL bEnable)
@@ -302,6 +325,9 @@ void CTTStatic::OnMove(int x, int y)
 {
 	CStatic::OnMove(x, y);
 
+    m_bUseBmp = false;
+    Invalidate();
+
 	CWnd *pWnd = GetParent();
 	if (pWnd != NULL)
 	{
@@ -310,12 +336,9 @@ void CTTStatic::OnMove(int x, int y)
 		oldWindowRect.CopyRect(m_oldParentRect);
 		GetWindowRect(curWindowRect);
 
-		//m_oldWndRect.CopyRect(curWindowRect);
-
-		//::MapWindowPoints(HWND_DESKTOP, pWnd->GetSafeHwnd(), (LPPOINT)&oldWindowRect, 2);
 		::MapWindowPoints(HWND_DESKTOP, pWnd->GetSafeHwnd(), (LPPOINT)&curWindowRect, 2);
 
-		InvalidateRectRegions(pWnd, oldWindowRect, curWindowRect, RGN_XOR);
+		InvalidateRectRegions(pWnd, oldWindowRect, curWindowRect, RGN_OR);
 	}
 }
 
@@ -325,6 +348,7 @@ void CTTStatic::OnSize(UINT nType, int cx, int cy)
 	CStatic::OnSize(nType, cx, cy);
 
 	// invalidate current client region
+    m_bUseBmp = false;
 	Invalidate();
 
 	// invalidate changed parent region
@@ -336,9 +360,6 @@ void CTTStatic::OnSize(UINT nType, int cx, int cy)
 		oldWindowRect.CopyRect(m_oldParentRect);
 		GetWindowRect(curWindowRect);
 
-		//m_oldWndRect.CopyRect(curWindowRect);
-
-		//::MapWindowPoints(HWND_DESKTOP, pWnd->GetSafeHwnd(), (LPPOINT)&oldWindowRect, 2);
 		::MapWindowPoints(HWND_DESKTOP, pWnd->GetSafeHwnd(), (LPPOINT)&curWindowRect, 2);
 
 		InvalidateRectRegions(pWnd, oldWindowRect, curWindowRect, RGN_XOR);

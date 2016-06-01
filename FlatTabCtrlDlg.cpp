@@ -114,6 +114,7 @@ void CFlatTabCtrlDlg::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_LIST1, m_TTListCtrl);
     DDX_Control(pDX, IDC_LIST2, m_TTListCtrl2);
     DDX_Control(pDX, IDC_LIST3, m_TTListCtrl3);
+    DDX_Control(pDX, IDC_RICHEDIT21, m_TTRichEdit1);
 }
 
 BEGIN_MESSAGE_MAP(CFlatTabCtrlDlg, CDialogEx)
@@ -286,7 +287,8 @@ BOOL CFlatTabCtrlDlg::OnInitDialog()
     m_dlgAnchor.Add(m_TTButton2.GetSafeHwnd(), ANCHOR_BOTTOMRIGHT);
 	m_dlgAnchor.Add(m_TTStatic1.GetSafeHwnd(), ANCHOR_TOPLEFT | ANCHOR_BOTTOMRIGHT);
 	m_dlgAnchor.Add(m_MultiLineEdit.GetSafeHwnd(), ANCHOR_TOPLEFT | ANCHOR_BOTTOMRIGHT);
-	
+    m_dlgAnchor.Add(m_TTRichEdit1.GetSafeHwnd(), ANCHOR_TOPLEFT | ANCHOR_BOTTOMRIGHT);
+    
 
     return TRUE;  // return TRUE  unless you set the focus to a control
 }

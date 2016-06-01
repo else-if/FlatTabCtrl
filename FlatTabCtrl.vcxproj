@@ -115,6 +115,7 @@
     <ClInclude Include="TTEdit2.h" />
     <ClInclude Include="TTGroupBox.h" />
     <ClInclude Include="TTListCtrl.h" />
+    <ClInclude Include="TTRichEditCtrl.h" />
     <ClInclude Include="TTStatic2.h" />
     <ClInclude Include="TTTabCtrl.h" />
     <ClInclude Include="CommonDrawing.h" />
@@ -147,6 +148,7 @@
     <ClCompile Include="TTEdit2.cpp" />
     <ClCompile Include="TTGroupBox.cpp" />
     <ClCompile Include="TTListCtrl.cpp" />
+    <ClCompile Include="TTRichEditCtrl.cpp" />
     <ClCompile Include="TTStatic2.cpp" />
     <ClCompile Include="TTTabCtrl.cpp" />
     <ClCompile Include="CommonDrawing.cpp" />

@@ -108,6 +108,9 @@
     <ClInclude Include="TabSheet3.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="TTRichEditCtrl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FlatTabCtrl.cpp">
@@ -192,6 +195,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="TabSheet3.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TTRichEditCtrl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
