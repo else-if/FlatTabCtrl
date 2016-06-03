@@ -136,10 +136,6 @@ void CTTRichEditCtrl::OnNcPaint()
     CRect cliRect;
     GetClientRect(cliRect);
 
-    TRACE("wnd-cli [%d %d][%d %d] - [%d %d][%d %d]\n",
-        wndRect.left, wndRect.top, wndRect.Width(), wndRect.Height(),
-        cliRect.left, cliRect.top, cliRect.Width(), cliRect.Height());
-
     Default();
 
     CWindowDC dc(this);
@@ -289,7 +285,7 @@ void CTTRichEditCtrl::OnSize(UINT nType, int cx, int cy)
         return;
 
     // NcSize should be recalculated
-    //SetWindowPos(NULL, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER);
+    SetWindowPos(NULL, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER);
     
     // Invalidate current client region
     Invalidate();
@@ -317,7 +313,7 @@ void CTTRichEditCtrl::OnMove(int x, int y)
         return;
 
     // NcSize should be recalculated
-    //SetWindowPos(NULL, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER);
+    SetWindowPos(NULL, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER);
     
     // Invalidate current client region
     Invalidate();

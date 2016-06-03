@@ -286,9 +286,15 @@ BOOL CFlatTabCtrlDlg::OnInitDialog()
     m_dlgAnchor.Add(m_TTButton1.GetSafeHwnd(), ANCHOR_TOPLEFT | ANCHOR_BOTTOMRIGHT);
     m_dlgAnchor.Add(m_TTButton2.GetSafeHwnd(), ANCHOR_BOTTOMRIGHT);
 	m_dlgAnchor.Add(m_TTStatic1.GetSafeHwnd(), ANCHOR_TOPLEFT | ANCHOR_BOTTOMRIGHT);
+    m_dlgAnchor.Add(m_TTStatic6.GetSafeHwnd(), ANCHOR_BOTTOMRIGHT);
 	m_dlgAnchor.Add(m_MultiLineEdit.GetSafeHwnd(), ANCHOR_TOPLEFT | ANCHOR_BOTTOMRIGHT);
     m_dlgAnchor.Add(m_TTRichEdit1.GetSafeHwnd(), ANCHOR_TOPLEFT | ANCHOR_BOTTOMRIGHT);
     
+    /*CRect rc;
+    GetWindowRect(rc);
+    CRgn wRgn;
+    wRgn.CreateRoundRectRgn(0, 0, rc.Width(), rc.Height(), m_curWndCornRadius, m_curWndCornRadius);
+    SetWindowRgn(wRgn, TRUE);*/
 
     return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -426,15 +432,27 @@ void CFlatTabCtrlDlg::OnBnClickedOk()
 
 void CFlatTabCtrlDlg::OnBnClickedButton2()
 {
+    /*m_curWndCornRadius--;
+    CRect rc;
+    GetWindowRect(rc);
+    CRgn wRgn;
+    wRgn.CreateRoundRectRgn(0, 0, rc.Width(), rc.Height(), m_curWndCornRadius, m_curWndCornRadius);
+    SetWindowRgn(wRgn, TRUE);
+    TRACE("Radius %d\n", m_curWndCornRadius);
+    return;*/
+
+    /*m_TTStatic1.EnableScrollBarCtrl(SB_HORZ, TRUE);
+    m_TTStatic2.EnableScrollBarCtrl(SB_VERT, TRUE);*/
+
     TRACE("-----------------------------------------------------------------------------------\n");
-    CWnd* pWnd = GetDlgItem(IDC_EDIT5);
+    CWnd* pWnd = GetDlgItem(IDC_EDIT8);
     CRect cRect;
     pWnd->GetWindowRect(&cRect);
     
     ScreenToClient(&cRect);
     ::MoveWindow(pWnd->GetSafeHwnd(), cRect.left, cRect.top, cRect.Width() + 2, cRect.Height() + 2, TRUE);
     return;
-
+	
 	/*Invalidate(TRUE);
 
 	return;*/
@@ -491,15 +509,27 @@ void CFlatTabCtrlDlg::OnBnClickedButton2()
 
 void CFlatTabCtrlDlg::OnBnClickedButton3()
 {
+    /*m_curWndCornRadius++;
+    CRect rc;
+    GetWindowRect(rc);
+    CRgn wRgn;
+    wRgn.CreateRoundRectRgn(0, 0, rc.Width(), rc.Height(), m_curWndCornRadius, m_curWndCornRadius);
+    SetWindowRgn(wRgn, TRUE);
+    TRACE("Radius %d\n", m_curWndCornRadius);    
+    return;*/
+
+    /*m_TTStatic1.EnableScrollBarCtrl(SB_HORZ, FALSE);
+    m_TTStatic2.EnableScrollBarCtrl(SB_VERT, FALSE);*/
+	
     TRACE("-----------------------------------------------------------------------------------\n");
-    CWnd* pWnd = GetDlgItem(IDC_EDIT5);
+    CWnd* pWnd = GetDlgItem(IDC_EDIT8);
     CRect cRect;
     pWnd->GetWindowRect(&cRect);
 
     ScreenToClient(&cRect);
     ::MoveWindow(pWnd->GetSafeHwnd(), cRect.left, cRect.top, cRect.Width() - 2, cRect.Height() - 2, TRUE);
     return;
-
+	
 	/*Invalidate(FALSE);
 	
 	return;*/

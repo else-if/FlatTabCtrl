@@ -64,6 +64,8 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
 
+    int m_curWndCornRadius = 10;
+
     CDlgAnchor m_dlgAnchor;
     LOGFONT m_lf;
 
