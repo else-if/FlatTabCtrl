@@ -1,4 +1,4 @@
-
+﻿
 // FlatTabCtrlDlg.cpp : implementation file
 //
 
@@ -12,6 +12,11 @@
 #include "TabSheet1.h"
 #include "TabSheet2.h"
 #include "TabSheet3.h"
+#include "ManagedImageProcessor.h"
+#include "NativeImageProcessor.h"
+#include <algorithm>
+#include <shlwapi.h> 
+#include "ColorsCommon.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -33,7 +38,7 @@ public:
 
 // Implementation
 protected:
-	DECLARE_MESSAGE_MAP()
+	DECLARE_MESSAGE_MAP() 
 };
 
 CAboutDlg::CAboutDlg() : CDialogEx(CAboutDlg::IDD)
@@ -56,7 +61,15 @@ END_MESSAGE_MAP()
 CFlatTabCtrlDlg::CFlatTabCtrlDlg(CWnd* pParent /*=NULL*/)
 	: CDialogEx(CFlatTabCtrlDlg::IDD, pParent)
 {
-	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
+	/*m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
+	img.Load(_T("H:\\1.png"));
+	hBmp = img.Detach();*/
+
+	m_pFont = ::new Gdiplus::Font((const WCHAR *)_T("Segoe UI"), 15 * 0.75, Gdiplus::FontStyle::FontStyleRegular, Gdiplus::Unit::UnitPixel);
+
+	m_NormalBkgndBrush.CreateSolidBrush(RGB(255, 255, 255));
+	m_DisabledBkgndBrush.CreateSolidBrush(RGB(240, 240, 240));
+	pTestDlg = NULL;
 }
 
 CFlatTabCtrlDlg::~CFlatTabCtrlDlg()
@@ -69,7 +82,26 @@ CFlatTabCtrlDlg::~CFlatTabCtrlDlg()
     delete m_vPages[1];
     delete m_vPages[2];
 
+	::delete m_pFont;
+
     m_vPages.clear();
+
+	if (pTestDlg != NULL)
+	{
+		delete pTestDlg;
+		pTestDlg = NULL;
+	}
+
+	if (m_pac != NULL)
+	{
+		//m_pac->Unbind();
+		/*delete m_pac;
+		m_pac = NULL;*/
+		m_pac->Release();
+	}
+
+	/*if (pViewHolderDlg)
+		delete pViewHolderDlg;*/
 }
 
 void CFlatTabCtrlDlg::DoDataExchange(CDataExchange* pDX)
@@ -115,6 +147,9 @@ void CFlatTabCtrlDlg::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_LIST2, m_TTListCtrl2);
     DDX_Control(pDX, IDC_LIST3, m_TTListCtrl3);
     DDX_Control(pDX, IDC_RICHEDIT21, m_TTRichEdit1);
+	DDX_Control(pDX, IDC_COMBO10, m_SimpleComboBox3);
+	DDX_Control(pDX, IDC_COMBO11, m_DropDownComboBox3);
+	DDX_Control(pDX, IDC_COMBO12, m_DropDownListComboBox3);
 }
 
 BEGIN_MESSAGE_MAP(CFlatTabCtrlDlg, CDialogEx)
@@ -131,6 +166,13 @@ BEGIN_MESSAGE_MAP(CFlatTabCtrlDlg, CDialogEx)
     ON_BN_CLICKED(IDC_CHECK1, &CFlatTabCtrlDlg::OnBnClickedCheck1)
     ON_NOTIFY(TCN_SELCHANGING, IDC_TAB1, &CFlatTabCtrlDlg::OnTabChanging)
     ON_WM_SIZE()
+	ON_WM_CTLCOLOR()
+	ON_EN_SETFOCUS(IDC_EDIT4, &CFlatTabCtrlDlg::OnSetfocusEdit4)
+	ON_EN_KILLFOCUS(IDC_EDIT4, &CFlatTabCtrlDlg::OnKillfocusEdit4)
+	ON_WM_MOVE()
+	ON_EN_CHANGE(IDC_EDIT4, &CFlatTabCtrlDlg::OnEnChangeEdit4)
+	ON_WM_DESTROY()
+	ON_WM_ERASEBKGND()
 END_MESSAGE_MAP()
 
 
@@ -151,7 +193,7 @@ void CFlatTabCtrlDlg::bgWorker_DoWork(Object^ sender, DoWorkEventArgs^ e)
 		{
 			// Perform a time consuming operation and report progress.
 			System::Threading::Thread::Sleep(500);
-			worker->ReportProgress(i * 10, System::String::Format("R�knat {0} av {1}", i, 100));
+			worker->ReportProgress(i * 10, System::String::Format("Räknat {0} av {1}", i, 100));
 		}
 	}
 }
@@ -159,6 +201,22 @@ void CFlatTabCtrlDlg::bgWorker_DoWork(Object^ sender, DoWorkEventArgs^ e)
 BOOL CFlatTabCtrlDlg::OnInitDialog()
 {
 	CDialogEx::OnInitDialog();
+
+	//CoInitialize(NULL);
+	//SHAutoComplete(GetDlgItem(IDC_EDIT4)->GetSafeHwnd(), SHACF_DEFAULT);
+	
+	CSimpleArray<CString> itemsList;
+	for (int i = 0; i < 10; i++)
+	{
+		CString cStr;
+		cStr.Format(_T("Directory path #%d"), i);
+
+		itemsList.Add(cStr);
+	}
+
+	m_pac = new CTTAutoComplete(itemsList);
+	m_pac->Bind(GetDlgItem(IDC_EDIT4)->GetSafeHwnd(),
+		ACO_AUTOSUGGEST | ACO_UPDOWNKEYDROPSLIST | ACO_NOPREFIXFILTERING);
 
 	//SetBackgroundColor(RGB(162, 162, 162));
 
@@ -233,8 +291,15 @@ BOOL CFlatTabCtrlDlg::OnInitDialog()
 	FillCombo(m_DropDownComboBox2);
 	FillCombo(m_DropDownListComboBox2);
 	
+	m_SimpleComboBox3.SetMultiSelectionMode();
+	m_DropDownComboBox3.SetMultiSelectionMode();
+	m_DropDownListComboBox3.SetMultiSelectionMode();
+
+	FillCombo(m_SimpleComboBox3);
+	FillCombo(m_DropDownComboBox3);
+	FillCombo(m_DropDownListComboBox3);
 	
-    m_TTStatic1.DrawBorders(true);
+	m_TTStatic1.DrawBorders(true);
     m_TTStatic1.DrawBackground(true);
 	m_TTStatic1.SetBackgroundColor(RGB(255, 255, 255));
 
@@ -282,7 +347,7 @@ BOOL CFlatTabCtrlDlg::OnInitDialog()
     m_dlgAnchor.Init(GetSafeHwnd());
 	m_dlgAnchor.Add(m_Edit2.GetSafeHwnd(), ANCHOR_BOTTOMRIGHT);
 	m_dlgAnchor.Add(m_TTListCtrl.GetSafeHwnd(), ANCHOR_TOPLEFT | ANCHOR_BOTTOMRIGHT);
-    m_dlgAnchor.Add(m_TTListCtrl3.GetSafeHwnd(), ANCHOR_BOTTOMRIGHT);
+	m_dlgAnchor.Add(m_TTListCtrl3.GetSafeHwnd(), ANCHOR_TOPLEFT | ANCHOR_BOTTOMRIGHT);
     m_dlgAnchor.Add(m_TTButton1.GetSafeHwnd(), ANCHOR_TOPLEFT | ANCHOR_BOTTOMRIGHT);
     m_dlgAnchor.Add(m_TTButton2.GetSafeHwnd(), ANCHOR_BOTTOMRIGHT);
 	m_dlgAnchor.Add(m_TTStatic1.GetSafeHwnd(), ANCHOR_TOPLEFT | ANCHOR_BOTTOMRIGHT);
@@ -295,6 +360,16 @@ BOOL CFlatTabCtrlDlg::OnInitDialog()
     CRgn wRgn;
     wRgn.CreateRoundRectRgn(0, 0, rc.Width(), rc.Height(), m_curWndCornRadius, m_curWndCornRadius);
     SetWindowRgn(wRgn, TRUE);*/
+
+	//m_TTButton1.SetBitmap(hBmp);
+	/*if (hBmp == NULL)
+		TRACE("Something wrong");
+
+	if (m_TTButton1.GetBitmap() == NULL)
+		m_TTButton1.SetBitmap(hBmp);*/
+
+	/*if (m_TTButton2.GetBitmap() == NULL)
+		TRACE("Something wrong");*/
 
     return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -335,10 +410,12 @@ void CFlatTabCtrlDlg::FillCombo(CComboBox &Combo)
         CString string;
 		string.Format(_T("Item %d"), i);
 
-		Combo.AddString(string);
+		if (!::IsWindow(Combo.GetSafeHwnd()))
+			TRACE("Not window\n");
+		Combo.AddString(string); 
 	}
 
-    Combo.AddString(_T("And here is an item with a large amount of text only for test reason"));
+   Combo.AddString(_T("And here is an item with a large amount of text only for test reason"));
 
 }
 
@@ -383,6 +460,10 @@ void CFlatTabCtrlDlg::OnPaint()
 		CPaintDC dc(this); // device context for painting
 
 		CDialogEx::OnPaint();
+
+		CRect r(10, 450, 140, 480);
+		CTTEdit::DrawEditControlFrame(&dc, &r, &r);
+		//dc.FillSolidRect(r, RGB(255, 0, 0));
 	}
 
 	m_CancelButton.LoadBitmaps(IDB_BITMAP1, 4, 10, 10, 20, 20);
@@ -429,10 +510,68 @@ void CFlatTabCtrlDlg::OnBnClickedOk()
 	//CDialogEx::OnOK();
 }
 
+BOOL testfunc(TestClassA*& a)
+{
+	TestClassB* b = new TestClassB();
+	b->i = 10;
+	b->j = 100;
+	b->p = 999;
+
+	a = b;
+
+	return TRUE;
+}
 
 void CFlatTabCtrlDlg::OnBnClickedButton2()
 {
-    /*m_curWndCornRadius--;
+	/*if (!pViewHolderDlg)
+	{
+		pViewHolderDlg = new CViewsHolderDlg(this);
+		pViewHolderDlg->Create(CViewsHolderDlg::IDD, this);
+		
+		CRect emptyRect;
+		emptyRect.SetRectEmpty();
+
+		CString caption;
+		caption.Format(_T("Here would be a View #1!"));
+		m_View1.Create(caption, WS_CHILD | WS_BORDER | SS_NOTIFY, emptyRect, pViewHolderDlg);
+		pViewHolderDlg->AddView(&m_View1);
+
+		caption.Format(_T("Here would be a View #2!"));
+		m_View2.Create(caption, WS_CHILD | WS_BORDER | SS_NOTIFY, emptyRect, pViewHolderDlg);
+		pViewHolderDlg->AddView(&m_View2);
+
+		caption.Format(_T("Here would be a View #3!"));
+		m_View3.Create(caption, WS_CHILD | WS_BORDER | SS_NOTIFY, emptyRect, pViewHolderDlg);
+		pViewHolderDlg->AddView(&m_View3);
+	}
+	
+	if (!pViewHolderDlg->IsWindowVisible())
+	{
+		pViewHolderDlg->ShowWindow(SW_SHOW);
+		pViewHolderDlg->ShowViews();
+	}*/
+
+	/*Gdiplus::Graphics g(this->GetDC()->GetSafeHdc());	
+	Gdiplus::PointF pt(100.0f, 420.0f);
+
+	CString s = _T("7.50");
+
+	Gdiplus::SolidBrush br(Gdiplus::Color::Black);
+	g.DrawString(s.GetBuffer(0), s.GetLength(), m_pFont, pt, &br);*/
+
+	/*Gdiplus::SolidBrush br(Gdiplus::Color::Red);
+	Gdiplus::Rect r(100, 420, 100, 100);
+	g.FillRectangle(&br, r);*/
+
+	return;
+	/*CFuncPointerHolder fp{};
+	fp.f = &testfunc;
+	fp.InvokeFunc();
+
+	return;*/
+
+	/*m_curWndCornRadius--;
     CRect rc;
     GetWindowRect(rc);
     CRgn wRgn;
@@ -449,8 +588,21 @@ void CFlatTabCtrlDlg::OnBnClickedButton2()
     CRect cRect;
     pWnd->GetWindowRect(&cRect);
     
-    ScreenToClient(&cRect);
-    ::MoveWindow(pWnd->GetSafeHwnd(), cRect.left, cRect.top, cRect.Width() + 2, cRect.Height() + 2, TRUE);
+	ScreenToClient(&cRect);
+    //::MoveWindow(pWnd->GetSafeHwnd(), cRect.left, cRect.top, cRect.Width() + 2, cRect.Height() + 2, TRUE);
+
+	cRect.InflateRect(10, 10);
+	CDC* pDC = this->GetDC();
+	pDC->FillSolidRect(&cRect, RGB(255, 0, 0));
+	ReleaseDC(pDC);
+
+	cRect.right = cRect.left + 20;
+	//cRect.left -= 10;
+	cRect.bottom = cRect.top + 20;
+	//cRect.top -= 10;
+
+	InvalidateRect(cRect);
+
     return;
 	
 	/*Invalidate(TRUE);
@@ -509,6 +661,58 @@ void CFlatTabCtrlDlg::OnBnClickedButton2()
 
 void CFlatTabCtrlDlg::OnBnClickedButton3()
 {
+	GetDlgItem(IDC_COMBO7)->EnableWindow(!GetDlgItem(IDC_COMBO7)->IsWindowEnabled());
+
+	return;
+	/*ManagedImageProcessor^ m = gcnew ManagedImageProcessor();
+	NativeImageProcessor n(m);*/
+	CImage img;
+	img.Load(_T("H:\\test.png"));
+
+	int bpp = img.GetBPP();
+
+	//get pixel format:
+	HBITMAP hbmp = img.Detach();
+	Gdiplus::Bitmap* bmpTemp = Gdiplus::Bitmap::FromHBITMAP(hbmp, 0);
+	Gdiplus::PixelFormat pixel_format = bmpTemp->GetPixelFormat();
+	if (bpp == 32)
+		pixel_format = PixelFormat32bppARGB;
+	img.Attach(hbmp);
+
+	//Gdiplus::Bitmap* bmp = Gdiplus::Bitmap::FromHBITMAP((HBITMAP)img, NULL);
+	Gdiplus::Bitmap bmp(img.GetWidth(), img.GetHeight(), img.GetPitch(), pixel_format, static_cast<BYTE*>(img.GetBits()));
+
+	CDC* pDC = GetDC();
+
+	pDC->FillSolidRect(CRect(150, 425, 300, 500), RGB(255, 0, 0));
+
+	Gdiplus::Graphics graphics(pDC->GetSafeHdc());
+	graphics.DrawImage(&bmp,
+		Gdiplus::RectF(150, 425, 150, 75));/* ,
+		Gdiplus::RectF(0, 0, bmp.GetWidth(), bmp.GetHeight()),
+		Gdiplus::Unit::UnitPixel);*/
+
+	/*Gdiplus::Rect r(150, 425, 150, 75);
+
+	graphics.DrawImage(&bmp,
+		r,
+		r,
+		Gdiplus::Unit::UnitPixel);
+
+	r.Inflate(-1, -1);
+	r.Width;
+	Gdiplus::SolidBrush brush(Gdiplus::Color::White);
+	graphics.FillRectangle(&brush, Gdiplus::Rect(150, 425, 150, 75));
+
+	Gdiplus::Pen pen(Gdiplus::Color::Green, 1.0F);
+	graphics.DrawRectangle(&pen, Gdiplus::Rect(150, 425, 150, 75));*/
+
+	
+
+	ReleaseDC(pDC);
+
+	return;
+
     /*m_curWndCornRadius++;
     CRect rc;
     GetWindowRect(rc);
@@ -628,4 +832,173 @@ void CFlatTabCtrlDlg::OnSize(UINT nType, int cx, int cy)
     __super::OnSize(nType, cx, cy);
 
     m_dlgAnchor.OnSize(FALSE);
+}
+
+
+HBRUSH CFlatTabCtrlDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
+{
+	HBRUSH hbr = CDialogEx::OnCtlColor(pDC, pWnd, nCtlColor);
+
+	/*switch (nCtlColor)
+	{
+
+	case CTLCOLOR_EDIT:
+
+		if (!pWnd->IsWindowEnabled() || (pWnd->GetStyle() & ES_READONLY))
+		{
+			LOGBRUSH lb;
+			m_DisabledBkgndBrush.GetLogBrush(&lb);
+			pDC->SetBkColor(lb.lbColor);
+			hbr = m_DisabledBkgndBrush;
+		}
+		else
+			hbr = m_NormalBkgndBrush;
+		break;
+
+	case CTLCOLOR_STATIC:
+
+		if ((!pWnd->IsWindowEnabled() || pWnd->GetStyle() & ES_READONLY)
+			&& dynamic_cast<CEdit*>(pWnd))
+		{
+			hbr = m_DisabledBkgndBrush;
+		}
+		else
+		{
+			pDC->SetBkMode(TRANSPARENT);
+			hbr = m_NormalBkgndBrush;
+		}
+
+		break;
+
+	default:
+		if (pWnd->IsWindowEnabled())
+			hbr = m_NormalBkgndBrush;
+		else
+			hbr = m_DisabledBkgndBrush;
+		break;
+	}*/
+
+	return hbr;
+}
+
+
+void CFlatTabCtrlDlg::OnSetfocusEdit4()
+{
+	//GetDlgItem(IDC_EDIT4)->SendMessage(WM_KEYDOWN, VK_DOWN, 0);
+}
+
+
+void CFlatTabCtrlDlg::OnKillfocusEdit4()
+{
+	/*if (pTestDlg != NULL && pTestDlg->IsWindowVisible() && pTestDlg != GetForegroundWindow())
+		pTestDlg->ShowWindow(SW_HIDE);*/
+}
+
+
+void CFlatTabCtrlDlg::OnMove(int x, int y)
+{
+	CDialogEx::OnMove(x, y);
+
+	if (pTestDlg)
+	{
+		SetToolTipWindowPosition(GetDlgItem(IDC_EDIT4));
+		/*CRect cEditRect, cDlgRect;
+		GetDlgItem(IDC_EDIT4)->GetWindowRect(&cEditRect);
+
+		pTestDlg->GetWindowRect(&cDlgRect);
+
+		CRect cNewRect(cEditRect.left, cEditRect.bottom, cEditRect.left + cDlgRect.Width(), cEditRect.bottom + cDlgRect.Height());
+
+		pTestDlg->MoveWindow(cNewRect);*/
+	}
+	// TODO: Add your message handler code here
+}
+
+void CFlatTabCtrlDlg::AddTips()
+{
+	if (pTestDlg == NULL || !::IsWindow(pTestDlg->GetSafeHwnd()))
+		return;
+
+	pTestDlg->ClearTips();
+
+	for (int i = 0; i < 10; i++)
+	{
+		CString string;
+		string.Format(_T("Here is a directory name №%d"), i);
+
+		pTestDlg->AddTip(i, string);
+	}
+}
+
+void CFlatTabCtrlDlg::SetToolTipWindowPosition(CWnd* pDockWnd)
+{
+	if (pTestDlg == NULL || !pTestDlg->IsWindowVisible())
+		return;
+
+	CRect cDockWndRect, cDlgRect;
+	pDockWnd->GetWindowRect(&cDockWndRect);
+
+	pTestDlg->GetWindowRect(&cDlgRect);
+
+	CRect cNewRect(cDockWndRect.left, cDockWndRect.bottom, cDockWndRect.left + cDlgRect.Width(), cDockWndRect.bottom + cDlgRect.Height());
+
+	pTestDlg->SetWindowPos(this, cNewRect.left, cNewRect.top, cNewRect.Width(), cNewRect.Height(),
+		/*SWP_FRAMECHANGED | SWP_NOZORDER | SWP_NOOWNERZORDER |*/ SWP_NOACTIVATE);
+	//pTestDlg->MoveWindow(cNewRect);
+}
+
+void CFlatTabCtrlDlg::OnEnChangeEdit4()
+{
+	// TODO:  If this is a RICHEDIT control, the control will not
+	// send this notification unless you override the CDialogEx::OnInitDialog()
+	// function and call CRichEditCtrl().SetEventMask()
+	// with the ENM_CHANGE flag ORed into the mask.
+
+	
+
+	// TODO:  Add your control notification handler code here
+	if (pTestDlg == NULL)
+	{
+		pTestDlg = new CTestDialog(this);
+		pTestDlg->Create(IDD_DIALOG1, this);
+	}
+
+	if (!pTestDlg->IsWindowVisible())
+	{
+		pTestDlg->ShowWindow(SW_SHOW);
+		AddTips();
+		SetToolTipWindowPosition(GetDlgItem(IDC_EDIT4));
+	}
+}
+
+
+void CFlatTabCtrlDlg::OnDestroy()
+{
+	/*if (m_pac)
+		m_pac->Unbind();*/
+
+	CDialogEx::OnDestroy();
+
+	//CoUninitialize();
+}
+
+
+BOOL CFlatTabCtrlDlg::OnEraseBkgnd(CDC* pDC)
+{
+	CRect clRect;
+	GetClientRect(clRect);
+
+	pDC->FillSolidRect(clRect, RGB(255, 255, 255));
+
+	CRect fRect(clRect.left, clRect.bottom - 100, clRect.left + 100, clRect.bottom);
+
+	COLORREF cl = RGB(128, 255, 0);
+	pDC->FillSolidRect(fRect, cl);
+	
+	COLORREF contrColor = ColorsCommon::SfxContrastingColor(cl, 50);
+
+	fRect.OffsetRect(100, 0);
+	pDC->FillSolidRect(fRect, contrColor);
+
+	return TRUE;
 }

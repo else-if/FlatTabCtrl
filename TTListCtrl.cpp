@@ -5,25 +5,19 @@
 using namespace Gdiplus;
 
 CTTListCtrl::CTTListCtrl() :
-m_BorderRect(0, 0, 0, 0),
 m_ClientRect(0, 0, 0, 0),
 m_OffsetRect(0, 0, 0, 0),
 m_oldParentRect(0, 0, 0, 0)
 {
-    m_bNcSizeIsCalculated = false;
-    m_bUseBitmap = false;
-    m_bPainted = false;
+	m_bNcSizeIsCalculated = false;
+	m_bUseBitmap = false;
+	m_bPainted = false;
 
-    SetDrawingProperties(1, 5);
-    m_ControlState = Normal;
+	SetDrawingProperties(1, 5);
+	m_ControlState = Normal;
 
-    oldX = 0;
-    oldY = 0;
-    m_bHScroll = false;
-    m_bVScroll = false;
-
-    m_bDrawBorders = false;
-    m_bSized = false;
+	m_bDrawBorders = false;
+	m_bSized = false;
 }
 
 CTTListCtrl::~CTTListCtrl()
@@ -32,331 +26,384 @@ CTTListCtrl::~CTTListCtrl()
 
 void CTTListCtrl::UpdateControlState()
 {
-    ControlState oldCtrlStrate = m_ControlState;
+	ControlState oldCtrlStrate = m_ControlState;
 
-    if (!IsWindowEnabled())
-        m_ControlState = Disable;
-    else
-        m_ControlState = Normal;
+	if (!IsWindowEnabled())
+		m_ControlState = Disable;
+	else
+		m_ControlState = Normal;
 
-    m_bUseBitmap = (m_bUseBitmap && oldCtrlStrate == m_ControlState);
+	m_bUseBitmap = (m_bUseBitmap && oldCtrlStrate == m_ControlState);
 }
 
 void CTTListCtrl::SetDrawingProperties(int borderPenWidth, int cornerRadius)
 {
-    m_borderPenWidth = borderPenWidth;
-    m_CornerRadius = cornerRadius;
-}
-
-void CTTListCtrl::SetPosition(int x, int y)
-{
-    m_BorderRect.X = x;
-    m_BorderRect.Y = y;
+	m_borderPenWidth = borderPenWidth;
+	m_CornerRadius = cornerRadius;
 }
 
 void CTTListCtrl::PreSubclassWindow()
 {
-    // rounded borders should be drawn only if original control has style with border
-    // but to draw new borders - original style should be removed
+	// rounded borders should be drawn only if original control has style with border
+	// but to draw new borders - original style should be removed
 
-    HWND hWnd = GetSafeHwnd();
+	HWND hWnd = GetSafeHwnd();
 
-    LONG lStyle = GetWindowLong(hWnd, GWL_STYLE);
-    LONG lExStyle = GetWindowLong(hWnd, GWL_EXSTYLE);
+	LONG lStyle = GetWindowLong(hWnd, GWL_STYLE);
+	LONG lExStyle = GetWindowLong(hWnd, GWL_EXSTYLE);
 
-    m_bHScroll = lStyle & WS_HSCROLL;
-    m_bVScroll = lStyle & WS_VSCROLL;
+	LONG lBorderMask = WS_CAPTION | WS_THICKFRAME | WS_MINIMIZE | WS_MAXIMIZE | WS_SYSMENU | WS_BORDER;
+	LONG lExBorderMask = WS_EX_DLGMODALFRAME | WS_EX_CLIENTEDGE | WS_EX_STATICEDGE;
 
-    LONG lBorderMask = WS_CAPTION | WS_THICKFRAME | WS_MINIMIZE | WS_MAXIMIZE | WS_SYSMENU | WS_BORDER;
-    LONG lExBorderMask = WS_EX_DLGMODALFRAME | WS_EX_CLIENTEDGE | WS_EX_STATICEDGE;
+	if ((lStyle & lBorderMask) || (lExStyle & lExBorderMask))
+	{
+		m_bDrawBorders = true;
 
-    if ((lStyle & lBorderMask) || (lExStyle & lExBorderMask))
-    {
-        m_bDrawBorders = true;
+		lStyle &= ~(lBorderMask);
+		SetWindowLong(hWnd, GWL_STYLE, lStyle);
 
-        lStyle &= ~(lBorderMask);
-        SetWindowLong(hWnd, GWL_STYLE, lStyle);
+		lExStyle &= ~(lExBorderMask);
+		SetWindowLong(hWnd, GWL_EXSTYLE, lExStyle);
 
-        lExStyle &= ~(lExBorderMask);
-        SetWindowLong(hWnd, GWL_EXSTYLE, lExStyle);
+		SetWindowPos(NULL, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER);
+	}
 
-        SetWindowPos(NULL, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER);
-    }
-
-    CListCtrl::PreSubclassWindow();
+	CListCtrl::PreSubclassWindow();
 }
 
-void CTTListCtrl::Paint(CDC* pDC)
+void CTTListCtrl::NcCalcSize(CWnd* pWnd, NCCALCSIZE_PARAMS* lpncsp, CRect* pOffsetRect, int borderWidth)
 {
-    UpdateControlState();
+	if (pWnd == NULL)
+		return;
 
-    int nSave = pDC->SaveDC();
+	if (lpncsp == NULL)
+		return;
 
-    // Get only non-client region
-    CRgn nonClientRgn;
-    CRect nonClientRect(m_BorderRect.X, m_BorderRect.Y, m_BorderRect.GetRight(), m_BorderRect.GetBottom());
-    CreateRectRgnInDevicePoints(pDC, &nonClientRgn, nonClientRect);
+	// default offset for client area
+	pOffsetRect->SetRect(borderWidth + 1, borderWidth + 1, borderWidth + 1, borderWidth + 1);
 
-    pDC->SelectClipRgn(&nonClientRgn);
+	DWORD dwStyle = pWnd->GetStyle();
+	DWORD dwExStyle = pWnd->GetExStyle();
+	BOOL  bLeftScroll = dwExStyle & WS_EX_LEFTSCROLLBAR;
 
-    int nWid = ::GetSystemMetrics(SM_CXVSCROLL);
+	// change offset is scrollbars are visible
+	if (dwStyle & WS_VSCROLL)
+	{
+		if (bLeftScroll)
+			pOffsetRect->left--;
+		else
+			pOffsetRect->right--;
+	}
 
-    if (m_bHScroll)
-    {
-        // Exclude horizontal scrollbar region
+	if (dwStyle & WS_HSCROLL)
+		pOffsetRect->bottom--;
 
-        CRect cHScrRect(m_BorderRect.X + m_OffsetRect.left,
-            m_BorderRect.Y + m_ClientRect.Height,
-            m_BorderRect.GetRight() - m_OffsetRect.right,
-            m_BorderRect.GetBottom() - m_OffsetRect.bottom);
+	// change client area
+	lpncsp->rgrc[0].top += pOffsetRect->top;
+	lpncsp->rgrc[0].bottom -= pOffsetRect->bottom;
 
-        if (m_bVScroll)
-        {
-            if (GetExStyle() & WS_EX_LEFTSCROLLBAR)
-                cHScrRect.left = nWid;
-            else
-                cHScrRect.right -= nWid;
-        }
+	lpncsp->rgrc[0].left += pOffsetRect->left;
+	lpncsp->rgrc[0].right -= pOffsetRect->right;
+}
 
-        CRgn cHScrRgn;
-        CreateRectRgnInDevicePoints(pDC, &cHScrRgn, cHScrRect, m_CornerRadius);
-        pDC->SelectClipRgn(&cHScrRgn, RGN_XOR);
-    }
+void CTTListCtrl::PaintNonClientArea(CWnd* pWnd, CDC* pDC, CRect* pOffsetRect, ControlState controlState, CDC* pMemDC, ControlsColorMap* pColorMap,
+	int cornerRadius, int borderWidth)
+{
+	if (pWnd == NULL)
+		return;
 
-    if (m_bVScroll)
-    {
-        // Exclude vertical scrollbar region
-        CRect cVScrRect;
+	if (pDC == NULL)
+		return;
 
-        if (GetExStyle() & WS_EX_LEFTSCROLLBAR)
-            cVScrRect.SetRect(m_BorderRect.X + m_OffsetRect.left,//m_ClientRect.Width,
-            m_BorderRect.Y + m_OffsetRect.top,
-            m_BorderRect.GetRight() - m_ClientRect.Width,//m_OffsetRect.right,
-            m_BorderRect.GetBottom() - m_OffsetRect.bottom);
-        else
-            cVScrRect.SetRect(m_BorderRect.X + m_ClientRect.Width,
-            m_BorderRect.Y + m_OffsetRect.top,
-            m_BorderRect.GetRight() - m_OffsetRect.right,
-            m_BorderRect.GetBottom() - m_OffsetRect.bottom);
+	if (pOffsetRect == NULL)
+		pOffsetRect->SetRect(0, 0, 0, 0);
 
-        if (m_bHScroll)
-            cVScrRect.bottom -= nWid;
+	bool bDeleteColorMap = false;
+	if (pColorMap == NULL)
+	{
+		pColorMap = new ControlsColorMap();
+		bDeleteColorMap = true;
+	}
 
-        CRgn cVScrRgn;
-        CreateRectRgnInDevicePoints(pDC, &cVScrRgn, cVScrRect, m_CornerRadius);
-        pDC->SelectClipRgn(&cVScrRgn, RGN_XOR);
-    }
+	CRect clientRect, windowRect;
 
-    // Exclude client area
-    CRect clientRect(m_ClientRect.X + m_OffsetRect.left,
-        m_ClientRect.Y + m_OffsetRect.top,
-        m_ClientRect.GetRight() - m_OffsetRect.right,
-        m_ClientRect.GetBottom() - m_OffsetRect.bottom);
+	pWnd->GetClientRect(clientRect);
+	pWnd->ClientToScreen(clientRect);
 
-    CRgn clientRgn;
-    CreateRectRgnInDevicePoints(pDC, &clientRgn, clientRect);
-    pDC->SelectClipRgn(&clientRgn, RGN_XOR);
+	pWnd->GetWindowRect(windowRect);
 
-    if (m_bUseBitmap)
-    {
-        // if it already drawn - just copy existing bitmap
+	clientRect.OffsetRect(-windowRect.left, -windowRect.top);
+	windowRect.OffsetRect(-windowRect.left, -windowRect.top);
 
-        pDC->BitBlt(m_BorderRect.X,
-            m_BorderRect.Y,
-            m_BorderRect.Width,
-            m_BorderRect.Height,
-            &m_dc, 0, 0, SRCCOPY);
+	// Get only non-client region
+	CRgn nonClientRgn;
+	CreateRectRgnInDevicePoints(pDC, &nonClientRgn, windowRect);
 
-        pDC->RestoreDC(nSave);
+	pDC->SelectClipRgn(&nonClientRgn);
 
-        return;
-    }
+	int nWid = ::GetSystemMetrics(SM_CXVSCROLL);
 
-    // background
-    pDC->FillSolidRect(&nonClientRect, GetSysColor(COLOR_3DFACE));
+	DWORD dwStyle = pWnd->GetStyle();
+	bool bHScroll = dwStyle & WS_HSCROLL;
+	bool bVScroll = dwStyle & WS_VSCROLL;
 
-    Graphics graphics(pDC->GetSafeHdc());
-    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
-    graphics.SetInterpolationMode(InterpolationModeHighQualityBicubic);
-    graphics.SetTextRenderingHint(TextRenderingHintClearTypeGridFit);
+	if (bHScroll)
+	{
+		// Exclude horizontal scrollbar region
 
-    // client area parts
-    COLORREF backgroundColor = m_ColorMap.GetColor(m_ControlState, BackgroundTopGradientFinish);
-    Color cl(0, 0, 0);
-    cl.SetFromCOLORREF(backgroundColor);
-    Gdiplus::SolidBrush brush(cl);
-    graphics.FillRectangle(&brush, m_ClientRect);
+		CRect cHScrRect(windowRect.left + pOffsetRect->left,
+			clientRect.bottom,
+			windowRect.right - pOffsetRect->right,
+			windowRect.bottom - pOffsetRect->bottom);
 
-    // border
-    DrawRectArea(m_BorderRect, graphics, m_ColorMap.GetColor(m_ControlState, Border),
-        m_CornerRadius, m_borderPenWidth);
+		if (bVScroll)
+		{
+			if (pWnd->GetExStyle() & WS_EX_LEFTSCROLLBAR)
+				cHScrRect.left = nWid;
+			else
+				cHScrRect.right -= nWid;
+		}
 
-    pDC->RestoreDC(nSave);
+		clientRect.bottom++;
 
-    // store into m_dc
-    int x = m_BorderRect.X;
-    int y = m_BorderRect.Y;
-    int width = m_BorderRect.Width;
-    int height = m_BorderRect.Height;
+		CRgn cHScrRgn;
+		CreateRectRgnInDevicePoints(pDC, &cHScrRgn, cHScrRect, cornerRadius);
+		pDC->SelectClipRgn(&cHScrRgn, RGN_XOR);
+	}
 
-    m_dc.DeleteDC();
+	if (bVScroll)
+	{
+		// Exclude vertical scrollbar region
+		CRect cVScrRect;
 
-    CBitmap bmp;
-    m_dc.CreateCompatibleDC(pDC);
-    bmp.CreateCompatibleBitmap(pDC, width, height);
-    m_dc.SelectObject(&bmp);
-    m_dc.BitBlt(0, 0, width, height, pDC, x, y, SRCCOPY);
-    bmp.DeleteObject();
+		if (pWnd->GetExStyle() & WS_EX_LEFTSCROLLBAR)
+		{
+			cVScrRect.SetRect(windowRect.left + pOffsetRect->left,
+				windowRect.top + pOffsetRect->top,
+				clientRect.left,
+				windowRect.bottom - pOffsetRect->bottom);
 
-    m_bPainted = true;
+			clientRect.left--;
+		}
+		else
+		{
+			cVScrRect.SetRect(clientRect.right,
+				windowRect.top + pOffsetRect->top,
+				windowRect.right - pOffsetRect->right,
+				windowRect.bottom - pOffsetRect->bottom);
+
+			clientRect.right++;
+		}
+
+		if (bHScroll)
+			cVScrRect.bottom -= nWid;
+
+		CRgn cVScrRgn;
+		CreateRectRgnInDevicePoints(pDC, &cVScrRgn, cVScrRect, cornerRadius);
+		pDC->SelectClipRgn(&cVScrRgn, RGN_XOR);
+	}
+
+	// Exclude client area
+	pDC->ExcludeClipRect(&clientRect);
+
+	if (pMemDC != NULL)
+	{
+		// if it already drawn - just copy existing bitmap
+
+		pDC->BitBlt(windowRect.left,
+			windowRect.top,
+			windowRect.Width(),
+			windowRect.Height(),
+			pMemDC, 0, 0, SRCCOPY);
+	}
+	else
+	{
+		// background
+		pDC->FillSolidRect(&windowRect, GetSysColor(COLOR_3DFACE));
+		DrawBorderRect(pDC, &windowRect, controlState, pColorMap, cornerRadius, borderWidth);
+	}
+
+	if (bDeleteColorMap && pColorMap != NULL)
+	{
+		delete pColorMap;
+		pColorMap = NULL;
+	}
+}
+
+void CTTListCtrl::DrawBorderRect(CDC* pDC, CRect* pBorderRect, ControlState controlState, ControlsColorMap* pColorMap,
+	int cornerRadius, int borderWidth)
+{
+	if (pDC == NULL)
+		return;
+
+	if (pBorderRect == NULL)
+		return;
+
+	bool bDeleteColorMap = false;
+	if (pColorMap == NULL)
+	{
+		pColorMap = new ControlsColorMap();
+		bDeleteColorMap = true;
+	}
+
+	Graphics graphics(pDC->GetSafeHdc());
+	graphics.SetSmoothingMode(SmoothingModeAntiAlias);
+	graphics.SetInterpolationMode(InterpolationModeHighQualityBicubic);
+	graphics.SetTextRenderingHint(TextRenderingHintClearTypeGridFit);
+
+	// border
+	Gdiplus::Rect borderRect(pBorderRect->left, pBorderRect->top, pBorderRect->Width(), pBorderRect->Height());
+
+	DrawRectArea(borderRect, graphics, pColorMap->GetColor(controlState, Border),
+		cornerRadius, borderWidth);
+
+	if (bDeleteColorMap && pColorMap != NULL)
+	{
+		delete pColorMap;
+		pColorMap = NULL;
+	}
 }
 
 BEGIN_MESSAGE_MAP(CTTListCtrl, CListCtrl)
-    ON_WM_NCCALCSIZE()
-    ON_WM_NCPAINT()
-    ON_WM_ERASEBKGND()
-    ON_WM_CTLCOLOR()
-    ON_WM_PAINT()
-    ON_WM_MOVE()
-    ON_WM_SIZE()
-    ON_WM_ENABLE()
-    ON_WM_SETFOCUS()
-    ON_WM_KILLFOCUS()
+	ON_WM_NCCALCSIZE()
+	ON_WM_NCPAINT()
+	ON_WM_ERASEBKGND()
+	ON_WM_CTLCOLOR()
+	ON_WM_PAINT()
+	ON_WM_MOVE()
+	ON_WM_SIZE()
+	ON_WM_ENABLE()
+	ON_WM_SETFOCUS()
+	ON_WM_KILLFOCUS()
 END_MESSAGE_MAP()
 
 void CTTListCtrl::OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS* lpncsp)
 {
-    CListCtrl::OnNcCalcSize(bCalcValidRects, lpncsp);
+	CListCtrl::OnNcCalcSize(bCalcValidRects, lpncsp);
 
-    m_bNcSizeIsCalculated = true;
+	m_bNcSizeIsCalculated = true;
 
-    CRect cClient(lpncsp->rgrc[0]);
-    cClient.OffsetRect(-lpncsp->rgrc[1].left, -lpncsp->rgrc[1].top);
+	CRect cClient(lpncsp->rgrc[0]);
+	cClient.OffsetRect(-lpncsp->rgrc[1].left, -lpncsp->rgrc[1].top);
 
-    m_ClientRect.X = cClient.left;
-    m_ClientRect.Y = cClient.top;
-    m_ClientRect.Width = cClient.Width();
-    m_ClientRect.Height = cClient.Height();
+	m_ClientRect.X = cClient.left;
+	m_ClientRect.Y = cClient.top;
+	m_ClientRect.Width = cClient.Width();
+	m_ClientRect.Height = cClient.Height();
 
-    CRect cBorder;
-    GetWindowRect(cBorder);
-    cBorder.OffsetRect(-cBorder.left, -cBorder.top);
+	CRect cBorder;
+	GetWindowRect(cBorder);
+	cBorder.OffsetRect(-cBorder.left, -cBorder.top);
 
-    m_BorderRect.X = cBorder.left;
-    m_BorderRect.Y = cBorder.top;
-    m_BorderRect.Width = cBorder.Width();
-    m_BorderRect.Height = cBorder.Height();
+	if (!m_bDrawBorders)
+		return;
 
-    if (!m_bDrawBorders)
-        return;
+	NcCalcSize(this, lpncsp, &m_OffsetRect, m_borderPenWidth);
 
-    m_OffsetRect.CopyRect(CRect(m_borderPenWidth + 1, m_borderPenWidth + 1, m_borderPenWidth + 1, m_borderPenWidth + 1));
-
-    HWND hwnd = GetSafeHwnd();
-    DWORD dwStyle = ::GetWindowLong(hwnd, GWL_STYLE);
-    DWORD dwExStyle = ::GetWindowLong(hwnd, GWL_EXSTYLE);
-    BOOL  bLeftScroll = dwExStyle & WS_EX_LEFTSCROLLBAR;
-
-    if (dwStyle & WS_VSCROLL)
-    {
-        if (bLeftScroll)
-            m_OffsetRect.left--;
-        else
-            m_OffsetRect.right--;
-    }
-
-    if (dwStyle & WS_HSCROLL)
-        m_OffsetRect.bottom--;
-
-    lpncsp->rgrc[0].top += m_OffsetRect.top;
-    lpncsp->rgrc[0].bottom -= m_OffsetRect.bottom;
-
-    lpncsp->rgrc[0].left += m_OffsetRect.left;
-    lpncsp->rgrc[0].right -= m_OffsetRect.right;
-
-    m_bUseBitmap = false;
+	m_bUseBitmap = false;
 }
 
 BOOL CTTListCtrl::OnChildNotify(UINT message, WPARAM wParam, LPARAM lParam, LRESULT* pLResult)
 {
-    if (!m_bNcSizeIsCalculated)
-        SetWindowPos(NULL, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER);
+	if (!m_bNcSizeIsCalculated)
+		SetWindowPos(NULL, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER);
 
-    return CListCtrl::OnChildNotify(message, wParam, lParam, pLResult);
+	return CListCtrl::OnChildNotify(message, wParam, lParam, pLResult);
 }
 
 void CTTListCtrl::OnNcPaint()
 {
-    if (!m_bNcSizeIsCalculated)
-        return;
+	if (!m_bNcSizeIsCalculated)
+		return;
 
-    if (!m_bDrawBorders)
-    {
-        CListCtrl::OnNcPaint();
-        return;
-    }
+	if (!m_bDrawBorders)
+	{
+		CListCtrl::OnNcPaint();
+		return;
+	}
 
-    Default();
+	Default();
 
-    CWindowDC dc(this);
+	CWindowDC dc(this);
+	UpdateControlState();
 
-    SetPosition(0, 0);
-    Paint(&dc);
+	PaintNonClientArea(this, &dc, &m_OffsetRect, m_ControlState, m_bUseBitmap ? &m_dc : NULL,
+		&m_ColorMap, m_CornerRadius, m_borderPenWidth);
 
-    m_bUseBitmap = true;
+	// store into m_dc
+	CRect wndRect;
+	GetWindowRect(&wndRect);
+	wndRect.OffsetRect(-wndRect.left, -wndRect.top);
+
+	int x = wndRect.left;
+	int y = wndRect.top;
+	int width = wndRect.Width();
+	int height = wndRect.Height();
+
+	m_dc.DeleteDC();
+
+	CBitmap bmp;
+	m_dc.CreateCompatibleDC(&dc);
+	bmp.CreateCompatibleBitmap(&dc, width, height);
+	m_dc.SelectObject(&bmp);
+	m_dc.BitBlt(0, 0, width, height, &dc, x, y, SRCCOPY);
+	bmp.DeleteObject();
+
+	m_bUseBitmap = true;
+	m_bPainted = true;
 }
 
 BOOL CTTListCtrl::OnEraseBkgnd(CDC* pDC)
 {
-    return TRUE;
+	return TRUE;
 }
 
 void CTTListCtrl::OnPaint()
 {
-    if (!m_bNcSizeIsCalculated)
-    {
-        // force NCCalcSize
-        SetWindowPos(NULL, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER);
-        return;
-    }
+	if (!m_bNcSizeIsCalculated)
+	{
+		// force NCCalcSize
+		SetWindowPos(NULL, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER);
+		return;
+	}
 
-    CRect headerRect(0, 0, 0, 0);
-    CWnd *pHeader = GetHeaderCtrl();
+	CRect headerRect(0, 0, 0, 0);
+	CWnd *pHeader = GetHeaderCtrl();
 
-    if (pHeader)
-        pHeader->GetClientRect(&headerRect);
+	if (pHeader)
+		pHeader->GetClientRect(&headerRect);
 
-    CRect clientRect(m_ClientRect.X,
-        m_ClientRect.Y + headerRect.Height(),
-        m_ClientRect.GetRight() - m_OffsetRect.right,
-        m_ClientRect.GetBottom() - m_OffsetRect.bottom);
+	CRect clientRect(m_ClientRect.X,
+		m_ClientRect.Y + headerRect.Height(),
+		m_ClientRect.GetRight() - m_OffsetRect.right,
+		m_ClientRect.GetBottom() - m_OffsetRect.bottom);
 
-    DWORD dwStyle = GetStyle();
-    DWORD dwExStyle = GetExStyle();
-    BOOL  bLeftScroll = dwExStyle & WS_EX_LEFTSCROLLBAR;
+	DWORD dwStyle = GetStyle();
+	DWORD dwExStyle = GetExStyle();
+	BOOL  bLeftScroll = dwExStyle & WS_EX_LEFTSCROLLBAR;
 
-    if ((dwStyle & WS_VSCROLL) && bLeftScroll)
-        clientRect.left -= ::GetSystemMetrics(SM_CXVSCROLL);
+	if ((dwStyle & WS_VSCROLL) && bLeftScroll)
+		clientRect.left -= ::GetSystemMetrics(SM_CXVSCROLL);
 
-    if (clientRect.Width() <= 0 || clientRect.Height() <= 0)
-        return;
+	if (clientRect.Width() <= 0 || clientRect.Height() <= 0)
+		return;
 
-    CPaintDC dc(this);
-    CMemDC memDC(dc, &clientRect);
+	CPaintDC dc(this);
+	CMemDC memDC(dc, &clientRect);
 
-    UpdateControlState();
-    COLORREF backgroundColor = m_ColorMap.GetColor(m_ControlState, BackgroundTopGradientFinish);
-    memDC.GetDC().FillSolidRect(&clientRect, backgroundColor);
+	UpdateControlState();
+	COLORREF backgroundColor = m_ColorMap.GetColor(m_ControlState, BackgroundTopGradientFinish);
+	memDC.GetDC().FillSolidRect(&clientRect, backgroundColor);
 
-    DefWindowProc(WM_PAINT, (WPARAM)memDC.GetDC().m_hDC, (LPARAM)0);
+	DefWindowProc(WM_PAINT, (WPARAM)memDC.GetDC().m_hDC, (LPARAM)0);
 
-    ReleaseDC(&memDC.GetDC());
+	ReleaseDC(&memDC.GetDC());
 
-    // when control has no borders non client area should be repainted to draw sroll bars
-    if (!m_bDrawBorders)
-        this->SendMessage(WM_NCPAINT);
+	// when control has no borders non client area should be repainted to draw sroll bars
+	if (!m_bDrawBorders)
+		this->SendMessage(WM_NCPAINT);
 
-    // save window rect where control was drawn
+	// save window rect where control was drawn
 	CWnd *pWnd = GetParent();
 	if (pWnd != NULL)
 	{
@@ -367,110 +414,101 @@ void CTTListCtrl::OnPaint()
 
 void CTTListCtrl::OnMove(int x, int y)
 {
-    CListCtrl::OnMove(x, y);
+	CListCtrl::OnMove(x, y);
 
-    if (!::IsWindow(GetSafeHwnd()))
-        return;
+	if (!::IsWindow(GetSafeHwnd()))
+		return;
 
-    CWnd *pWnd = GetParent();
-    if (m_bPainted && pWnd != NULL)
-    {
-        // Invalidate changed parent regions
+	m_bUseBitmap = false;
 
-        CRect oldWindowRect, curWindowRect;
+	// NcSize should be recalculated
+	bool bIsVisible = IsWindowVisible();
+	if (bIsVisible)
+		SetRedraw(FALSE);
 
-        oldWindowRect.CopyRect(m_oldParentRect);
-        GetWindowRect(curWindowRect);
+	SetWindowPos(NULL, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER);
 
-        ::MapWindowPoints(HWND_DESKTOP, pWnd->GetSafeHwnd(), (LPPOINT)&curWindowRect, 2);
+	if (bIsVisible)
+		SetRedraw(TRUE);
 
-        InvalidateRectRegions(pWnd, oldWindowRect, curWindowRect, RGN_DIFF);
-    }
+	// Invalidate current client region
+	Invalidate();
 
-    // invalidate new control's region
+	// Invalidate changed parent regions
+	CWnd *pWnd = GetParent();
+	if (pWnd != NULL)
+	{
+		CRect oldWindowRect, curWindowRect;
 
-    if (m_bPainted)
-        this->SendMessage(WM_NCPAINT);
+		GetWindowRect(curWindowRect);
+		oldWindowRect.CopyRect(m_oldParentRect);
 
-    Invalidate();
+		::MapWindowPoints(HWND_DESKTOP, pWnd->GetSafeHwnd(), (LPPOINT)&curWindowRect, 2);
+
+		InvalidateRectRegions(pWnd, oldWindowRect, curWindowRect, RGN_XOR);
+	}
 }
 
 void CTTListCtrl::OnSize(UINT nType, int cx, int cy)
 {
-    CListCtrl::OnSize(nType, cx, cy);
+	CListCtrl::OnSize(nType, cx, cy);
 
-    if (!::IsWindow(GetSafeHwnd()))
-        return;
+	if (!::IsWindow(GetSafeHwnd()))
+		return;
 
-    DWORD lStyle = GetStyle();
+	m_bUseBitmap = false;
 
-    bool ScrollBarsVisChanged = (m_bHScroll != (bool)(lStyle & WS_HSCROLL)) || (m_bVScroll != (bool)(lStyle & WS_VSCROLL));
+	// NcSize should be recalculated
+	bool bIsVisible = IsWindowVisible();
+	if (bIsVisible)
+		SetRedraw(FALSE);
 
-    int iOffWidth = (cx - oldX);
-    int iOffHeight = (cy - oldY);
+	SetWindowPos(NULL, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER);
 
-    // Invalidate control's region
-    
-    if (m_bSized && (cx != oldX || cy != oldY) &&
-        !ScrollBarsVisChanged)
-    {
-        m_BorderRect.Width += iOffWidth;
-        m_BorderRect.Height += iOffHeight;
+	if (bIsVisible)
+		SetRedraw(TRUE);
 
-        m_bUseBitmap = false;
-        if (m_bPainted)
-            this->SendMessage(WM_NCPAINT);
+	// Invalidate current client region
+	Invalidate();
 
-        Invalidate();
-    }
-    
-    // Invalidate changed parent region
+	// Invalidate changed parent region
+	CWnd *pWnd = GetParent();
+	if (pWnd != NULL)
+	{
+		CRect oldWindowRect, curWindowRect;
 
-    CWnd *pWnd = GetParent();
-    if (m_bPainted && pWnd != NULL)
-    {
-        CRect oldWindowRect, curWindowRect;
-
+		GetWindowRect(curWindowRect);
 		oldWindowRect.CopyRect(m_oldParentRect);
-        GetWindowRect(curWindowRect);
 
-        ::MapWindowPoints(HWND_DESKTOP, pWnd->GetSafeHwnd(), (LPPOINT)&curWindowRect, 2);
+		::MapWindowPoints(HWND_DESKTOP, pWnd->GetSafeHwnd(), (LPPOINT)&curWindowRect, 2);
 
-        InvalidateRectRegions(pWnd, oldWindowRect, curWindowRect, RGN_XOR);        
-    }
-
-    m_bHScroll = (lStyle & WS_HSCROLL);
-    m_bVScroll = (lStyle & WS_VSCROLL);
-
-    oldX = cx;
-    oldY = cy;    
-
-    m_bSized = true;
+		InvalidateRectRegions(pWnd, oldWindowRect, curWindowRect, RGN_XOR);
+	}
 }
 
 void CTTListCtrl::OnEnable(BOOL bEnable)
 {
-    CListCtrl::OnEnable(bEnable);
+	CListCtrl::OnEnable(bEnable);
 
-    if (m_bPainted)
-        SendMessage(WM_NCPAINT);
-    Invalidate();
+	if (m_bPainted)
+		SendMessage(WM_NCPAINT);
+	Invalidate();
 }
 
 void CTTListCtrl::OnSetFocus(CWnd* pOldWnd)
 {
-    CListCtrl::OnSetFocus(pOldWnd);
+	CListCtrl::OnSetFocus(pOldWnd);
 
-    if (m_bPainted)
-        SendMessage(WM_NCPAINT);
-    Invalidate();
+	if (m_bPainted)
+		SendMessage(WM_NCPAINT);
+	Invalidate();
 }
 
 void CTTListCtrl::OnKillFocus(CWnd* pNewWnd)
 {
-    CListCtrl::OnKillFocus(pNewWnd);
+	CListCtrl::OnKillFocus(pNewWnd);
 
-    if (m_bPainted)
-        SendMessage(WM_NCPAINT);
-    Invalidate();
+	if (m_bPainted)
+		SendMessage(WM_NCPAINT);
+	Invalidate();
 }

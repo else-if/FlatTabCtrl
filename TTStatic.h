@@ -28,9 +28,6 @@ public:
 
 protected:
 
-	CDC m_dc;
-	bool m_bUseBmp;
-
 	ControlState m_ControlState;
 	ControlsColorMap m_ColorMap;
 

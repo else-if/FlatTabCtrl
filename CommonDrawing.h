@@ -40,3 +40,5 @@ void CreateRectRgnInDevicePoints(CDC *pDC, CRgn *rgn, int left, int top, int rig
 void CreatePolygonRgnInDevicePoints(CDC *pDC, CRgn *rgn, CPoint points[], int nCount, int nMode);
 
 void InvalidateRectRegions(CWnd* pWnd, CRect &rect1, CRect &rect2, int nCombineMode);
+
+BOOL RecreateComboBox(CComboBox* pCombo, LPVOID lpParam = 0);

@@ -25,6 +25,11 @@ public:
 	virtual void PreSubclassWindow();
 	afx_msg void OnMove(int x, int y);
 	afx_msg void OnSize(UINT nType, int cx, int cy);
+protected:
+	afx_msg LRESULT OnMsgViewexpand(WPARAM wParam, LPARAM lParam);
+	afx_msg LRESULT OnMsgViewcollapce(WPARAM wParam, LPARAM lParam);
+public:
+	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 };
 
 

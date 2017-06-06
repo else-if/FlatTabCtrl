@@ -58,7 +58,7 @@ void CTTEdit::Paint(CDC* pDC)
 	CRect nonClientRect(m_BorderRect.X, m_BorderRect.Y, m_BorderRect.GetRight(), m_BorderRect.GetBottom());
 	CreateRectRgnInDevicePoints(pDC, &nonClientRgn, nonClientRect);
 
-	pDC->SelectClipRgn(&nonClientRgn);
+	pDC->SelectClipRgn(&nonClientRgn, RGN_AND);
 
 	// Exclude client area
 	CRect clientRect;
@@ -76,7 +76,7 @@ void CTTEdit::Paint(CDC* pDC)
 
 	CRgn clientRgn;
 	CreateRectRgnInDevicePoints(pDC, &clientRgn, clientRect);
-	pDC->SelectClipRgn(&clientRgn, RGN_XOR);
+	pDC->SelectClipRgn(&clientRgn, RGN_DIFF);
 
 	int nWid = ::GetSystemMetrics(SM_CXVSCROLL);
 	DWORD dwStyle = GetStyle();
@@ -100,7 +100,7 @@ void CTTEdit::Paint(CDC* pDC)
 
 		CRgn cHScrRgn;
 		CreateRectRgnInDevicePoints(pDC, &cHScrRgn, cHScrRect, m_CornerRadius);
-		pDC->SelectClipRgn(&cHScrRgn, RGN_XOR);
+		pDC->SelectClipRgn(&cHScrRgn, RGN_DIFF);
 	}
 
 	if (dwStyle & WS_VSCROLL)
@@ -124,7 +124,7 @@ void CTTEdit::Paint(CDC* pDC)
 
 		CRgn cVScrRgn;
 		CreateRectRgnInDevicePoints(pDC, &cVScrRgn, cVScrRect, m_CornerRadius);
-		pDC->SelectClipRgn(&cVScrRgn, RGN_XOR);
+		pDC->SelectClipRgn(&cVScrRgn, RGN_DIFF);
 	}
 
 	if (m_bUseBitmap)
@@ -136,8 +136,6 @@ void CTTEdit::Paint(CDC* pDC)
 			m_BorderRect.Width,
 			m_BorderRect.Height,
 			&m_dc, 0, 0, SRCCOPY);
-
-		TRACE("Paint bmp [%d %d][%d %d]\n", m_BorderRect.X, m_BorderRect.Y, m_BorderRect.Width, m_BorderRect.Height);
 
 		return;
 	}
@@ -159,7 +157,7 @@ void CTTEdit::Paint(CDC* pDC)
 		else
 			cClientRect.right -= nWid - 1;
 
-	TRACE("Paint [%d %d][%d %d]\n", m_BorderRect.X, m_BorderRect.Y, m_BorderRect.Width, m_BorderRect.Height);
+	DrawThemeParentBackground(GetSafeHwnd(), pDC->GetSafeHdc(), cBorderRect);
 
 	DrawEditControlFrame(pDC, &cBorderRect, NULL, m_ControlState, &cClientRect, m_CornerRadius,
 		m_borderPenWidth, &m_ColorMap);
@@ -189,9 +187,19 @@ void CTTEdit::DrawEditControlFrame(CDC* pDC, CRect* pBorderRect, CRect* pClipRec
 	if (pBorderRect == NULL)
 		return;
 
-	int nSave = pDC->SaveDC();
+	CRect clipBox;
+	pDC->GetClipBox(&clipBox);
 
-	Graphics graphics(pDC->GetSafeHdc());
+	CDC dc;
+	CBitmap bmp;
+	dc.CreateCompatibleDC(pDC);
+	bmp.CreateCompatibleBitmap(pDC, clipBox.right, clipBox.bottom);
+	dc.SelectObject(&bmp);
+	dc.BitBlt(pBorderRect->left, pBorderRect->top, pBorderRect->Width(), pBorderRect->Height(),
+		pDC, pBorderRect->left, pBorderRect->top, SRCCOPY);
+	bmp.DeleteObject();
+
+	Graphics graphics(dc.GetSafeHdc());
 	graphics.SetSmoothingMode(SmoothingModeAntiAlias);
 	graphics.SetInterpolationMode(InterpolationModeHighQualityBicubic);
 	graphics.SetTextRenderingHint(TextRenderingHintClearTypeGridFit);
@@ -200,27 +208,31 @@ void CTTEdit::DrawEditControlFrame(CDC* pDC, CRect* pBorderRect, CRect* pClipRec
 	if (pColorMap == NULL)
 	{
 		pColorMap = new ControlsColorMap();
+		pColorMap->SetColor(Mouseover, BackgroundTopGradientFinish, RGB(255, 255, 255));
+
 		bDeleteColorMap = true;
 	}
 
-	if (pClipRect != NULL)
-	{
-		CRgn clipRgn;
-		CreateRectRgnInDevicePoints(pDC, &clipRgn, *pClipRect);
+	CRgn clipRgn;
+	CreateRectRgnInDevicePoints(&dc, &clipRgn,
+		pClipRect == NULL ? *pBorderRect : *pClipRect);
+	dc.SelectClipRgn(&clipRgn);
 
-		pDC->SelectClipRgn(&clipRgn);
-	}
-
-	// background
-	pDC->FillSolidRect(pBorderRect, GetSysColor(COLOR_3DFACE));
+	// non-client background
+	CRgn bkgndRgn;
+	CreateRectRgnInDevicePoints(&dc, &bkgndRgn, pBorderRect->left, pBorderRect->top,
+		pBorderRect->right + 1, pBorderRect->bottom + 1, cornerRadius);
+	dc.SelectClipRgn(&bkgndRgn, RGN_AND);
+	dc.FillSolidRect(pBorderRect, GetSysColor(COLOR_3DFACE));
+	dc.SelectClipRgn(&clipRgn);
 
 	Gdiplus::Rect BorderRect(pBorderRect->left, pBorderRect->top, pBorderRect->Width(), pBorderRect->Height());
 	Gdiplus::Rect ClientRect(0, 0, 0, 0);
 
 	if (pClientRect == NULL)
 	{
-		ClientRect.X = pBorderRect->left - borderWidth;
-		ClientRect.Y = pBorderRect->top - borderWidth;
+		ClientRect.X = pBorderRect->left + borderWidth;
+		ClientRect.Y = pBorderRect->top + borderWidth;
 		ClientRect.Width = pBorderRect->Width() - 2 * borderWidth;
 		ClientRect.Height = pBorderRect->Height() - 2 * borderWidth;
 	}
@@ -243,14 +255,23 @@ void CTTEdit::DrawEditControlFrame(CDC* pDC, CRect* pBorderRect, CRect* pClipRec
 	DrawRectArea(BorderRect, graphics, pColorMap->GetColor(controlState, Border),
 		cornerRadius, borderWidth);
 
-	pDC->RestoreDC(nSave);
-
 	if (bDeleteColorMap && pColorMap != NULL)
 	{
 		delete pColorMap;
 		pColorMap = NULL;
 	}
 
+	pDC->BitBlt(pBorderRect->left, pBorderRect->top, pBorderRect->Width(), pBorderRect->Height(),
+		&dc, pBorderRect->left, pBorderRect->top, SRCCOPY);
+}
+
+double CTTEdit::GetDpiScaleFactor()
+{
+	HDC screen = ::GetDC(NULL);
+	double m_DpiScaleFactor = GetDeviceCaps(screen, LOGPIXELSX) / 96.0;
+	::ReleaseDC(NULL, screen);
+
+	return m_DpiScaleFactor;
 }
 
 BEGIN_MESSAGE_MAP(CTTEdit, CEdit)
@@ -269,8 +290,6 @@ END_MESSAGE_MAP()
 
 BOOL CTTEdit::OnEraseBkgnd(CDC* pDC)
 {
-	TRACE("OnErase\n");
-
 	if (m_bUseBaseMessageHandlers)
 		return CEdit::OnEraseBkgnd(pDC);
 
@@ -279,8 +298,6 @@ BOOL CTTEdit::OnEraseBkgnd(CDC* pDC)
 
 void CTTEdit::OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS* lpncsp)
 {
-	TRACE("NcCalc\n");
-
 	CEdit::OnNcCalcSize(bCalcValidRects, lpncsp);
 
 	m_bNcSizeIsCalculated = true;
@@ -317,6 +334,11 @@ void CTTEdit::OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS* lpncsp)
 
 	if (dwStyle & WS_HSCROLL)
 		m_OffsetRect.bottom--;
+
+	m_OffsetRect.left = (int)(GetDpiScaleFactor() * m_OffsetRect.left);
+	m_OffsetRect.top = (int)(GetDpiScaleFactor() * m_OffsetRect.top);
+	m_OffsetRect.right = (int)(GetDpiScaleFactor() * m_OffsetRect.right);
+	m_OffsetRect.bottom = (int)(GetDpiScaleFactor() * m_OffsetRect.bottom);
 
 	if (!(GetStyle() & ES_MULTILINE))  // multiline edit box shouldn't change NC area
 	{
@@ -372,8 +394,6 @@ BOOL CTTEdit::OnChildNotify(UINT message, WPARAM wParam, LPARAM lParam, LRESULT*
 
 void CTTEdit::OnNcPaint()
 {
-	TRACE("NcPaint\n");
-
 	if (m_bUseBaseMessageHandlers)
 	{
 		CEdit::OnNcPaint();
@@ -388,6 +408,28 @@ void CTTEdit::OnNcPaint()
 
 	// draw borders
 	CWindowDC dc(this);
+
+	HRGN hRgn;
+	const MSG* pMsg = CWnd::GetCurrentMessage();
+
+	// select update region if specified
+	if (pMsg->wParam != 0 && pMsg->wParam != 1)
+	{
+		hRgn = (HRGN)pMsg->wParam;
+		CRgn* pRgn = CRgn::FromHandle(hRgn);
+
+		CRect wndRect;
+		GetWindowRect(&wndRect);
+
+		CRgn clipRgn;
+		clipRgn.CreateRectRgnIndirect(CRect(0, 0, 0, 0));
+		clipRgn.CopyRgn(pRgn);
+
+		clipRgn.OffsetRgn(-wndRect.left, -wndRect.top);
+
+		dc.SelectClipRgn(&clipRgn);
+	}
+
 	Paint(&dc);
 
 	m_bUseBitmap = true;
@@ -464,13 +506,10 @@ void CTTEdit::OnPaint()
 
 	if (!m_bNcSizeIsCalculated)
 	{
-		TRACE("Force NC calc on paint\n");
 		// Non-client size should be calculated before painting. Force it.
 		SetWindowPos(NULL, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER);
 		return;
 	}
-
-	TRACE("OnPaint\n");
 
 	CEdit::OnPaint();
 
@@ -501,8 +540,6 @@ HBRUSH CTTEdit::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 
 void CTTEdit::OnSize(UINT nType, int cx, int cy)
 {
-	TRACE("OnSize\n");
-
 	CEdit::OnSize(nType, cx, cy);
 
 	if (m_bUseBaseMessageHandlers)
@@ -511,15 +548,15 @@ void CTTEdit::OnSize(UINT nType, int cx, int cy)
 	if (!::IsWindow(GetSafeHwnd()))
 		return;
 
-	TRACE("OnSize after check\n");
-
-	SetRedraw(FALSE);
-
 	// NcSize should be recalculated
-	SetWindowPos(NULL, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER);
-	//this->SendMessage(WM_NCPAINT, 0, 0);
+	bool bIsVisible = IsWindowVisible();
+	if (bIsVisible)
+		SetRedraw(FALSE);
 
-	SetRedraw(TRUE);
+	SetWindowPos(NULL, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER);
+
+	if (bIsVisible)
+		SetRedraw(TRUE);
 
 	// Invalidate current client region
 	Invalidate();
@@ -541,8 +578,6 @@ void CTTEdit::OnSize(UINT nType, int cx, int cy)
 
 void CTTEdit::OnMove(int x, int y)
 {
-	TRACE("OnMove\n");
-
 	CEdit::OnMove(x, y);
 
 	if (m_bUseBaseMessageHandlers)
@@ -551,15 +586,15 @@ void CTTEdit::OnMove(int x, int y)
 	if (!::IsWindow(GetSafeHwnd()))
 		return;
 
-	TRACE("OnMove after check\n");
-
-	SetRedraw(FALSE);
-
 	// NcSize should be recalculated
-	SetWindowPos(NULL, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER);
-	//this->SendMessage(WM_NCPAINT, 0, 0);
+	bool bIsVisible = IsWindowVisible();
+	if (bIsVisible)
+		SetRedraw(FALSE);
 
-	SetRedraw(TRUE);
+	SetWindowPos(NULL, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER);
+
+	if (bIsVisible)
+		SetRedraw(TRUE);
 
 	// Invalidate current client region
 	Invalidate();

@@ -22,4 +22,5 @@ protected:
 public:
     CTTButton m_OkBtn;
     CTTButton m_CancelBtn;
+	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
 };

@@ -5,16 +5,38 @@ VisualStudioVersion = 12.0.40629.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FlatTabCtrl", "FlatTabCtrl.vcxproj", "{66FBE00A-4218-4E1F-84F0-C85E5C7F759C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WindowsFormsApplication1", "..\WindowsFormsApplication1\WindowsFormsApplication1.csproj", "{EFBA17EF-88A4-4337-8D26-BBB671D0F449}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|Mixed Platforms = Debug|Mixed Platforms
 		Debug|Win32 = Debug|Win32
+		Release|Any CPU = Release|Any CPU
+		Release|Mixed Platforms = Release|Mixed Platforms
 		Release|Win32 = Release|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{66FBE00A-4218-4E1F-84F0-C85E5C7F759C}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{66FBE00A-4218-4E1F-84F0-C85E5C7F759C}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{66FBE00A-4218-4E1F-84F0-C85E5C7F759C}.Debug|Mixed Platforms.Build.0 = Debug|Win32
 		{66FBE00A-4218-4E1F-84F0-C85E5C7F759C}.Debug|Win32.ActiveCfg = Debug|Win32
 		{66FBE00A-4218-4E1F-84F0-C85E5C7F759C}.Debug|Win32.Build.0 = Debug|Win32
+		{66FBE00A-4218-4E1F-84F0-C85E5C7F759C}.Release|Any CPU.ActiveCfg = Release|Win32
+		{66FBE00A-4218-4E1F-84F0-C85E5C7F759C}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{66FBE00A-4218-4E1F-84F0-C85E5C7F759C}.Release|Mixed Platforms.Build.0 = Release|Win32
 		{66FBE00A-4218-4E1F-84F0-C85E5C7F759C}.Release|Win32.ActiveCfg = Release|Win32
 		{66FBE00A-4218-4E1F-84F0-C85E5C7F759C}.Release|Win32.Build.0 = Release|Win32
+		{EFBA17EF-88A4-4337-8D26-BBB671D0F449}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EFBA17EF-88A4-4337-8D26-BBB671D0F449}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EFBA17EF-88A4-4337-8D26-BBB671D0F449}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{EFBA17EF-88A4-4337-8D26-BBB671D0F449}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{EFBA17EF-88A4-4337-8D26-BBB671D0F449}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{EFBA17EF-88A4-4337-8D26-BBB671D0F449}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EFBA17EF-88A4-4337-8D26-BBB671D0F449}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EFBA17EF-88A4-4337-8D26-BBB671D0F449}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{EFBA17EF-88A4-4337-8D26-BBB671D0F449}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{EFBA17EF-88A4-4337-8D26-BBB671D0F449}.Release|Win32.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

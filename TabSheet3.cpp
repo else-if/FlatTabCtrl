@@ -30,6 +30,7 @@ void CTabSheet3::DoDataExchange(CDataExchange* pDX)
 
 
 BEGIN_MESSAGE_MAP(CTabSheet3, CDialog)
+	ON_WM_ERASEBKGND()
 END_MESSAGE_MAP()
 
 
@@ -82,4 +83,14 @@ BOOL CTabSheet3::OnInitDialog()
 
     return TRUE;  // return TRUE unless you set the focus to a control
     // EXCEPTION: OCX Property Pages should return FALSE
+}
+
+
+BOOL CTabSheet3::OnEraseBkgnd(CDC* pDC)
+{
+	CRect clientRect;
+	GetClientRect(clientRect);
+	pDC->FillSolidRect(clientRect, RGB(255, 255, 255));
+
+	return TRUE;
 }

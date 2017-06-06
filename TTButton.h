@@ -39,6 +39,8 @@ protected:
 
 	CRect m_oldParentRect;
 
+	HBITMAP hBmp;
+
     void UpdateButtonState(UINT state);
 
 public:

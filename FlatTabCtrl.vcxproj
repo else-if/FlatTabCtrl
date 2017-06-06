@@ -31,6 +31,7 @@
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <UseOfMfc>Dynamic</UseOfMfc>
+    <CLRSupport>true</CLRSupport>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -104,14 +105,36 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AnyClass.h" />
+    <ClInclude Include="BaseDropTarget.h" />
     <ClInclude Include="BGWorkerDlg.h" />
     <ClInclude Include="BoringButtonCtrl.h" />
     <ClInclude Include="BoringComboBox.h" />
     <ClInclude Include="BoringEditCtrl.h" />
     <ClInclude Include="BoringEditCtrl2.h" />
     <ClInclude Include="BoringStaticCtrl.h" />
+    <ClInclude Include="ColorsCommon.h" />
+    <ClInclude Include="CustomMessages.h" />
+    <ClInclude Include="DockDialog.h" />
+    <ClInclude Include="DragDropObject.h" />
+    <ClInclude Include="IView.h" />
+    <ClInclude Include="MainDialog.h" />
+    <ClInclude Include="PaneChildDlg.h" />
+    <ClInclude Include="SimpleView.h" />
+    <ClInclude Include="TabBarDlg.h" />
+    <ClInclude Include="TTAutoComplete.h" />
+    <ClInclude Include="DrawingHelper.h" />
+    <ClInclude Include="FuncPointerHolder.h" />
+    <ClInclude Include="ManagedImageProcessor.h" />
+    <ClInclude Include="CheckComboBox.h" />
+    <ClInclude Include="NativeImageProcessor.h" />
     <ClInclude Include="TabSheet3.h" />
+    <ClInclude Include="TestClass.h" />
+    <ClInclude Include="TestDialog.h" />
+    <ClInclude Include="TTBarTabCtrl.h" />
     <ClInclude Include="TTBaseButton.h" />
+    <ClInclude Include="TTCheckBtnGroup.h" />
+    <ClInclude Include="TTDropTarget.h" />
     <ClInclude Include="TTEdit2.h" />
     <ClInclude Include="TTGroupBox.h" />
     <ClInclude Include="TTListCtrl.h" />
@@ -134,17 +157,39 @@
     <ClInclude Include="TTComboListBox.h" />
     <ClInclude Include="TTEdit.h" />
     <ClInclude Include="TTStatic.h" />
+    <ClInclude Include="ViewHeader.h" />
+    <ClInclude Include="ViewsHolderDlg.h" />
     <ClInclude Include="wbbutton.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AnyClass.cpp" />
+    <ClCompile Include="BaseDropTarget.cpp" />
     <ClCompile Include="BGWorkerDlg.cpp" />
     <ClCompile Include="BoringButtonCtrl.cpp" />
     <ClCompile Include="BoringComboBox.cpp" />
     <ClCompile Include="BoringEditCtrl.cpp" />
     <ClCompile Include="BoringEditCtrl2.cpp" />
     <ClCompile Include="BoringStaticCtrl.cpp" />
+    <ClCompile Include="ColorsCommon.cpp" />
+    <ClCompile Include="DockDialog.cpp" />
+    <ClCompile Include="DragDropObject.cpp" />
+    <ClCompile Include="MainDialog.cpp" />
+    <ClCompile Include="PaneChildDlg.cpp" />
+    <ClCompile Include="SimpleView.cpp" />
+    <ClCompile Include="TabBarDlg.cpp" />
+    <ClCompile Include="TTAutoComplete.cpp" />
+    <ClCompile Include="DrawingHelper.cpp" />
+    <ClCompile Include="FuncPointerHolder.cpp" />
+    <ClCompile Include="ManagedImageProcessor.cpp" />
+    <ClCompile Include="CheckComboBox.cpp" />
+    <ClCompile Include="NativeImageProcessor.cpp" />
     <ClCompile Include="TabSheet3.cpp" />
+    <ClCompile Include="TestClass.cpp" />
+    <ClCompile Include="TestDialog.cpp" />
+    <ClCompile Include="TTBarTabCtrl.cpp" />
     <ClCompile Include="TTBaseButton.cpp" />
+    <ClCompile Include="TTCheckBtnGroup.cpp" />
+    <ClCompile Include="TTDropTarget.cpp" />
     <ClCompile Include="TTEdit2.cpp" />
     <ClCompile Include="TTGroupBox.cpp" />
     <ClCompile Include="TTListCtrl.cpp" />
@@ -168,6 +213,8 @@
     <ClCompile Include="TTComboListBox.cpp" />
     <ClCompile Include="TTEdit.cpp" />
     <ClCompile Include="TTStatic.cpp" />
+    <ClCompile Include="ViewHeader.cpp" />
+    <ClCompile Include="ViewsHolderDlg.cpp" />
     <ClCompile Include="wbbutton.cpp" />
   </ItemGroup>
   <ItemGroup>

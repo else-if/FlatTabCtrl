@@ -23,4 +23,5 @@ public:
     CTTListCtrl listCtrl;
     virtual BOOL OnInitDialog();
     CListCtrl/*CTTListCtrl*/ listctrl2;
+	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
 };

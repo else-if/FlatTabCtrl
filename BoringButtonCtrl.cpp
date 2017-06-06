@@ -23,6 +23,7 @@ BoringButtonCtrl::~BoringButtonCtrl()
 BEGIN_MESSAGE_MAP(BoringButtonCtrl, CButton)
 	ON_WM_PAINT()
 	ON_WM_ERASEBKGND()
+	ON_WM_CREATE()
 END_MESSAGE_MAP()
 
 
@@ -89,4 +90,21 @@ void BoringButtonCtrl::PreSubclassWindow()
 	// TODO: Add your specialized code here and/or call the base class
 
 	CButton::PreSubclassWindow();
+}
+
+
+afx_msg LRESULT BoringButtonCtrl::OnMsgViewexpand(WPARAM wParam, LPARAM lParam)
+{
+	return 0;
+}
+
+
+int BoringButtonCtrl::OnCreate(LPCREATESTRUCT lpCreateStruct)
+{
+	if (CButton::OnCreate(lpCreateStruct) == -1)
+		return -1;
+
+	
+
+	return 0;
 }

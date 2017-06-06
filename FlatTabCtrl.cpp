@@ -5,6 +5,9 @@
 #include "stdafx.h"
 #include "FlatTabCtrl.h"
 #include "FlatTabCtrlDlg.h"
+#include "MainDialog.h"
+#include "DockDialog.h"
+#include "TabBarDlg.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -51,6 +54,8 @@ BOOL CFlatTabCtrlApp::InitInstance()
 	InitCtrls.dwICC = ICC_WIN95_CLASSES;
 	InitCommonControlsEx(&InitCtrls);
 
+	AfxOleInit();
+
 	CWinApp::InitInstance();
 
 	Gdiplus::GdiplusStartupInput gdiplusStartupInput;
@@ -74,7 +79,10 @@ BOOL CFlatTabCtrlApp::InitInstance()
 	// such as the name of your company or organization
 	SetRegistryKey(_T("Local AppWizard-Generated Applications"));
 
-	CFlatTabCtrlDlg dlg;
+	//CFlatTabCtrlDlg dlg;
+	//CDockDialog dlg;
+	CMainDialog dlg;
+	//CTabBarDlg dlg;
 	m_pMainWnd = &dlg;
 	INT_PTR nResponse = dlg.DoModal();
 	if (nResponse == IDOK)

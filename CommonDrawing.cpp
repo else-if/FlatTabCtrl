@@ -216,6 +216,8 @@ void CreateRectRgnInDevicePoints(CDC *pDC, CRgn *rgn, CRect &rc, int cornerRadiu
     CRect cDevPtsRect(rc);
     pDC->LPtoDP(&cDevPtsRect);
 
+	ASSERT(cDevPtsRect.EqualRect(&rc));
+
     if (cornerRadius == 0)
         rgn->CreateRectRgnIndirect(&cDevPtsRect);
     else
@@ -255,4 +257,73 @@ void InvalidateRectRegions(CWnd* pWnd, CRect &rect1, CRect &rect2, int nCombineM
 	invalidRgn.CombineRgn(&invalidRgn, &rgn2, nCombineMode);
 	
 	pWnd->InvalidateRgn(&invalidRgn);
+}
+
+// recreate the combo box by copying styles etc, and list items
+// and applying them to a newly created control
+BOOL RecreateComboBox(CComboBox* pCombo, LPVOID lpParam/*=0*/)
+{
+	if (pCombo == NULL)
+		return FALSE;
+	if (pCombo->GetSafeHwnd() == NULL)
+		return FALSE;
+
+	CWnd* pParent = pCombo->GetParent();
+	if (pParent == NULL)
+		return FALSE;
+
+	// get current attributes
+	DWORD dwStyle = pCombo->GetStyle();
+	DWORD dwStyleEx = pCombo->GetExStyle();
+	CRect rc;
+	pCombo->GetDroppedControlRect(&rc);
+	pParent->ScreenToClient(&rc);	// map to client co-ords
+	UINT nID = pCombo->GetDlgCtrlID();
+	CFont* pFont = pCombo->GetFont();
+	CWnd* pWndAfter = pCombo->GetNextWindow(GW_HWNDPREV);
+
+	// get the currently selected text (and whether it is a valid list selection)
+	CString sCurText;
+	int nCurSel = pCombo->GetCurSel();
+	BOOL bItemSelValid = nCurSel != -1;
+	if (bItemSelValid)
+		pCombo->GetLBText(nCurSel, sCurText);
+	else
+		pCombo->GetWindowText(sCurText);
+
+	// copy the combo box items into a temp combobox (not sorted)
+	// along with each item's data
+	CComboBox comboNew;
+	if (!comboNew.CreateEx(dwStyleEx, _T("COMBOBOX"), _T(""),
+		dwStyle, rc, pParent, nID, lpParam))
+		return FALSE;
+	comboNew.SetFont(pFont);
+	int nNumItems = pCombo->GetCount();
+	for (int n = 0; n < nNumItems; n++)
+	{
+		CString sText;
+		pCombo->GetLBText(n, sText);
+		int nNewIndex = comboNew.AddString(sText);
+		comboNew.SetItemData(nNewIndex, pCombo->GetItemData(n));
+	}
+	// re-set selected text
+	if (bItemSelValid)
+		comboNew.SetCurSel(comboNew.FindStringExact(-1, sCurText));
+	else
+		comboNew.SetWindowText(sCurText);
+
+	// destroy the existing window, then attach the new one
+	HWND oldHwnd = pCombo->Detach();
+	HWND hwnd = comboNew.Detach();
+	pCombo->Attach(hwnd);
+	pCombo->SubclassWindow(/*comboNew.GetSafeHwnd()*/hwnd);
+
+	::DestroyWindow(oldHwnd);
+
+	// position correctly in z-order
+	pCombo->SetWindowPos(pWndAfter == NULL ?
+		&CWnd::wndBottom :
+		pWndAfter, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+
+	return TRUE;
 }

@@ -30,7 +30,18 @@ void CTabSheet2::DoDataExchange(CDataExchange* pDX)
 
 
 BEGIN_MESSAGE_MAP(CTabSheet2, CDialog)
+	ON_WM_ERASEBKGND()
 END_MESSAGE_MAP()
 
 
 // CTabSheet2 message handlers
+
+
+BOOL CTabSheet2::OnEraseBkgnd(CDC* pDC)
+{
+	CRect clientRect;
+	GetClientRect(clientRect);
+	pDC->FillSolidRect(clientRect, RGB(255, 255, 255));
+
+	return TRUE;
+}

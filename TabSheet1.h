@@ -31,4 +31,5 @@ public:
     CTTButton m_btn6;
     CTTButton m_btn7;
     CTTButton m_btn8;
+	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
 };

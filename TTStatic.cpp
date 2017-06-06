@@ -16,7 +16,6 @@ m_oldParentRect(0, 0, 0, 0)
 	m_ControlState = Normal;
 	m_borderColor = 0;
 
-	m_bUseBmp = false;
 }
 
 CTTStatic::~CTTStatic()
@@ -116,27 +115,6 @@ END_MESSAGE_MAP()
 
 BOOL CTTStatic::OnEraseBkgnd(CDC* pDC)
 {
-	if (!m_bUseBmp){
-		CRect Rect;
-		GetWindowRect(&Rect);
-		CWnd *pParent = GetParent();
-		pParent->ScreenToClient(&Rect);
-		CDC *pParentDC = pParent->GetDC();
-
-		m_dc.DeleteDC();
-		// store into m_dc
-		CBitmap bmp;
-		m_dc.CreateCompatibleDC(pParentDC);
-		bmp.CreateCompatibleBitmap(pParentDC, Rect.Width(), Rect.Height());
-		m_dc.SelectObject(&bmp);
-		m_dc.BitBlt(0, 0, Rect.Width(), Rect.Height(), pParentDC, Rect.left, Rect.top, SRCCOPY);
-		bmp.DeleteObject();
-
-		m_bUseBmp = true;
-
-		pParent->ReleaseDC(pParentDC);
-	}
-
 	return TRUE;
 }
 
@@ -159,35 +137,16 @@ void CTTStatic::OnPaint()
 
 	UpdateControlState();
 
-	if (m_bUseBmp)
-	{
-		pDC->BitBlt(cRect.left, cRect.top, cRect.Width(), cRect.Height(),
-			&m_dc, 0, 0, SRCCOPY);
-	}
-	else
-	{
-		CRect Rect;
-		GetWindowRect(&Rect);
-		CWnd *pParent = GetParent();
-		pParent->ScreenToClient(&Rect);
-		CDC *pParentDC = pParent->GetDC();
+	CRect wndRect;
+	GetWindowRect(&wndRect);
+	CWnd *pParent = GetParent();
+	pParent->ScreenToClient(&wndRect);
+	CDC *pParentDC = pParent->GetDC();
 
-		m_dc.DeleteDC();
-		// store into m_dc
-		CBitmap bmp;
-		m_dc.CreateCompatibleDC(pParentDC);
-		bmp.CreateCompatibleBitmap(pParentDC, Rect.Width(), Rect.Height());
-		m_dc.SelectObject(&bmp);
-		m_dc.BitBlt(0, 0, Rect.Width(), Rect.Height(), pParentDC, Rect.left, Rect.top, SRCCOPY);
-		bmp.DeleteObject();
+	pDC->BitBlt(cRect.left, cRect.top, cRect.Width(), cRect.Height(),
+		pParentDC, wndRect.left, wndRect.top, SRCCOPY);
+	pParent->ReleaseDC(pParentDC);
 
-		m_bUseBmp = true;
-
-		pParent->ReleaseDC(pParentDC);
-
-		pDC->BitBlt(cRect.left, cRect.top, cRect.Width(), cRect.Height(),
-			&m_dc, 0, 0, SRCCOPY);
-	}
 
 	pDC->SetBkMode(TRANSPARENT);
 
@@ -325,7 +284,6 @@ void CTTStatic::OnMove(int x, int y)
 {
 	CStatic::OnMove(x, y);
 
-	m_bUseBmp = false;
 	Invalidate();
 
 	CWnd *pWnd = GetParent();
@@ -348,7 +306,6 @@ void CTTStatic::OnSize(UINT nType, int cx, int cy)
 	CStatic::OnSize(nType, cx, cy);
 
 	// invalidate current client region
-	m_bUseBmp = false;
 	Invalidate();
 
 	// invalidate changed parent region
